@@ -61,6 +61,7 @@ public class checkticket implements CommandExecutor {
 
         if (player == null || player.hasPermission("sht.admin") || rs.getString("uuid").equals(player.getUniqueId().toString())) {
           String world = null;
+          String loc = null;
           String date;
           String expiration;
 
@@ -79,6 +80,7 @@ public class checkticket implements CommandExecutor {
           String userreply = rs.getString("userreply");
           if (plugin.getConfig().getBoolean("MultiWorld") == true) {
             world = rs.getString("world");
+            loc = "[" + rs.getInt("x") + ", " + rs.getInt("y") + ", " + rs.getInt("z") + "]";
           }
           String description = rs.getString("description");
           String status = rs.getString("status");
@@ -88,7 +90,7 @@ public class checkticket implements CommandExecutor {
           sender.sendMessage(ChatColor.BLUE+" Owner: "+ChatColor.WHITE+owner);
           sender.sendMessage(ChatColor.BLUE+" Date: "+ChatColor.WHITE+date);
           if (plugin.getConfig().getBoolean("MultiWorld") == true) {
-            sender.sendMessage(ChatColor.BLUE+" World: "+ChatColor.WHITE+world);
+            sender.sendMessage(ChatColor.BLUE+" World: "+ChatColor.WHITE+world + " " +ChatColor.GRAY+loc);
           }
           if (status.contains("OPEN")) {
             sender.sendMessage(ChatColor.BLUE+" Status: "+ChatColor.GREEN+status);
