@@ -25,20 +25,20 @@ public class MySQLConnection extends Database {
 
 	/**
 	 * open database connection
-	 *  
-	 *  */
+	 * 
+	 * */
 	public Connection open() {
-			String url = "";
-			try {
-				Class.forName("com.mysql.jdbc.Driver");
-				url = "jdbc:mysql://" + this.hostname + ":" + this.portnmbr + "/" + this.database;
-				this.connection = DriverManager.getConnection(url, this.username, this.password);
-				return this.connection;
-			} catch (SQLException e) {
-				System.out.print("Could not connect to MySQL server!");
-			} catch (ClassNotFoundException e) {
-				System.out.print("JDBC Driver not found!");
-			}
+		String url = "";
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			url = "jdbc:mysql://" + this.hostname + ":" + this.portnmbr + "/" + this.database;
+			this.connection = DriverManager.getConnection(url, this.username, this.password);
+			return this.connection;
+		} catch (SQLException e) {
+			System.out.print("Could not connect to MySQL server!");
+		} catch (ClassNotFoundException e) {
+			System.out.print("JDBC Driver not found!");
+		}
 		return null;
 	}
 
@@ -53,15 +53,15 @@ public class MySQLConnection extends Database {
 			e.printStackTrace();
 		}
 	}
-	
-  public void createTable() {    
-    try {      
-      String queryC = "CREATE TABLE IF NOT EXISTS SHT_Tickets (id INTEGER AUTO_INCREMENT PRIMARY KEY, description varchar(128), date timestamp, uuid varchar(36), world varchar(30), x double(30,20), y double(30,20), z double(30,20), p double(30,20), f double(30,20), adminreply varchar(128), userreply varchar(128), status varchar(16), admin varchar(30) collate latin1_swedish_ci, expiration timestamp NULL DEFAULT NULL)";
-      this.query(queryC);          
-    } catch(Exception e) {
-      plugin.log.info("[SimpleHelpTickets] "+"Error: "+e);
-    }
-  } 
+
+	public void createTable() {
+		try {
+			String queryC = "CREATE TABLE IF NOT EXISTS SHT_Tickets (id INTEGER AUTO_INCREMENT PRIMARY KEY, description varchar(128), date timestamp, uuid varchar(36), world varchar(30), x double(30,20), y double(30,20), z double(30,20), p double(30,20), f double(30,20), adminreply varchar(128), userreply varchar(128), status varchar(16), admin varchar(30) collate latin1_swedish_ci, expiration timestamp NULL DEFAULT NULL)";
+			this.query(queryC);
+		} catch (Exception e) {
+			plugin.log.info("[Tickets] " + "Error: " + e);
+		}
+	}
 
 	/**
 	 * returns the active connection
@@ -70,42 +70,43 @@ public class MySQLConnection extends Database {
 	 * 
 	 * */
 
-//	public Connection getConnection() {
-//		return connection;
-//	}
-  public Connection getConnection() {
-    if (checkConnection() == false) {
-      try {
-      this.close();
-      this.open();
-      } catch(Exception e) {
-        plugin.log.info("[SimpleHelpTickets] "+"Error: "+e);
-      }
-    }
-    return connection;
-  }
+	// public Connection getConnection() {
+	// return connection;
+	// }
+	public Connection getConnection() {
+		if (checkConnection() == false) {
+			try {
+				this.close();
+				this.open();
+			} catch (Exception e) {
+				plugin.log.info("[Tickets] " + "Error: " + e);
+			}
+		}
+		return connection;
+	}
 
 	/**
 	 * checks if the connection is still active
 	 * 
 	 * @return true if still active
 	 * */
-  public boolean checkConnection() {
-    try {
-      if (connection != null && connection.isValid(2)) {
-        return true;
-      }
-    } catch (SQLException e) {
-      return false;
-    }
-    return false;
+	public boolean checkConnection() {
+		try {
+			if (connection != null && connection.isValid(2)) {
+				return true;
+			}
+		} catch (SQLException e) {
+			return false;
+		}
+		return false;
 
-  }
+	}
 
-  /**
+	/**
 	 * Query the database
 	 * 
-	 * @param query the database query
+	 * @param query
+	 *            the database query
 	 * @return ResultSet of the query
 	 * 
 	 * @throws SQLException
@@ -144,7 +145,8 @@ public class MySQLConnection extends Database {
 	/**
 	 * Empties a table
 	 * 
-	 * @param table the table to empty
+	 * @param table
+	 *            the table to empty
 	 * @return true if data-removal was successful.
 	 * 
 	 * */
@@ -158,18 +160,22 @@ public class MySQLConnection extends Database {
 				return false;
 			query = "DELETE FROM " + table;
 			statement.executeUpdate(query);
-				return true;
+			return true;
 		} catch (SQLException e) {
-				return false;
+			return false;
 		}
 	}
 
 	/**
 	 * Insert data into a table
-	 *  
-	 * @param table the table to insert data
-	 * @param column a String[] of the columns to insert to
-	 * @param value a String[] of the values to insert into the column (value[0] goes in column[0])
+	 * 
+	 * @param table
+	 *            the table to insert data
+	 * @param column
+	 *            a String[] of the columns to insert to
+	 * @param value
+	 *            a String[] of the values to insert into the column (value[0]
+	 *            goes in column[0])
 	 * 
 	 * @return true if insertion was successful.
 	 * */
@@ -181,7 +187,7 @@ public class MySQLConnection extends Database {
 			sb1.append(s + ",");
 		}
 		for (String s : value) {
-			sb2.append("'"+s + "',");
+			sb2.append("'" + s + "',");
 		}
 		String columns = sb1.toString().substring(0, sb1.toString().length() - 1);
 		String values = sb2.toString().substring(0, sb2.toString().length() - 1);
@@ -198,7 +204,8 @@ public class MySQLConnection extends Database {
 	/**
 	 * Delete a table
 	 * 
-	 * @param table the table to delete
+	 * @param table
+	 *            the table to delete
 	 * @return true if deletion was successful.
 	 * */
 	public boolean deleteTable(String table) {
