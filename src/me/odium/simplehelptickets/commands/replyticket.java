@@ -149,12 +149,8 @@ public class replyticket implements CommandExecutor {
 											// result set
 							}
 
-							Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-							for (Player op : players) {
-								if (op.hasPermission("sht.admin") && op != player) {
-									op.sendMessage(plugin.getMessage("UserRepliedToTicket").replace("%player", player.getName()).replace("&arg", id));
-								}
-							}
+							String msg = plugin.getMessage("UserRepliedToTicket").replace("%player", player.getName()).replace("&arg", id);
+							plugin.notifyAdmins(msg, sender);
 						} catch (Exception e) {
 							if (e.toString().contains("ResultSet closed")) {
 								sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
