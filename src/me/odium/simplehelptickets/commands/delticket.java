@@ -2,6 +2,7 @@ package me.odium.simplehelptickets.commands;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -21,10 +22,10 @@ public class delticket implements CommandExecutor {
 	}
 
 	DBConnection service = DBConnection.getInstance();
-	ResultSet rs;
-	java.sql.Statement stmt;
-	java.sql.Statement stmt2;
-	Connection con;
+	ResultSet rs = null;
+	java.sql.Statement stmt = null;
+	java.sql.Statement stmt2 = null;
+	Connection con = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
@@ -78,6 +79,15 @@ public class delticket implements CommandExecutor {
 					}
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					return true;
+				} finally {
+					try {
+						if (rs != null) { rs.close(); rs = null; }
+						if (stmt != null) { stmt.close(); stmt = null; }
+						if (stmt2 != null) { stmt2.close(); stmt2 = null; }
+					} catch (SQLException e) {
+						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+						e.printStackTrace();
+					}
 				}
 				// PLAYER COMMANDS
 			} else {
@@ -118,6 +128,15 @@ public class delticket implements CommandExecutor {
 				} catch (Exception e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					return true;
+				} finally {
+					try {
+						if (rs != null) { rs.close(); rs = null; }
+						if (stmt != null) { stmt.close(); stmt = null; }
+						if (stmt2 != null) { stmt2.close(); stmt2 = null; }
+					} catch (SQLException e) {
+						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+						e.printStackTrace();
+					}
 				}
 			}
 		}

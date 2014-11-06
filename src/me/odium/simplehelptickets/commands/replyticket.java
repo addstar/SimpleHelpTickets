@@ -2,13 +2,12 @@ package me.odium.simplehelptickets.commands;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collection;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -23,9 +22,9 @@ public class replyticket implements CommandExecutor {
 	}
 
 	DBConnection service = DBConnection.getInstance();
-	ResultSet rs;
-	java.sql.Statement stmt;
-	Connection con;
+	ResultSet rs = null;
+	java.sql.Statement stmt = null;
+	Connection con = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
@@ -103,6 +102,14 @@ public class replyticket implements CommandExecutor {
 						} else {
 							sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 						}
+					} finally {
+						try {
+							if (rs != null) { rs.close(); rs = null; }
+							if (stmt != null) { stmt.close(); stmt = null; }
+						} catch (SQLException e) {
+							System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+							e.printStackTrace();
+						}
 					}
 					return true;
 				} else {
@@ -159,6 +166,14 @@ public class replyticket implements CommandExecutor {
 								sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 								return true;
 							}
+						} finally {
+							try {
+								if (rs != null) { rs.close(); rs = null; }
+								if (stmt != null) { stmt.close(); stmt = null; }
+							} catch (SQLException e) {
+								System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+								e.printStackTrace();
+							}
 						}
 						// IF PLAYER ISNT THE TICKET OWNER
 					} else {
@@ -195,6 +210,14 @@ public class replyticket implements CommandExecutor {
 							} else {
 								sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 							}
+						} finally {
+							try {
+								if (rs != null) { rs.close(); rs = null; }
+								if (stmt != null) { stmt.close(); stmt = null; }
+							} catch (SQLException e) {
+								System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+								e.printStackTrace();
+							}
 						}
 						return true;
 					}
@@ -206,6 +229,14 @@ public class replyticket implements CommandExecutor {
 				} else {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					return true;
+				}
+			} finally {
+				try {
+					if (rs != null) { rs.close(); rs = null; }
+					if (stmt != null) { stmt.close(); stmt = null; }
+				} catch (SQLException e) {
+					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+					e.printStackTrace();
 				}
 			}
 		}

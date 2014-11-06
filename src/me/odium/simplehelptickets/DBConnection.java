@@ -10,7 +10,7 @@ public class DBConnection {
 	private static DBConnection instance = new DBConnection();
 	public Connection con = null;
 	public int Timeout = 30;
-	public Statement stmt;
+	public Statement stmt = null;
 
 	private SimpleHelpTickets plugin;
 
@@ -57,6 +57,7 @@ public class DBConnection {
 					+ "p double(30,20), " + "f double(30,20), " + "adminreply varchar(128), " + "userreply varchar(128), " + "status varchar(16), "
 					+ "admin varchar(30), " + "expiration timestamp)";
 			stmt.executeUpdate(queryC);
+			stmt.close();
 		} catch (Exception e) {
 			plugin.log.info("[Tickets] " + "Error: " + e);
 		}

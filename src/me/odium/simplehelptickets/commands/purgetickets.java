@@ -2,6 +2,9 @@ package me.odium.simplehelptickets.commands;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
@@ -19,17 +22,15 @@ public class purgetickets implements CommandExecutor {
 	}
 
 	DBConnection service = DBConnection.getInstance();
-	ResultSet rs;
-	java.sql.Statement stmt;
-	Connection con;
+	ResultSet rs = null;
+	Statement stmt = null;
+	Connection con = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (args.length == 0) {
 			sender.sendMessage(plugin.GRAY + "[SimpleHelpTickets] " + ChatColor.GOLD + plugin.expireTickets() + ChatColor.WHITE + " Expired tickets purged");
 			return true;
 		} else if (args.length == 1 && args[0].equalsIgnoreCase("-c")) {
-			java.sql.Statement stmt;
-			Connection con;
 			try {
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					con = plugin.mysql.getConnection();
@@ -42,11 +43,17 @@ public class purgetickets implements CommandExecutor {
 				sender.sendMessage(plugin.getMessage("AllClosedTicketsPurged"));
 			} catch (Exception e) {
 				sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+			} finally {
+				try {
+					if (rs != null) { rs.close(); rs = null; }
+					if (stmt != null) { stmt.close(); stmt = null; }
+				} catch (SQLException e) {
+					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+					e.printStackTrace();
+				}
 			}
 
 		} else if (args.length == 1 && args[0].equalsIgnoreCase("-a")) {
-			java.sql.Statement stmt;
-			Connection con;
 			try {
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					con = plugin.mysql.getConnection();
@@ -64,8 +71,15 @@ public class purgetickets implements CommandExecutor {
 				sender.sendMessage(plugin.getMessage("AllTicketsPurged"));
 			} catch (Exception e) {
 				plugin.log.info("[SimpleHelpTickets] " + "Error: " + e);
+			} finally {
+				try {
+					if (rs != null) { rs.close(); rs = null; }
+					if (stmt != null) { stmt.close(); stmt = null; }
+				} catch (SQLException e) {
+					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+					e.printStackTrace();
+				}
 			}
-
 		}
 		return true;
 	}

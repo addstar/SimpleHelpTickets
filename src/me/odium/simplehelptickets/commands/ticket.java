@@ -39,9 +39,9 @@ public class ticket implements CommandExecutor {
 	String userreply;
 
 	DBConnection service = DBConnection.getInstance();
-	ResultSet rs;
-	Connection con;
-	java.sql.Statement stmt;
+	ResultSet rs = null;
+	Connection con = null;
+	java.sql.Statement stmt = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
@@ -124,6 +124,14 @@ public class ticket implements CommandExecutor {
 					}
 				} catch (SQLException e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+				} finally {
+					try {
+						if (rs != null) { rs.close(); rs = null; }
+						if (stmt != null) { stmt.close(); stmt = null; }
+					} catch (SQLException e) {
+						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+						e.printStackTrace();
+					}
 				}
 
 				// END CHECK MAX TICKETS
@@ -161,6 +169,14 @@ public class ticket implements CommandExecutor {
 				} catch (SQLException e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					e.printStackTrace();
+				} finally {
+					try {
+						if (rs != null) { rs.close(); rs = null; }
+						if (stmt != null) { stmt.close(); stmt = null; }
+					} catch (SQLException e) {
+						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+						e.printStackTrace();
+					}
 				}
 
 			} else {
@@ -179,6 +195,14 @@ public class ticket implements CommandExecutor {
 					}
 				} catch (SQLException e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+				} finally {
+					try {
+						if (rs != null) { rs.close(); rs = null; }
+						if (stmt != null) { stmt.close(); stmt = null; }
+					} catch (SQLException e) {
+						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+						e.printStackTrace();
+					}
 				}
 				// END CHECK MAX TICKETS
 
@@ -215,6 +239,14 @@ public class ticket implements CommandExecutor {
 					plugin.notifyAdmins(msg, sender);
 				} catch (Exception e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+				} finally {
+					try {
+						if (rs != null) { rs.close(); rs = null; }
+						if (stmt != null) { stmt.close(); stmt = null; }
+					} catch (SQLException e) {
+						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+						e.printStackTrace();
+					}
 				}
 			}
 		}

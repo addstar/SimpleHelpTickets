@@ -2,6 +2,7 @@ package me.odium.simplehelptickets.commands;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 
 import me.odium.simplehelptickets.DBConnection;
@@ -23,8 +24,8 @@ public class closeticket implements CommandExecutor {
 	}
 
 	DBConnection service = DBConnection.getInstance();
-	ResultSet rs;
-	java.sql.Statement stmt;
+	ResultSet rs = null;
+	java.sql.Statement stmt = null;
 	Connection con;
 
 	Player target;
@@ -122,6 +123,14 @@ public class closeticket implements CommandExecutor {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					return true;
 				}
+			} finally {
+				try {
+					if (rs != null) { rs.close(); rs = null; }
+					if (stmt != null) { stmt.close(); stmt = null; }
+				} catch (SQLException e) {
+					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+					e.printStackTrace();
+				}
 			}
 			// REPOENING A TICKET
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-r")) {
@@ -196,6 +205,14 @@ public class closeticket implements CommandExecutor {
 				} else {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					return true;
+				}
+			} finally {
+				try {
+					if (rs != null) { rs.close(); rs = null; }
+					if (stmt != null) { stmt.close(); stmt = null; }
+				} catch (SQLException e) {
+					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+					e.printStackTrace();
 				}
 			}
 		}

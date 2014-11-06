@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -238,9 +239,10 @@ public class SimpleHelpTickets extends JavaPlugin {
 	}
 
 	public int expireTickets() {
-		ResultSet rs;
-		java.sql.Statement stmt;
-		Connection con;
+		ResultSet rs = null;
+		Statement stmt = null;
+		Statement stmt2 = null;
+		Connection con = null;
 		int expirations = 0;
 		Date dateNEW;
 		Date expirationNEW;
@@ -251,7 +253,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 				con = service.getConnection();
 			}
 			stmt = con.createStatement();
-			Statement stmt2 = con.createStatement();
+			stmt2 = con.createStatement();
 			rs = stmt.executeQuery("SELECT * FROM SHT_Tickets");
 			while (rs.next()) {
 				String exp = rs.getString("expiration");
@@ -283,6 +285,15 @@ public class SimpleHelpTickets extends JavaPlugin {
 			// return expirations;
 		} catch (Exception e) {
 			log.info("[SimpleHelpTickets] " + "Error: " + e);
+		} finally {
+			try {
+				if (rs != null) { rs.close(); rs = null; }
+				if (stmt != null) { stmt.close(); stmt = null; }
+				if (stmt2 != null) { stmt2.close(); stmt2 = null; }
+			} catch (SQLException e) {
+				System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+				e.printStackTrace();
+			}
 		}
 		return expirations;
 	}
@@ -589,7 +600,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 	}
 
 	public void notifyAdmins(String msg, CommandSender sender) {
-		System.out.println("notifyAdmins(): => " + msg);
+		//System.out.println("notifyAdmins(): => " + msg);
 		UUID uuid = null;
 		if (sender instanceof Player) {
 			Player ply = (Player) sender;
@@ -613,7 +624,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 	}
 
 	public void notifyUser(String msg, String player) {
-		System.out.println("notifyUser(): " + player + " => " + msg);
+		//System.out.println("notifyUser(): " + player + " => " + msg);
 		Player ply = Bukkit.getPlayerExact(player);
 		if (ply != null) {
 			ply.sendMessage(msg);
