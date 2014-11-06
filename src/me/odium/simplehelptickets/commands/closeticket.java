@@ -68,8 +68,6 @@ public class closeticket implements CommandExecutor {
 				// CHECK TICKET STATUS IS NOT ALREADY CLOSED, IF SO END HERE.
 				if (rs.getString("status").equalsIgnoreCase("CLOSED")) {
 					sender.sendMessage(plugin.getMessage("TicketAlreadyClosed").replace("&arg", args[0]));
-					rs.close();
-					stmt.close();
 					return true;
 				}
 				// CHECK THE OWNER OF THE TICKET, AND GET CUSTOM OUTPUT FROM
@@ -94,9 +92,6 @@ public class closeticket implements CommandExecutor {
 					// UPDATE THE TICKET
 					stmt.executeUpdate("UPDATE SHT_Tickets SET status='" + "CLOSED" + "', admin='" + admin + "', expiration='" + expiration + "' WHERE id='" + id + "'");
 					sender.sendMessage(plugin.getMessage("TicketClosed").replace("&arg", "" + id));
-
-					stmt.close();
-					rs.close();
 
 					String msg = plugin.getMessage("TicketClosedADMIN").replace("&arg", "" + args[0]).replace("&admin", admin);
 					plugin.notifyAdmins(msg, null);
@@ -160,8 +155,6 @@ public class closeticket implements CommandExecutor {
 				// CHECK TICKET IS NOT ALREADY OPEN, IF SO END HERE.
 				if (rs.getString("status").equalsIgnoreCase("OPEN")) {
 					sender.sendMessage(plugin.getMessage("TicketNotClosed").replace("&arg", args[1]));
-					rs.close();
-					stmt.close();
 					return true;
 				}
 				// CHECK THE OWNER OF THE TICKET, AND GET CUSTOM OUTPUT FROM
@@ -179,8 +172,6 @@ public class closeticket implements CommandExecutor {
 					stmt.executeUpdate("UPDATE SHT_Tickets SET status='" + "OPEN" + "', admin='" + admin + "', expiration=NULL WHERE id='" + id + "'");
 
 					sender.sendMessage(plugin.getMessage("TicketReopened").replace("&arg", "" + id).replace("&admin", admin));
-					stmt.close();
-					rs.close();
 					// IF TICKETOWNER IS ONLINE, TELL THEM OF CHANGES TO THEIR
 					// TICKET
 					if (target != null && target != player) {

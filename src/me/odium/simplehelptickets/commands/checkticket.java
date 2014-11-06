@@ -125,8 +125,6 @@ public class checkticket implements CommandExecutor {
 						// // plugin.log.info("ticket HAS NOT expired!");
 						// }
 					}
-
-					rs.close();
 				}
 			} catch (SQLException e) {
 				if (e.toString().contains("empty result set.")) {

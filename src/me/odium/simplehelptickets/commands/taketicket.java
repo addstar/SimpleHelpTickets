@@ -81,6 +81,8 @@ public class taketicket implements CommandExecutor {
 			float p = (float) rs.getDouble("p");
 			float f = (float) rs.getDouble("f");
 			final Location locc = new Location(world, x, y, z, f, p);
+			rs.close();
+
 			// Display Ticket
 			rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + ticketNumber + "'");
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -110,8 +112,6 @@ public class taketicket implements CommandExecutor {
 
 			if (status.equalsIgnoreCase("CLOSED")) {
 				sender.sendMessage(plugin.getMessage("CannotTakeClosedTicket").replace("&arg", id));
-				stmt.close();
-				rs.close();
 				return true;
 			}
 
@@ -154,8 +154,6 @@ public class taketicket implements CommandExecutor {
 			msg = plugin.getMessage("TakeTicketOWNER").replace("&arg", id).replace("&admin", admin);
 			plugin.notifyUser(msg, owner);
 
-			stmt.close();
-			rs.close();
 			return true;
 		} catch (Exception e) {
 			if (e.toString().contains("ResultSet closed")) {

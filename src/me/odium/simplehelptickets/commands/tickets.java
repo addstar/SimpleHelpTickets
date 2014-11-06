@@ -65,13 +65,9 @@ public class tickets implements CommandExecutor {
           }
           if (iterations == 0) {            
             sender.sendMessage(plugin.getMessage("NoTickets"));           
-            rs.close();
-            stmt.close();
             return true;
           }
 
-          rs.close();
-          stmt.close();
           return true;
         } else if (args.length == 1 && args[0].equalsIgnoreCase("-a")) {     
           // DISPLAY ALL TICKETS
@@ -116,13 +112,9 @@ public class tickets implements CommandExecutor {
           }
           if (iterations == 0) {            
             sender.sendMessage(plugin.getMessage("NoTickets"));            
-            rs.close();
-            stmt.close();
             return true;
           }
 
-          rs.close();
-          stmt.close();
           return true;
           // DISPLAY CLOSED TICKETS
         } else if (args.length == 1 && args[0].equalsIgnoreCase("-c")) {     
@@ -148,13 +140,8 @@ public class tickets implements CommandExecutor {
           }
           if (iterations == 0) {            
             sender.sendMessage(plugin.getMessage("NoTickets"));            
-            rs.close();
-            stmt.close();
             return true;
           }
-
-          rs.close();
-          stmt.close();
           return true;
         } else if (args.length == 1 && !args[0].equalsIgnoreCase("-c") && !args[0].equalsIgnoreCase("-a") ) {
           sender.sendMessage("/tickets [-a/-c]");
@@ -219,12 +206,8 @@ public class tickets implements CommandExecutor {
         }
         if (iterations == 0) {            
           sender.sendMessage(plugin.getMessage("NoTickets"));          
-          rs.close();
-          stmt.close();
           return true;
         }
-        rs.close();
-        stmt.close();
         return true;
       } catch(Exception e) {
         sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));

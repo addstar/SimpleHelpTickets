@@ -61,14 +61,11 @@ public class delticket implements CommandExecutor {
 					}
 					if (rs.getInt("ticketTotal") == 0) {
 						sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
-						rs.close();
-						stmt.close();
 						return true;
 					}
 					stmt.executeUpdate("DELETE FROM SHT_Tickets WHERE id='" + args[0] + "'");
 					sender.sendMessage(plugin.GRAY + "[Tickets] " + plugin.WHITE + "Ticket " + ChatColor.GOLD + args[0] + ChatColor.WHITE + " Deleted");
 
-					stmt.close();
 					return true;
 
 				} catch (Exception e) {
@@ -105,8 +102,6 @@ public class delticket implements CommandExecutor {
 					}
 					if (rs.getInt("ticketTotal") == 0) {
 						sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
-						rs.close();
-						stmt.close();
 						return true;
 					}
 					rs.close();
@@ -121,8 +116,6 @@ public class delticket implements CommandExecutor {
 					} else {
 						stmt.executeUpdate("DELETE FROM SHT_Tickets WHERE id='" + args[0] + "'");
 						sender.sendMessage(plugin.GRAY + "[Tickets] " + plugin.WHITE + "Ticket " + ChatColor.GOLD + args[0] + ChatColor.WHITE + " Deleted");
-						rs.close();
-						stmt.close();
 						return true;
 					}
 				} catch (Exception e) {

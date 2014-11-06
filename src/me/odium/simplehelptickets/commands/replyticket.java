@@ -75,8 +75,6 @@ public class replyticket implements CommandExecutor {
 					}
 					if (rs.getInt("ticketTotal") == 0) {
 						sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
-						rs.close();
-						stmt.close();
 						return true;
 					}
 					stmt.executeUpdate("UPDATE SHT_Tickets SET adminreply='" + admin + ": " + details + "', admin='" + admin + "' WHERE id='" + id + "'");
@@ -128,8 +126,6 @@ public class replyticket implements CommandExecutor {
 					}
 					if (rs.getInt("ticketTotal") == 0) {
 						sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
-						rs.close();
-						stmt.close();
 						return true;
 					}
 

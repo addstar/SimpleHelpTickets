@@ -47,14 +47,8 @@ public class PListener implements Listener {
           }
 
           int ticketTotal = rs.getInt("ticketTotal");
-          if (ticketTotal == 0) {
-            // DO NOTHING
-            rs.close();
-            stmt.close();
-          } else if(ticketTotal > 0) {
+          if (ticketTotal > 0) {
             player.sendMessage(plugin.getMessage("AdminJoin").replace("&arg", ticketTotal+""));
-            rs.close();
-            stmt.close();
           }
         } catch(Exception e) {
           plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
@@ -75,11 +69,7 @@ public class PListener implements Listener {
             rs.next(); //sets pointer to first record in result set
 
             int ticketTotal = rs.getInt("ticketTotal");
-            if (ticketTotal == 0) {
-              // DO NOTHING              
-              rs.close();
-              stmt.close();
-            } else if(ticketTotal > 0) {              
+            if (ticketTotal > 0) {
               rs.close();
               rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
               int openNumber = 0;              
@@ -96,14 +86,13 @@ public class PListener implements Listener {
               if (DisplayTicketUser == true && openNumber > 0) {                
                 player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber+""));              
               }
-              rs.close();
-              stmt.close();      
             }
+            rs.close();
+            stmt.close();
           } catch(Exception e) {
             plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
           }      
         } else {
-
           try {
             con = service.getConnection();
             stmt = con.createStatement();
@@ -132,7 +121,6 @@ public class PListener implements Listener {
               if (DisplayTicketUser == true && openNumber > 0) {                
                 player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber+""));              
               }
-
               rs.close();
               stmt.close();
             }
