@@ -97,9 +97,9 @@ public class checkticket implements CommandExecutor {
 					sender.sendMessage(ChatColor.BLUE + " Assigned: " + ChatColor.WHITE + admin);
 					sender.sendMessage(ChatColor.BLUE + " Ticket: " + ChatColor.GOLD + description);
 					if (adminreply.equalsIgnoreCase("NONE")) {
-						sender.sendMessage(ChatColor.BLUE + " Admin Reply: " + ChatColor.WHITE + "(none)");
+						sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.WHITE + "(none)");
 					} else {
-						sender.sendMessage(ChatColor.BLUE + " Admin Reply: " + ChatColor.YELLOW + adminreply);
+						sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.YELLOW + adminreply);
 					}
 					if (userreply.equalsIgnoreCase("NONE")) {
 						sender.sendMessage(ChatColor.BLUE + " User Reply: " + ChatColor.WHITE + "(none)");

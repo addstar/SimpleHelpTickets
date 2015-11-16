@@ -44,3 +44,7 @@ commands:
       description: Purge all expired tickets
       permission: sht.admin
       usage: /purgetickets
+   findtickets:
+      description: Search for tickets
+      permission:
+      usage: /findtickets t:3d text to find   (see full details with /findtickets help)

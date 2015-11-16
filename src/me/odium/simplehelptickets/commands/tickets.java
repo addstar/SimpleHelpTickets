@@ -7,221 +7,221 @@ import java.sql.SQLException;
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.Utilities;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class tickets implements CommandExecutor {   
+public class tickets implements CommandExecutor {
 
-  public SimpleHelpTickets plugin;
-  public tickets(SimpleHelpTickets plugin)  {
-    this.plugin = plugin;
-  }
+	public SimpleHelpTickets plugin;
 
-  DBConnection service = DBConnection.getInstance();
-  ResultSet rs = null;
-  java.sql.Statement stmt = null;
-  Connection con = null;
+	public tickets(SimpleHelpTickets plugin) {
+		this.plugin = plugin;
+	}
 
-  public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)  {    
-    Player player = null;
-    if (sender instanceof Player) {
-      player = (Player) sender;
-    }
+	DBConnection service = DBConnection.getInstance();
+	ResultSet rs = null;
+	java.sql.Statement stmt = null;
+	Connection con = null;
 
-    if (player == null || player.hasPermission("sht.admin")) {
-      try {
-        if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-          con = plugin.mysql.getConnection();
-        } else {
-          con = service.getConnection();
-        }
-        stmt = con.createStatement();
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		Player player = null;
+		boolean atConsole = true;
 
-        if (args.length == 0) {    
-          // DISPLAY OPEN TICKETS
-          rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE status='"+"OPEN"+"' ORDER BY id ASC");
-          int iterations = 0;
-          sender.sendMessage(plugin.GOLD+"[ "+plugin.WHITE+ChatColor.BOLD+"Open Tickets"+ChatColor.RESET+plugin.GOLD+" ]");
-          while(rs.next()){
-            iterations++;
-            String desc = rs.getString("description");
-            if (desc.length() > 42) {
-              desc = desc.substring(0, 42)+"...";              
-            }            
-            String ownerName = rs.getString("owner");            
-            
-            if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) { // if only admin has replied
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.YELLOW+desc);
-            } else if (!rs.getString("userreply").equalsIgnoreCase("NONE") && rs.getString("adminreply").equalsIgnoreCase("NONE")) { // if only user has replied
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.YELLOW+desc);
-            } else if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && !rs.getString("userreply").equalsIgnoreCase("NONE")) { // if both have replied
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.GOLD+desc);
-            } else if (rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) { // if neither have replied
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.WHITE+desc);
-            }
-          }
-          if (iterations == 0) {            
-            sender.sendMessage(plugin.getMessage("NoTickets"));           
-            return true;
-          }
+		if (sender instanceof Player) {
+			player = (Player) sender;
+			atConsole = false;
+		}
 
-          return true;
-        } else if (args.length == 1 && args[0].equalsIgnoreCase("-a")) {     
-          // DISPLAY ALL TICKETS
-          rs = stmt.executeQuery("SELECT * FROM SHT_Tickets ORDER BY id ASC");      
-          int iterations = 0;
-          sender.sendMessage(plugin.GOLD+"[ "+plugin.WHITE+ChatColor.BOLD+"All Tickets"+ChatColor.RESET+plugin.GOLD+" ]");
-          while(rs.next()){
-            iterations++;
-            String desc = rs.getString("description");
-            if (desc.length() > 42) {
-              desc = desc.substring(0, 42)+"...";
-            }
-            String ownerName = rs.getString("owner");
-            if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) { // IF ONLY ADMIN HAS REPLIED     
-              if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN AND ADMIN HAS REPLIED
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.YELLOW+desc);
-              } else { // IF TICKET IS CLOSED AND ADMIN HAS REPLIED
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.YELLOW+desc);
-              }
+		int maxRecordsToReturn;
+		if (atConsole)
+			maxRecordsToReturn = 500;
+		else
+			maxRecordsToReturn = 100;
 
-            } else if (!rs.getString("userreply").equalsIgnoreCase("NONE") && rs.getString("adminreply").equalsIgnoreCase("NONE")) { // IF ONLY USER HAS REPLIED
-              if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN AND ONLY USER HAS REPLIED
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.YELLOW+desc);
-              } else { // IF TICKET IS CLOSED AND ONLY USER HAS REPLIED
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.YELLOW+desc);
-              }
+		if (player == null || player.hasPermission("sht.admin")) {
+			try {
+				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
+					con = plugin.mysql.getConnection();
+				} else {
+					con = service.getConnection();
+				}
+				stmt = con.createStatement();
 
-            } else if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && !rs.getString("userreply").equalsIgnoreCase("NONE")) { // IF BOTH ADMIN AND USER HAVE REPLIED
-              if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN AND BOTH HAVE REPLIED
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.GOLD+desc);
-              } else { // IF TICKET IS CLOSED AND BOTH HAVE REPLIED
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.GOLD+desc);
-              }
+				boolean verboseMode = false;
+				boolean allTickets = false;
+				boolean allClosed = false;
 
-            } else if (rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) { // IF NEITHER HAVE REPLIED
-              if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN AND NEITHER HAVE REPLIED 
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.WHITE+desc);
-              } else { // IF TICKET IS CLOSED AND NEITHER HAVE REPLIED
-                sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.GRAY+desc);
-              }
-            }
-          }
-          if (iterations == 0) {            
-            sender.sendMessage(plugin.getMessage("NoTickets"));            
-            return true;
-          }
+				for (int i = 0; i < args.length; i++) {
+					if (args[i].equalsIgnoreCase("-v"))
+						verboseMode = true;
 
-          return true;
-          // DISPLAY CLOSED TICKETS
-        } else if (args.length == 1 && args[0].equalsIgnoreCase("-c")) {     
-          rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE status='"+"CLOSED"+"' ORDER BY id ASC");          
-          int iterations = 0;
-          sender.sendMessage(plugin.GOLD+"[ "+plugin.WHITE+ChatColor.BOLD+"Closed Tickets"+ChatColor.RESET+plugin.GOLD+" ]");
-          while(rs.next()){
-            iterations++;
-            String desc = rs.getString("description");
-            if (desc.length() > 42) {
-              desc = desc.substring(0, 42)+"...";
-            }
-            String ownerName = rs.getString("owner");
-            if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) { // IF ONLY ADMIN HAS REPLIED
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.YELLOW+desc);
-            } else if (rs.getString("adminreply").equalsIgnoreCase("NONE") && !rs.getString("userreply").equalsIgnoreCase("NONE")) { // IF ONLY USER HAS REPLIED
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.YELLOW+desc);
-            } else if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && !rs.getString("userreply").equalsIgnoreCase("NONE")) {   // IF BOTH HAVE REPLIED
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.GOLD+desc);
-            } else if (rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) {   // IF NEITHER HAVE REPLIED
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.GRAY+desc);
-            }
-          }
-          if (iterations == 0) {            
-            sender.sendMessage(plugin.getMessage("NoTickets"));            
-            return true;
-          }
-          return true;
-        } else if (args.length == 1 && !args[0].equalsIgnoreCase("-c") && !args[0].equalsIgnoreCase("-a") ) {
-          sender.sendMessage("/tickets [-a/-c]");
-          return true;
-        }
-      } catch(Exception e) {
-        sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
-        return true;
-      } finally {
-          try {
-              if (rs != null) { rs.close(); rs = null; }
-              if (stmt != null) { stmt.close(); stmt = null; }
-          } catch (SQLException e) {
-              System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-              e.printStackTrace();
-          }
-      }
-    } else {
-      // DISPLAY USER TICKETS
-      try {
-        if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-          con = plugin.mysql.getConnection();
-        } else {
-          con = service.getConnection();
-        }
-        stmt = con.createStatement();
-        rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"' ORDER BY id ASC");   
-        int iterations = 0;
-        sender.sendMessage(plugin.GOLD+"[ "+plugin.WHITE+ChatColor.BOLD+"Your Tickets"+ChatColor.RESET+plugin.GOLD+" ]");
-        while(rs.next()){
-          iterations++;
-          String desc = rs.getString("description");
-          if (desc.length() > 42) {
-            desc = desc.substring(0, 42)+"...";
-          }
-          String ownerName = rs.getString("owner");
-          if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) { // IF THERE HAS BEEN AN ADMIN REPLY              
-            if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN WITH ADMIN REPLY
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.YELLOW+desc);
-            } else { // IF TICKET IS CLOSED WITH ADMIN REPLY
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.YELLOW+desc);
-            }
-          } else if (!rs.getString("userreply").equalsIgnoreCase("NONE") && rs.getString("adminreply").equalsIgnoreCase("NONE")) { // IF THERE HAS BEEN A USER REPLY              
-            if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN WITH USER REPLY
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.YELLOW+desc);
-            } else { // IF TICKET IS CLOSED WITH USER REPLY
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.YELLOW+desc);
-            }
-          } else if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && !rs.getString("userreply").equalsIgnoreCase("NONE")) { //IF THERE HAS BEEN BOTH AN ADMIN AND USER REPLY
-            if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN WITH BOTH ADMIN AND USER REPLY
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.GOLD+desc);
-            } else { // IF TICKET IS CLOSED WITH BOTH ADMIN AND USER REPLY
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.GOLD+desc);
-            }
-          } else { // IF THERE HAS BEEN NO REPLIES
-            if (rs.getString("status").equalsIgnoreCase("OPEN")) { // IF TICKET IS OPEN
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.WHITE+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GREEN+ownerName+": "+ChatColor.WHITE+desc);
-            } else { // IF TICKET IS CLOSED
-              sender.sendMessage(ChatColor.GOLD+"("+ChatColor.GRAY+rs.getInt("id")+ChatColor.GOLD+") "+ChatColor.DARK_GRAY+ownerName+": "+ChatColor.GRAY+desc);
-            }
-          }
-        }
-        if (iterations == 0) {            
-          sender.sendMessage(plugin.getMessage("NoTickets"));          
-          return true;
-        }
-        return true;
-      } catch(Exception e) {
-        sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
-        return true;
-      } finally {
-          try {
-              if (rs != null) { rs.close(); rs = null; }
-              if (stmt != null) { stmt.close(); stmt = null; }
-          } catch (SQLException e) {
-              System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-              e.printStackTrace();
-          }
-      }
-    }
-    return true;  
-  }
+					if (args[i].equalsIgnoreCase("-a"))
+						allTickets = true;
+
+					if (args[i].equalsIgnoreCase("-c"))
+						allClosed = true;
+				}
+
+				if (args.length > 0 && !(verboseMode || allTickets || allClosed)) {
+					sender.sendMessage(plugin.GOLD + "[Supported arguments]");
+					sender.sendMessage(plugin.GREEN + "/tickets      " + plugin.WHITE + " - Open tickets");
+					sender.sendMessage(plugin.GREEN + "/tickets -v   " + plugin.WHITE + " - Open tickets (verbose)");
+					sender.sendMessage(plugin.GREEN + "/tickets -a   " + plugin.WHITE + " - All tickets (most recent " + maxRecordsToReturn + ")");
+					sender.sendMessage(plugin.GREEN + "/tickets -c   " + plugin.WHITE + " - Closed tickets (most recent " + maxRecordsToReturn + ")");
+					return true;
+				}
+
+				if (args.length == 0 || args.length == 1 && verboseMode) {
+					// DISPLAY OPEN TICKETS
+					rs = stmt.executeQuery(GetTicketSelectQuery("status='OPEN'", maxRecordsToReturn));
+					int ticketsFound = 0;
+					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Open Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+
+					while (rs.next()) {
+						ticketsFound++;
+
+						Utilities.ShowTicketInfo(sender, rs, verboseMode);
+					}
+
+					if (ticketsFound == 0) {
+						sender.sendMessage(plugin.getMessage("NoTickets"));
+						return true;
+					} else {
+						if (ticketsFound < maxRecordsToReturn)
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " open tickets");
+						else
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " most recent open tickets; filter with /findtickets");
+					}
+
+					return true;
+
+				} else if (allTickets) {
+					// DISPLAY ALL TICKETS
+					rs = stmt.executeQuery(GetTicketSelectQuery("", maxRecordsToReturn));
+					int ticketsFound = 0;
+					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "All Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+
+					while (rs.next()) {
+						ticketsFound++;
+						Utilities.ShowTicketInfo(sender, rs, verboseMode);
+					}
+
+					if (ticketsFound == 0) {
+						sender.sendMessage(plugin.getMessage("NoTickets"));
+						return true;
+					} else {
+						if (ticketsFound < maxRecordsToReturn)
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets");
+						else
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " most recent tickets; filter with /findtickets");
+					}
+
+					return true;
+
+				} else if (allClosed) {
+					// DISPLAY CLOSED TICKETS
+					rs = stmt.executeQuery(GetTicketSelectQuery("status='CLOSED'", maxRecordsToReturn));
+					int ticketsFound = 0;
+					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Closed Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+
+					while (rs.next()) {
+						ticketsFound++;
+						Utilities.ShowTicketInfo(sender, rs, verboseMode);
+					}
+
+					if (ticketsFound == 0) {
+						sender.sendMessage(plugin.getMessage("NoTickets"));
+						return true;
+					} else {
+						if (ticketsFound < maxRecordsToReturn)
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets");
+						else
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " most recent closed tickets; filter with /findtickets");
+					}
+					return true;
+
+				} else {
+					return false;
+				}
+
+			} catch (Exception e) {
+				sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+				return true;
+			} finally {
+				try {
+					if (rs != null) {
+						rs.close();
+						rs = null;
+					}
+					if (stmt != null) {
+						stmt.close();
+						stmt = null;
+					}
+				} catch (SQLException e) {
+					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+					e.printStackTrace();
+				}
+			}
+		} else {
+			// DISPLAY USER TICKETS
+			try {
+				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
+					con = plugin.mysql.getConnection();
+				} else {
+					con = service.getConnection();
+				}
+				stmt = con.createStatement();
+				rs = stmt.executeQuery(GetTicketSelectQuery("uuid='" + player.getUniqueId().toString() + "'", maxRecordsToReturn));
+				int ticketsFound = 0;
+				sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Your Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+
+				while (rs.next()) {
+					ticketsFound++;
+
+					Utilities.ShowTicketInfo(sender, rs, false);
+				}
+
+				if (ticketsFound == 0) {
+					sender.sendMessage(plugin.getMessage("NoTickets"));
+				} else {
+					sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets");
+				}
+				return true;
+
+			} catch (Exception e) {
+				sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+				return true;
+			} finally {
+				try {
+					if (rs != null) {
+						rs.close();
+						rs = null;
+					}
+					if (stmt != null) {
+						stmt.close();
+						stmt = null;
+					}
+				} catch (SQLException e) {
+					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
+	private String GetTicketSelectQuery(String whereClause, int maxRecordsToReturn) {
+		String innerQuery = "SELECT * FROM SHT_Tickets";
+		if (!whereClause.isEmpty())
+			innerQuery += " WHERE " + whereClause;
+
+		innerQuery += " ORDER BY id DESC LIMIT " + maxRecordsToReturn;
+
+		return "SELECT * FROM (" + innerQuery + ") AS SelectQ ORDER BY id ASC";
+	}
+
 }
