@@ -3,7 +3,6 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -46,7 +45,7 @@ public class tickets implements CommandExecutor {
 			maxRecordsToReturn = 100;
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("ideas"));
+		String targetTable = Utilities.GetTargetTableName(label);
 		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
 		if (player == null || player.hasPermission("sht.admin")) {

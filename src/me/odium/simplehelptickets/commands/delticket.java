@@ -3,7 +3,6 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -38,7 +37,7 @@ public class delticket implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("delidea"));
+		String targetTable = Utilities.GetTargetTableName(label);
 		String itemName = Utilities.GetTargetItemName(targetTable);
 
 		String messageName;

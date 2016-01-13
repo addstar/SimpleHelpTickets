@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -31,7 +30,7 @@ public class purgetickets implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("purgeideas"));
+		String targetTable = Utilities.GetTargetTableName(label);
 		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
 		if (args.length == 0) {

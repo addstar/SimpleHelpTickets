@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -39,7 +38,7 @@ public class taketicket implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("takeidea"));
+		String targetTable = Utilities.GetTargetTableName(label);
 		String itemName = Utilities.GetTargetItemName(targetTable);
 
 		if (player == null) {

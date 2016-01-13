@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -297,7 +296,7 @@ public class findtickets implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("findideas"));
+		String targetTable = Utilities.GetTargetTableName(label);
 		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
 		// Query the database

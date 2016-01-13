@@ -34,7 +34,7 @@ public class replyticket implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("replyidea", "ridea"));
+		String targetTable = Utilities.GetTargetTableName(label);
 		String itemName = Utilities.GetTargetItemName(targetTable);
 
 		if (args.length <= 1) {

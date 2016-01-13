@@ -59,17 +59,11 @@ public class Utilities {
 			return "ticket";
 	}
 
-	public static String GetTargetTableName(String commandName, List<String> ideaCommands) {
-
-		// Look for cmd in ideaCommands
-		// If a match, return the Ideas table, otherwise return the Tickets table
-
-		for(String item: ideaCommands) {
-			if(item.equalsIgnoreCase(commandName))
-				return IDEA_TABLE_NAME;
-		}
-
-		return TICKET_TABLE_NAME;
+	public static String GetTargetTableName(String commandName) {
+		if (commandName.toLowerCase().contains("idea"))
+			return IDEA_TABLE_NAME;
+		else
+			return TICKET_TABLE_NAME;
 	}
 
 	public static String NumToString(int value) {

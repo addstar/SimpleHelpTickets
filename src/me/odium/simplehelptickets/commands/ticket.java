@@ -57,7 +57,7 @@ public class ticket implements CommandExecutor {
 		} else if (args.length > 0) {
 
 			// Use the command name to determine if we are working with a ticket or an idea
-			String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("idea"));
+			String targetTable = Utilities.GetTargetTableName(label);
 
 			// Build the command string
 			StringBuilder sb = new StringBuilder();
