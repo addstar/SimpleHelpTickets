@@ -66,7 +66,7 @@ public class DBConnection {
 
 			stmt.close();
 		} catch (Exception e) {
-			plugin.log.info("[Tickets] createTable Error: " + e);
+			plugin.log.info("[Tickets] SQLite createTable Error: " + e);
 		}
 	}
 

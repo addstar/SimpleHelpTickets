@@ -32,17 +32,28 @@ public class purgetickets implements CommandExecutor {
 
 		// Use the command name to determine if we are working with a ticket or an idea
 		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("purgeideas"));
+		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
 		if (args.length == 0) {
+			// PURGE EXPIRED TICKETS OR IDEAS
 
+			int expiredItems;
 			if (targetTable == Utilities.IDEA_TABLE_NAME)
-				sender.sendMessage(plugin.GRAY + "[SimpleHelpTickets] " + ChatColor.GOLD + plugin.expireIdeas() +   ChatColor.WHITE + " Expired ideas purged");
+				expiredItems= plugin.expireIdeas();
 			else
-				sender.sendMessage(plugin.GRAY + "[SimpleHelpTickets] " + ChatColor.GOLD + plugin.expireTickets() + ChatColor.WHITE + " Expired tickets purged");
+				expiredItems= plugin.expireTickets();
+
+			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + expiredItems + ChatColor.WHITE + " expired " + Utilities.CheckPlural(itemNamePlural, expiredItems) + " purged");
 
 			return true;
 		} else if (args.length == 1 && args[0].equalsIgnoreCase("-c")) {
-            // PURGE CLOSED TICKETS
+			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + "This will delete all CLOSED " + itemNamePlural + "!; to confirm, \nuse " + ChatColor.GREEN + "/" + itemNamePlural + " -c confirm");
+			return true;
+		} else if (args.length == 1 && args[0].equalsIgnoreCase("-a")) {
+			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + "This will delete ALL " + itemNamePlural + "!; to confirm, \nuse " + ChatColor.GREEN + "/" + itemNamePlural + " -a confirm");
+			return true;
+		} else if (args.length == 2 && args[0].equalsIgnoreCase("-c") && args[1].equalsIgnoreCase("confirm")) {
+			// PURGE CLOSED TICKETS OR IDEAS
 			try {
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					con = plugin.mysql.getConnection();
@@ -63,8 +74,14 @@ public class purgetickets implements CommandExecutor {
 				sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 			} finally {
 				try {
-					if (rs != null) { rs.close(); rs = null; }
-					if (stmt != null) { stmt.close(); stmt = null; }
+					if (rs != null) {
+						rs.close();
+						rs = null;
+					}
+					if (stmt != null) {
+						stmt.close();
+						stmt = null;
+					}
 				} catch (SQLException e) {
 					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
 					e.printStackTrace();
@@ -72,8 +89,8 @@ public class purgetickets implements CommandExecutor {
 			}
 			return true;
 
-		} else if (args.length == 1 && args[0].equalsIgnoreCase("-a")) {
-			// PURGE ALL TICKETS
+		} else if (args.length == 2 && args[0].equalsIgnoreCase("-a") && args[1].equalsIgnoreCase("confirm")) {
+			// PURGE ALL TICKETS OR IDEAS
 			try {
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					con = plugin.mysql.getConnection();
@@ -95,18 +112,27 @@ public class purgetickets implements CommandExecutor {
 				sender.sendMessage(plugin.getMessage(messageName));
 
 			} catch (Exception e) {
-				plugin.log.info("[SimpleHelpTickets] " + "Error: " + e);
+				plugin.log.info("[Tickets] " + "Error: " + e);
 			} finally {
 				try {
-					if (rs != null) { rs.close(); rs = null; }
-					if (stmt != null) { stmt.close(); stmt = null; }
+					if (rs != null) {
+						rs.close();
+						rs = null;
+					}
+					if (stmt != null) {
+						stmt.close();
+						stmt = null;
+					}
 				} catch (SQLException e) {
 					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
 					e.printStackTrace();
 				}
 			}
 			return true;
+		} else {
+			sender.sendMessage(ChatColor.WHITE + "/purge" + itemNamePlural + " [-c|-a]");
+			return true;
 		}
-		return false;
+
 	}
 }

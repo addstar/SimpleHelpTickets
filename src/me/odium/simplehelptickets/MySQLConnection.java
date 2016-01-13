@@ -65,7 +65,7 @@ public class MySQLConnection extends Database {
 			this.query(queryIdeas);
 
 		} catch (Exception e) {
-			plugin.log.info("[Tickets] " + "Error: " + e);
+			plugin.log.info("[Tickets] MySQL createTable Error: " + e);
 		}
 	}
 
