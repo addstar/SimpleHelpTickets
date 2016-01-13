@@ -9,6 +9,7 @@ import java.util.Arrays;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 import me.odium.simplehelptickets.DBConnection;
 
+import me.odium.simplehelptickets.Utilities;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -54,6 +55,9 @@ public class ticket implements CommandExecutor {
 			sender.sendMessage(plugin.getMessage("HelpMe_Line1"));
 			sender.sendMessage(plugin.getMessage("HelpMe_Line2"));
 		} else if (args.length > 0) {
+
+			// Use the command name to determine if we are working with a ticket or an idea
+			String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("idea"));
 
 			// Build the command string
 			StringBuilder sb = new StringBuilder();
@@ -102,26 +106,25 @@ public class ticket implements CommandExecutor {
 				expire = null;
 			}
 
+			int maxTickets = plugin.getConfig().getInt("MaxTickets"); // Get ticket limit from config
+			int maxIdeas = plugin.getConfig().getInt("MaxIdeas");     // Get idea limit from config
+
 			// REFERENCE CONNECTION AND ADD DATA
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-
-				// CHECK MAX TICKETS
-				int maxTickets = plugin.getConfig().getInt("MaxTickets"); // Get ticket limit from config
+				// MySQL
+				// CHECK MAX TICKETS OR IDEAS
 				try {
 					con = plugin.mysql.getConnection();
 					stmt = con.createStatement();
-					rs = stmt.executeQuery("SELECT COUNT(uuid) AS ticketTotal FROM SHT_Tickets WHERE uuid='" + uuid + "' AND status='OPEN'");
+					rs = stmt.executeQuery("SELECT COUNT(uuid) AS itemTotal FROM " + targetTable + " WHERE uuid='" + uuid + "' AND status='OPEN'");
 					rs.next(); // sets pointer to first record in result set
 								// (NEED FOR MySQL)
 
-					int ticketTotal = rs.getInt("ticketTotal"); // GET TOTAL
-																// NUMBER OF
-																// PLAYERS
-																// TICKETS
-					if (ticketTotal >= maxTickets) { // IF MAX TICKETS REACHED
-						sender.sendMessage(plugin.getMessage("TicketMax").replace("&arg", Integer.toString(maxTickets)));
+					int itemTotal = rs.getInt("itemTotal");
+					if (ItemLimitReached(itemTotal, targetTable, maxTickets, maxIdeas, sender)) {
 						return true;
 					}
+
 				} catch (SQLException e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 				} finally {
@@ -140,7 +143,7 @@ public class ticket implements CommandExecutor {
 					con = plugin.mysql.getConnection();
 					stmt = con.createStatement();
 					PreparedStatement statement = con
-							.prepareStatement("insert into SHT_Tickets(description, date, uuid, owner, world, x, y, z, p, f, adminreply, userreply, status, admin, expiration) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+							.prepareStatement("insert into " + targetTable + " (description, date, uuid, owner, world, x, y, z, p, f, adminreply, userreply, status, admin, expiration) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 
 					statement.setString(1, details);
 					statement.setString(2, date);
@@ -161,11 +164,8 @@ public class ticket implements CommandExecutor {
 					statement.executeUpdate();
 					statement.close();
 
-					// Message player and finish
-					sender.sendMessage(plugin.getMessage("TicketOpen"));
-					// Notify admin of new ticket
-					String msg = plugin.getMessage("TicketOpenADMIN").replace("%player", sender.getName());
-					plugin.notifyAdmins(msg, sender);
+					NotifyItemOpened(sender, targetTable);
+
 				} catch (SQLException e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					e.printStackTrace();
@@ -180,19 +180,18 @@ public class ticket implements CommandExecutor {
 				}
 
 			} else {
-
-				// CHECK MAX TICKETS
-				int maxTickets = plugin.getConfig().getInt("MaxTickets"); // Get ticket limit from config
+				// SQLite
+				// CHECK MAX TICKETS OR IDEAS
 				try {
 					con = service.getConnection();
 					stmt = con.createStatement();
-					rs = stmt.executeQuery("SELECT COUNT(uuid) AS ticketTotal FROM SHT_Tickets WHERE uuid='" + uuid + "' AND status='OPEN'");
+					rs = stmt.executeQuery("SELECT COUNT(uuid) AS itemTotal FROM " + targetTable + " WHERE uuid='" + uuid + "' AND status='OPEN'");
 
-					int ticketTotal = rs.getInt("ticketTotal"); // Get total number of players tickets
-					if (ticketTotal >= maxTickets) { // IF MAX TICKETS REACHED
-						sender.sendMessage(plugin.getMessage("TicketMax").replace("&arg", Integer.toString(maxTickets)));
+					int itemTotal = rs.getInt("itemTotal");
+					if (ItemLimitReached(itemTotal, targetTable, maxTickets, maxIdeas, sender)) {
 						return true;
 					}
+
 				} catch (SQLException e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 				} finally {
@@ -209,7 +208,7 @@ public class ticket implements CommandExecutor {
 				try {
 					con = service.getConnection();
 					stmt = con.createStatement();
-					PreparedStatement statement = con.prepareStatement("insert into SHT_Tickets values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+					PreparedStatement statement = con.prepareStatement("insert into " + targetTable + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 					// description, date, uuid, owner, world, x, y, z, p, f,
 					// reply, status, admin
 
@@ -232,11 +231,8 @@ public class ticket implements CommandExecutor {
 					statement.executeUpdate();
 					statement.close();
 
-					// Message player and finish
-					sender.sendMessage(plugin.getMessage("TicketOpen"));
-					// Notify admin of new ticket
-					String msg = plugin.getMessage("TicketOpenADMIN").replace("%player", sender.getName());
-					plugin.notifyAdmins(msg, sender);
+					NotifyItemOpened(sender, targetTable);
+
 				} catch (Exception e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 				} finally {
@@ -251,5 +247,44 @@ public class ticket implements CommandExecutor {
 			}
 		}
 		return true;
+	}
+
+	private boolean ItemLimitReached(int itemTotal, String targetTable, int maxTickets, int maxIdeas, CommandSender sender) {
+
+		if (targetTable == Utilities.IDEA_TABLE_NAME) {
+			if (itemTotal >= maxIdeas) {
+				sender.sendMessage(plugin.getMessage("IdeaMax").replace("&arg", Integer.toString(maxIdeas)));
+				return true;
+			}
+		}
+		else if (itemTotal >= maxTickets) {
+			sender.sendMessage(plugin.getMessage("TicketMax").replace("&arg", Integer.toString(maxTickets)));
+			return true;
+		}
+
+		return false;
+	}
+
+	private void NotifyItemOpened(CommandSender sender, String targetTable) {
+
+		String messageName;
+
+		// Message player
+		if (targetTable == Utilities.IDEA_TABLE_NAME)
+			messageName = "IdeaOpen";
+		else
+			messageName = "TicketOpen";
+
+		sender.sendMessage(plugin.getMessage(messageName));
+
+		// Notify admins of new ticket
+		if (targetTable == Utilities.IDEA_TABLE_NAME)
+			messageName = "IdeaOpenADMIN";
+		else
+			messageName = "TicketOpenADMIN";
+
+		String msg = plugin.getMessage(messageName).replace("%player", sender.getName());
+		plugin.notifyAdmins(msg, sender);
+
 	}
 }

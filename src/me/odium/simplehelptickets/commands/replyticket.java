@@ -8,6 +8,7 @@ import java.util.Arrays;
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.Utilities;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -32,14 +33,28 @@ public class replyticket implements CommandExecutor {
 			player = (Player) sender;
 		}
 
+		// Use the command name to determine if we are working with a ticket or an idea
+		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("replyidea", "ridea"));
+		String itemName = Utilities.GetTargetItemName(targetTable);
+
 		if (args.length <= 1) {
-			sender.sendMessage("/replyticket <#> <reply>");
+			sender.sendMessage("/reply" + itemName + " <#> <reply>");
 			return true;
 		} else if (args.length > 1) {
 
+			String messageName;
+			String notExistMessageName;
+			if (targetTable == Utilities.IDEA_TABLE_NAME) {
+				messageName = "InvalidIdeaNumber";
+				notExistMessageName = "IdeaNotExist";
+			} else {
+				messageName = "InvalidTicketNumber";
+				notExistMessageName = "TicketNotExist";
+			}
+
 			for (char c : args[0].toCharArray()) {
 				if (!Character.isDigit(c)) {
-					sender.sendMessage(plugin.getMessage("InvalidTicketNumber").replace("&arg", args[0]));
+					sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
 					return true;
 				}
 			}
@@ -69,16 +84,17 @@ public class replyticket implements CommandExecutor {
 					// CONSOLE COMMANDS
 					String admin = "CONSOLE";
 					// CHECK IF TICKET EXISTS
-					rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE id='" + id + "'");
+					rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE id='" + id + "'");
 					if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 						rs.next(); // sets pointer to first record in result set
 					}
 					if (rs.getInt("ticketTotal") == 0) {
-						sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+						sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 						return true;
 					}
-					stmt.executeUpdate("UPDATE SHT_Tickets SET adminreply='" + admin + ": " + details + "', admin='" + admin + "' WHERE id='" + id + "'");
-					sender.sendMessage(plugin.getMessage("AdminRepliedToTicket").replace("&arg", id));
+					stmt.executeUpdate("UPDATE " + targetTable + " SET adminreply='" + admin + ": " + details + "', admin='" + admin + "' WHERE id='" + id + "'");
+
+					NotifyReplied(sender, id, targetTable);
 
 					try {
 						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -88,15 +104,17 @@ public class replyticket implements CommandExecutor {
 						}
 						stmt = con.createStatement();
 
-						rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + id + "'");
+						rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 							rs.next(); // sets pointer to first record in result
 										// set
 						}
-						plugin.notifyUser(plugin.getMessage("AdminRepliedToTicketOWNER").replace("&arg", id).replace("&admin", admin), rs.getString("owner"));
+
+						NotifyOwnerOfReply(sender, targetTable, id, admin, rs.getString("owner"));
+
 					} catch (Exception e) {
 						if (e.toString().contains("ResultSet closed")) {
-							sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+							sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 						} else {
 							sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 						}
@@ -120,24 +138,25 @@ public class replyticket implements CommandExecutor {
 					}
 
 					// CHECK IF TICKET EXISTS
-					rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE id='" + id + "'");
+					rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE id='" + id + "'");
 					if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 						rs.next(); // sets pointer to first record in result set
 					}
 					if (rs.getInt("ticketTotal") == 0) {
-						sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+						sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 						return true;
 					}
 
-					rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + id + "'");
+					rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 					if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 						rs.next(); // sets pointer to first record in result set
 					}
-					// IF PLAYER IS THE TICKET OWNER
 					if (player.getUniqueId().toString().equals(rs.getString("uuid"))) {
+						// PLAYER IS THE TICKET OWNER
 
-						stmt.executeUpdate("UPDATE SHT_Tickets SET userreply='" + details + "' WHERE id='" + id + "'");
-						sender.sendMessage(plugin.getMessage("AdminRepliedToTicket").replace("&arg", id));
+						stmt.executeUpdate("UPDATE " + targetTable + " SET userreply='" + details + "' WHERE id='" + id + "'");
+
+						NotifyReplied(sender, id, targetTable);
 
 						try {
 							if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -146,17 +165,22 @@ public class replyticket implements CommandExecutor {
 								con = service.getConnection();
 							}
 							stmt = con.createStatement();
-							rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + id + "'");
+							rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 							if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 								rs.next(); // sets pointer to first record in
 											// result set
 							}
 
-							String msg = plugin.getMessage("UserRepliedToTicket").replace("%player", player.getName()).replace("&arg", id);
+							if (targetTable == Utilities.IDEA_TABLE_NAME)
+								messageName = "UserRepliedToIdea";
+							else
+								messageName = "UserRepliedToTicket";
+
+							String msg = plugin.getMessage(messageName).replace("%player", player.getName()).replace("&arg", id);
 							plugin.notifyAdmins(msg, sender);
 						} catch (Exception e) {
 							if (e.toString().contains("ResultSet closed")) {
-								sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+								sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 								return true;
 							} else {
 								sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
@@ -171,18 +195,24 @@ public class replyticket implements CommandExecutor {
 								e.printStackTrace();
 							}
 						}
-						// IF PLAYER ISNT THE TICKET OWNER
 					} else {
+						// PLAYER ISN'T THE TICKET OWNER
 
 						if (!player.hasPermission("sht.admin")) {
 							sender.sendMessage(plugin.getMessage("NoPermission"));
 							return true;
 						}
 
-						stmt.executeUpdate("UPDATE SHT_Tickets SET adminreply='" + admin + ": " + details + "', admin='" + admin + "' WHERE id='" + id + "'");
+						stmt.executeUpdate("UPDATE " + targetTable + " SET adminreply='" + admin + ": " + details + "', admin='" + admin + "' WHERE id='" + id + "'");
 
 						// INFORM OTHER ADMINS THAT AN ADMIN REPLIED TO TICKET
-						String msg = plugin.getMessage("AdminRepliedToTicket").replace("&arg", id);
+
+						if (targetTable == Utilities.IDEA_TABLE_NAME)
+							messageName = "AdminRepliedToIdea";
+						else
+							messageName = "AdminRepliedToTicket";
+
+						String msg = plugin.getMessage(messageName).replace("&arg", id);
 						plugin.notifyAdmins(msg, null);
 
 						try {
@@ -192,17 +222,17 @@ public class replyticket implements CommandExecutor {
 								con = service.getConnection();
 							}
 							stmt = con.createStatement();
-							rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + id + "'");
+							rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 							if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 								rs.next(); // sets pointer to first record in
 											// result set
 							}
 							// INFORM TICKET-OWNER THAT AN ADMIN REPLIED TO
 							// THEIR TICKET
-							plugin.notifyUser(plugin.getMessage("AdminRepliedToTicketOWNER").replace("&arg", id).replace("&admin", admin), rs.getString("owner"));
+							NotifyOwnerOfReply(sender, targetTable, id, admin, rs.getString("owner"));
 						} catch (Exception e) {
 							if (e.toString().contains("ResultSet closed")) {
-								sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+								sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 							} else {
 								sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 							}
@@ -220,7 +250,7 @@ public class replyticket implements CommandExecutor {
 				}
 			} catch (Exception e) {
 				if (e.toString().contains("ResultSet closed")) {
-					sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+					sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 					return true;
 				} else {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
@@ -235,7 +265,31 @@ public class replyticket implements CommandExecutor {
 					e.printStackTrace();
 				}
 			}
+			return true;
 		}
-		return true;
+		return false;
+	}
+
+	private void NotifyOwnerOfReply(CommandSender sender, String targetTable, String id, String admin, String owner) {
+		String messageName;
+		if (targetTable == Utilities.IDEA_TABLE_NAME)
+			messageName = "AdminRepliedToIdeaOWNER";
+		else
+			messageName = "AdminRepliedToTicketOWNER";
+
+		plugin.notifyUser(plugin.getMessage(messageName).replace("&arg", id).replace("&admin", admin), owner);
+
+	}
+
+	private void NotifyReplied(CommandSender sender, String id, String targetTable) {
+
+		String messageName;
+		if (targetTable == Utilities.IDEA_TABLE_NAME)
+			messageName = "AdminRepliedToIdea";
+		else
+			messageName = "AdminRepliedToTicket";
+
+		sender.sendMessage(plugin.getMessage(messageName).replace("&arg", id));
+
 	}
 }

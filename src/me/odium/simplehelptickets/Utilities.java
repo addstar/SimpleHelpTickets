@@ -2,14 +2,19 @@ package me.odium.simplehelptickets;
 
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class Utilities {
+
+	public static String IDEA_TABLE_NAME = "SHT_Ideas";
+	public static String TICKET_TABLE_NAME = "SHT_Tickets";
 
 	private static SimpleDateFormat mShortDateFormater;
 
@@ -28,6 +33,43 @@ public class Utilities {
 
 	public static String DateToString(Date date, SimpleDateFormat dateFormatter) {
 		return dateFormatter.format(date.getTime());
+	}
+
+	public static String Capitalize(String text) {
+		return text.substring(0, 1).toUpperCase() + text.substring(1);
+	}
+
+	public static String CheckPlural(String pluralName, int itemCount) {
+
+		// pluralName is assumed to end in "s"
+		// If itemCount is 0 or > 1, return pluralName
+		// Otherwise, return pluralName without the final "s"
+
+		if (itemCount == 1) {
+			return pluralName.substring(0, pluralName.length() - 1);
+		}
+
+		return pluralName;
+	}
+
+	public static String GetTargetItemName(String targetTable) {
+		if (targetTable == Utilities.IDEA_TABLE_NAME)
+			return "idea";
+		else
+			return "ticket";
+	}
+
+	public static String GetTargetTableName(String commandName, List<String> ideaCommands) {
+
+		// Look for cmd in ideaCommands
+		// If a match, return the Ideas table, otherwise return the Tickets table
+
+		for(String item: ideaCommands) {
+			if(item.equalsIgnoreCase(commandName))
+				return IDEA_TABLE_NAME;
+		}
+
+		return TICKET_TABLE_NAME;
 	}
 
 	public static String NumToString(int value) {

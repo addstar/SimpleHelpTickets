@@ -3,6 +3,7 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -13,6 +14,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import javax.swing.*;
 
 public class tickets implements CommandExecutor {
 
@@ -41,6 +44,10 @@ public class tickets implements CommandExecutor {
 			maxRecordsToReturn = 500;
 		else
 			maxRecordsToReturn = 100;
+
+		// Use the command name to determine if we are working with a ticket or an idea
+		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("ideas"));
+		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
 		if (player == null || player.hasPermission("sht.admin")) {
 			try {
@@ -72,75 +79,90 @@ public class tickets implements CommandExecutor {
 					sender.sendMessage(plugin.GREEN + "/tickets -v   " + plugin.WHITE + " - Open tickets (verbose)");
 					sender.sendMessage(plugin.GREEN + "/tickets -a   " + plugin.WHITE + " - All tickets (most recent " + maxRecordsToReturn + ")");
 					sender.sendMessage(plugin.GREEN + "/tickets -c   " + plugin.WHITE + " - Closed tickets (most recent " + maxRecordsToReturn + ")");
+					sender.sendMessage(plugin.GREEN + "For submitted ideas use /ideas");
 					return true;
 				}
 
 				if (args.length == 0 || args.length == 1 && verboseMode) {
-					// DISPLAY OPEN TICKETS
-					rs = stmt.executeQuery(GetTicketSelectQuery("status='OPEN'", maxRecordsToReturn));
-					int ticketsFound = 0;
-					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Open Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+					// DISPLAY OPEN TICKETS OR IDEAS
+					rs = stmt.executeQuery(GetItemSelectQuery(targetTable, "status='OPEN'", maxRecordsToReturn));
+					int itemsFound = 0;
+
+					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Open " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
 					while (rs.next()) {
-						ticketsFound++;
+						itemsFound++;
 
 						Utilities.ShowTicketInfo(sender, rs, verboseMode);
 					}
 
-					if (ticketsFound == 0) {
-						sender.sendMessage(plugin.getMessage("NoTickets"));
-						return true;
+					if (itemsFound == 0) {
+						ReportNoItems(sender, targetTable);
 					} else {
-						if (ticketsFound < maxRecordsToReturn)
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " open tickets");
+						if (itemsFound < maxRecordsToReturn)
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " open " + Utilities.CheckPlural(itemNamePlural, itemsFound));
 						else
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " most recent open tickets; filter with /findtickets");
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " most recent open " + itemNamePlural + "; filter with /find" + itemNamePlural);
+					}
+
+					if (itemNamePlural.contentEquals("tickets")) {
+						// Also report the number of open ideas
+
+						ResultSet rsIdeas = stmt.executeQuery(GetItemSelectQuery(Utilities.IDEA_TABLE_NAME, "status='OPEN'", maxRecordsToReturn));
+						int ideasFound = 0;
+
+						while (rsIdeas.next()) {
+							ideasFound++;
+						}
+
+						if (ideasFound > 0) {
+							sender.sendMessage(plugin.GRAY + "(" + Utilities.NumToString(ideasFound) + " open " + Utilities.CheckPlural("ideas", ideasFound) + ")");
+						}
 					}
 
 					return true;
 
 				} else if (allTickets) {
-					// DISPLAY ALL TICKETS
-					rs = stmt.executeQuery(GetTicketSelectQuery("", maxRecordsToReturn));
-					int ticketsFound = 0;
-					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "All Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+					// DISPLAY ALL TICKETS OR IDEAS
+					rs = stmt.executeQuery(GetItemSelectQuery(targetTable, "", maxRecordsToReturn));
+					int itemsFound = 0;
+					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "All " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
 					while (rs.next()) {
-						ticketsFound++;
+						itemsFound++;
 						Utilities.ShowTicketInfo(sender, rs, verboseMode);
 					}
 
-					if (ticketsFound == 0) {
-						sender.sendMessage(plugin.getMessage("NoTickets"));
-						return true;
+					if (itemsFound == 0) {
+						ReportNoItems(sender, targetTable);
 					} else {
-						if (ticketsFound < maxRecordsToReturn)
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets");
+						if (itemsFound < maxRecordsToReturn)
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
 						else
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " most recent tickets; filter with /findtickets");
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " most recent " + itemNamePlural + "; filter with /find" + itemNamePlural);
 					}
 
 					return true;
 
 				} else if (allClosed) {
-					// DISPLAY CLOSED TICKETS
-					rs = stmt.executeQuery(GetTicketSelectQuery("status='CLOSED'", maxRecordsToReturn));
-					int ticketsFound = 0;
-					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Closed Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+					// DISPLAY CLOSED TICKETS OR IDEAS
+					rs = stmt.executeQuery(GetItemSelectQuery(targetTable, "status='CLOSED'", maxRecordsToReturn));
+					int itemsFound = 0;
+					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Closed " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
 					while (rs.next()) {
-						ticketsFound++;
+						itemsFound++;
 						Utilities.ShowTicketInfo(sender, rs, verboseMode);
 					}
 
-					if (ticketsFound == 0) {
-						sender.sendMessage(plugin.getMessage("NoTickets"));
+					if (itemsFound == 0) {
+						ReportNoItems(sender, targetTable);
 						return true;
 					} else {
-						if (ticketsFound < maxRecordsToReturn)
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets");
+						if (itemsFound < maxRecordsToReturn)
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
 						else
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " most recent closed tickets; filter with /findtickets");
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " most recent closed " + itemNamePlural + "; filter with /find" + itemNamePlural);
 					}
 					return true;
 
@@ -167,7 +189,7 @@ public class tickets implements CommandExecutor {
 				}
 			}
 		} else {
-			// DISPLAY USER TICKETS
+			// DISPLAY USER TICKETS OR IDEAS
 			try {
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					con = plugin.mysql.getConnection();
@@ -175,20 +197,20 @@ public class tickets implements CommandExecutor {
 					con = service.getConnection();
 				}
 				stmt = con.createStatement();
-				rs = stmt.executeQuery(GetTicketSelectQuery("uuid='" + player.getUniqueId().toString() + "'", maxRecordsToReturn));
-				int ticketsFound = 0;
-				sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Your Tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+				rs = stmt.executeQuery(GetItemSelectQuery(targetTable, "uuid='" + player.getUniqueId().toString() + "'", maxRecordsToReturn));
+				int itemsFound = 0;
+				sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Your " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
 				while (rs.next()) {
-					ticketsFound++;
+					itemsFound++;
 
 					Utilities.ShowTicketInfo(sender, rs, false);
 				}
 
-				if (ticketsFound == 0) {
-					sender.sendMessage(plugin.getMessage("NoTickets"));
+				if (itemsFound == 0) {
+					ReportNoItems(sender, targetTable);
 				} else {
-					sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets");
+					sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
 				}
 				return true;
 
@@ -214,8 +236,15 @@ public class tickets implements CommandExecutor {
 
 	}
 
-	private String GetTicketSelectQuery(String whereClause, int maxRecordsToReturn) {
-		String innerQuery = "SELECT * FROM SHT_Tickets";
+	private void ReportNoItems(CommandSender sender, String targetTable) {
+		if (targetTable == Utilities.IDEA_TABLE_NAME)
+			sender.sendMessage(plugin.getMessage("NoIdeas"));
+		else
+			sender.sendMessage(plugin.getMessage("NoTickets"));
+	}
+
+	private String GetItemSelectQuery(String targetTable, String whereClause, int maxRecordsToReturn) {
+		String innerQuery = "SELECT * FROM " + targetTable;
 		if (!whereClause.isEmpty())
 			innerQuery += " WHERE " + whereClause;
 

@@ -4,10 +4,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -36,12 +38,17 @@ public class taketicket implements CommandExecutor {
 			player = (Player) sender;
 		}
 
+		// Use the command name to determine if we are working with a ticket or an idea
+		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("takeidea"));
+		String itemName = Utilities.GetTargetItemName(targetTable);
+
 		if (player == null) {
-			sender.sendMessage(plugin.RED + "This command can only be run by a player, use /checkticket instead.");
+			sender.sendMessage(plugin.RED + "This command can only be run by a player, use /check" + itemName + " instead.");
 			return true;
 		}
+
 		if (args.length == 0) {
-			sender.sendMessage(ChatColor.WHITE + "/taketicket <#>");
+			sender.sendMessage(ChatColor.WHITE + "/take" + itemName + " <#>");
 			return true;
 		}
 
@@ -62,7 +69,7 @@ public class taketicket implements CommandExecutor {
 			}
 			stmt = con.createStatement();
 
-			rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + ticketNumber + "'");
+			rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + ticketNumber + "'");
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 				rs.next(); // sets pointer to first record in result set
 			}
@@ -84,7 +91,7 @@ public class taketicket implements CommandExecutor {
 			rs.close();
 
 			// Display Ticket
-			rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + ticketNumber + "'");
+			rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + ticketNumber + "'");
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 				rs.next(); // sets pointer to first record in result set
 			}
@@ -115,7 +122,7 @@ public class taketicket implements CommandExecutor {
 				return true;
 			}
 
-			sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + "Ticket " + id + ChatColor.RESET + ChatColor.GOLD + " ]");
+			sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + Utilities.Capitalize(itemName) + " " + id + ChatColor.RESET + ChatColor.GOLD + " ]");
 			sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + owner);
 			sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + date);
 			if (plugin.getConfig().getBoolean("MultiWorld") == true) {
@@ -146,24 +153,44 @@ public class taketicket implements CommandExecutor {
 			// NOTIFY ADMIN AND USERS
 			String admin = player.getName();
 			// ASSIGN ADMIN
-			stmt.executeUpdate("UPDATE SHT_Tickets SET admin='" + admin + "' WHERE id='" + id + "'");
+			stmt.executeUpdate("UPDATE " + targetTable + " SET admin='" + admin + "' WHERE id='" + id + "'");
+
+			String messageName;
+
 			// NOTIFY -OTHER- ADMINS
-			String msg = plugin.getMessage("TakeTicketADMIN").replace("&arg", id).replace("&admin", admin);
+			if (targetTable == Utilities.IDEA_TABLE_NAME)
+				messageName = "TakeIdeaADMIN";
+			else
+				messageName = "TakeTicketADMIN";
+
+			String msg = plugin.getMessage(messageName).replace("&arg", id).replace("&admin", admin);
 			plugin.notifyAdmins(msg, player);
+
 			// NOTIFY USER
-			msg = plugin.getMessage("TakeTicketOWNER").replace("&arg", id).replace("&admin", admin);
+			if (targetTable == Utilities.IDEA_TABLE_NAME)
+				messageName = "TakeIdeaOWNER";
+			else
+				messageName = "TakeTicketOWNER";
+
+			msg = plugin.getMessage(messageName).replace("&arg", id).replace("&admin", admin);
 			plugin.notifyUser(msg, owner);
 
 			return true;
 		} catch (Exception e) {
+			String messageName;
+			if (targetTable == Utilities.IDEA_TABLE_NAME)
+				messageName = "IdeaNotExist";
+			else
+				messageName = "TicketNotExist";
+
 			if (e.toString().contains("ResultSet closed")) {
-				sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+				sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
 				return true;
 			} else if (e.toString().contains("java.lang.ArrayIndexOutOfBoundsException")) {
-				sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+				sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
 				return true;
 			} else if (e.toString().contains("empty result set.")) {
-				sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+				sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
 				return true;
 			} else {
 				sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));

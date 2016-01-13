@@ -4,10 +4,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.Utilities;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -33,13 +35,24 @@ public class checkticket implements CommandExecutor {
 			player = (Player) sender;
 		}
 
+		// Use the command name to determine if we are working with a ticket or an idea
+		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("checkidea", "chidea"));
+		String itemName = Utilities.GetTargetItemName(targetTable);
+		String messageName;
+
 		if (args.length != 1) {
-			return false;
+			sender.sendMessage(ChatColor.WHITE + "/check" + itemName + " <#>");
+			return true;
 		} else {
 
 			for (char c : args[0].toCharArray()) {
 				if (!Character.isDigit(c)) {
-					sender.sendMessage(plugin.getMessage("InvalidTicketNumber").replace("&arg", args[0]));
+					if (targetTable == Utilities.IDEA_TABLE_NAME)
+						messageName = "InvalidIdeaNumber";
+					else
+						messageName = "InvalidTicketNumber";
+
+					sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
 					return true;
 				}
 			}
@@ -53,7 +66,7 @@ public class checkticket implements CommandExecutor {
 				}
 				stmt = con.createStatement();
 
-				rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE id='" + ticketNumber + "'");
+				rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + ticketNumber + "'");
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					rs.next(); // sets pointer to first record in result set
 				}
@@ -83,7 +96,10 @@ public class checkticket implements CommandExecutor {
 					String description = rs.getString("description");
 					String status = rs.getString("status");
 
-					sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + "Ticket " + id + ChatColor.RESET + ChatColor.GOLD + " ]");
+					// Capitalize itemName
+					itemName = Utilities.Capitalize(itemName);
+
+					sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + itemName + " " + id + ChatColor.RESET + ChatColor.GOLD + " ]");
 					sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + owner);
 					sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + date);
 					if (plugin.getConfig().getBoolean("MultiWorld") == true) {
@@ -95,7 +111,7 @@ public class checkticket implements CommandExecutor {
 						sender.sendMessage(ChatColor.BLUE + " Status: " + ChatColor.RED + status);
 					}
 					sender.sendMessage(ChatColor.BLUE + " Assigned: " + ChatColor.WHITE + admin);
-					sender.sendMessage(ChatColor.BLUE + " Ticket: " + ChatColor.GOLD + description);
+					sender.sendMessage(ChatColor.BLUE + " " + itemName + ": " + ChatColor.GOLD + description);
 					if (adminreply.equalsIgnoreCase("NONE")) {
 						sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.WHITE + "(none)");
 					} else {
@@ -128,7 +144,11 @@ public class checkticket implements CommandExecutor {
 				}
 			} catch (SQLException e) {
 				if (e.toString().contains("empty result set.")) {
-					sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[0]));
+					if (targetTable == Utilities.IDEA_TABLE_NAME)
+						messageName = "IdeaNotExist";
+					else
+						messageName = "TicketNotExist";
+					sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
 					return true;
 				} else {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));

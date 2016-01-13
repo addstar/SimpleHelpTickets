@@ -2,9 +2,12 @@ package me.odium.simplehelptickets.listeners;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,7 +24,6 @@ public class PListener implements Listener {
   }
 
   DBConnection service = DBConnection.getInstance();
-  ResultSet rs;
   java.sql.Statement stmt;
   Connection con;
 
@@ -41,15 +43,16 @@ public class PListener implements Listener {
           }
           stmt = con.createStatement();
 
-          rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE status='"+"OPEN"+"'");
-          if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-            rs.next(); //sets pointer to first record in result set
-          }
-
-          int ticketTotal = rs.getInt("ticketTotal");
+          int ticketTotal = CountOpenItems(stmt, Utilities.TICKET_TABLE_NAME);
           if (ticketTotal > 0) {
             player.sendMessage(plugin.getMessage("AdminJoin").replace("&arg", ticketTotal+""));
           }
+
+          int ideaTotal = CountOpenItems(stmt, Utilities.IDEA_TABLE_NAME);
+          if (ideaTotal > 0) {
+            player.sendMessage(plugin.getMessage("AdminJoinIdeas").replace("&arg", ideaTotal+""));
+          }
+
         } catch(Exception e) {
           plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
         }
@@ -65,7 +68,7 @@ public class PListener implements Listener {
           try {
             con = plugin.mysql.getConnection();
             stmt = con.createStatement();
-            rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );      
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
             rs.next(); //sets pointer to first record in result set
 
             int ticketTotal = rs.getInt("ticketTotal");
@@ -96,7 +99,7 @@ public class PListener implements Listener {
           try {
             con = service.getConnection();
             stmt = con.createStatement();
-            rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
 
             int ticketTotal = rs.getInt("ticketTotal");
             if (ticketTotal == 0) {
@@ -130,5 +133,18 @@ public class PListener implements Listener {
         }
       }
     }
+  }
+
+  private int CountOpenItems(java.sql.Statement stmt, String targetTable) throws SQLException {
+
+    ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE status='"+"OPEN"+"'");
+
+    if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
+      rs.next(); //sets pointer to first record in result set
+    }
+
+    int itemTotal = rs.getInt("ticketTotal");
+    return itemTotal;
+
   }
 }

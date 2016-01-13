@@ -52,14 +52,21 @@ public class DBConnection {
 		Statement stmt;
 		try {
 			stmt = con.createStatement();
-			String queryC = "CREATE TABLE IF NOT EXISTS SHT_Tickets " + "(id INTEGER PRIMARY KEY, " + "description varchar(128), " + "date timestamp, "
-					+ "UUID varchar(36), " + "name varchar(20), " + "world varchar(30), " + "x double(30,20), " + "y double(30,20), " + "z double(30,20), "
-					+ "p double(30,20), " + "f double(30,20), " + "adminreply varchar(128), " + "userreply varchar(128), " + "status varchar(16), "
-					+ "admin varchar(30), " + "expiration timestamp)";
-			stmt.executeUpdate(queryC);
+
+			String columnList = " (id INTEGER PRIMARY KEY, description varchar(128), date timestamp, "
+					+ "UUID varchar(36), owner varchar(20), world varchar(30), x double(30,20), y double(30,20), z double(30,20), "
+					+ "p double(30,20), f double(30,20), adminreply varchar(128), userreply varchar(128), status varchar(16), "
+					+ "admin varchar(30), expiration timestamp)";
+
+			String queryTickets = "CREATE TABLE IF NOT EXISTS " + Utilities.TICKET_TABLE_NAME + " " + columnList;
+			stmt.executeUpdate(queryTickets);
+
+			String queryIdeas = "CREATE TABLE IF NOT EXISTS " + Utilities.IDEA_TABLE_NAME + " " + columnList;
+			stmt.executeUpdate(queryIdeas);
+
 			stmt.close();
 		} catch (Exception e) {
-			plugin.log.info("[Tickets] " + "Error: " + e);
+			plugin.log.info("[Tickets] createTable Error: " + e);
 		}
 	}
 

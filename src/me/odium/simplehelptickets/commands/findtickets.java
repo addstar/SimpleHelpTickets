@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -101,7 +102,6 @@ public class findtickets implements CommandExecutor {
 				return true;
 			}
 
-
 			// Step through the arguments
 			for (int i = 0; i < args.length; i++) {
 				boolean searchWord = true;
@@ -186,7 +186,7 @@ public class findtickets implements CommandExecutor {
 					try {
 						ticketIDStart = Integer.parseInt(args[i].substring(optionLength));
 					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED + "Invalid starting ticket ID, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid starting ID, " + args[i]);
 						return true;
 					}
 				}
@@ -198,7 +198,7 @@ public class findtickets implements CommandExecutor {
 					try {
 						ticketIDEnd = Integer.parseInt(args[i].substring(optionLength));
 					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED + "Invalid ending ticket ID, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid ending ID, " + args[i]);
 						return true;
 					}
 				}
@@ -296,9 +296,13 @@ public class findtickets implements CommandExecutor {
 			return true;
 		}
 
+		// Use the command name to determine if we are working with a ticket or an idea
+		String targetTable = Utilities.GetTargetTableName(label, Arrays.asList("findideas"));
+		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
+
 		// Query the database
 		try {
-			sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Matching tickets" + ChatColor.RESET + plugin.GOLD + " ]");
+			sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Matching " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
 			if (ticketsToShow > maxRecordsToReturn) {
 				ticketsToShow = maxRecordsToReturn;
@@ -314,8 +318,8 @@ public class findtickets implements CommandExecutor {
 			stmt = con.createStatement();
 
 			String sqlStatement =
-					"SELECT * FROM SHT_Tickets " +
-							"WHERE id >= ? AND id <= ? AND owner LIKE ? AND admin LIKE ? AND " +
+					"SELECT * FROM " + targetTable +
+							" WHERE id >= ? AND id <= ? AND owner LIKE ? AND admin LIKE ? AND " +
 							" (description LIKE ? OR userreply LIKE ? OR adminreply LIKE ?) AND ";
 
 			String recentTimeStartDate = Utilities.DateToString(recentTimeStartMillisec, dateFormatter);
@@ -383,20 +387,21 @@ public class findtickets implements CommandExecutor {
 				}
 
 				if (dateRangeDefined)
-					sender.sendMessage(plugin.GREEN + "No tickets found" + ticketContentDescription + "; change from: and to: or adjust the filters");
+					sender.sendMessage(plugin.GREEN + "No " + itemNamePlural + " found" + ticketContentDescription + "; change from: and to: or adjust the filters");
 				else
-					sender.sendMessage(plugin.GREEN + "No tickets found" + ticketContentDescription + "; try t:" + newMaxDays + "d or adjust the filters");
+					sender.sendMessage(plugin.GREEN + "No " + itemNamePlural + " found" + ticketContentDescription + "; try t:" + newMaxDays + "d or adjust the filters");
 
-				sender.sendMessage(plugin.GREEN + "See also " + plugin.AQUA + "/findtickets help");
+				sender.sendMessage(plugin.GREEN + "See also " + plugin.AQUA + "/find" + itemNamePlural + " help");
+
 			} else if (ticketsFound > 2) {
 				if (ticketsFound < ticketsToShow || ticketsToShow >= maxRecordsToReturn)
-					sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets found");
+					sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " " + Utilities.CheckPlural(itemNamePlural, ticketsFound) + " found");
 				else {
 					int newMax = ticketsToShow * 2;
 					if (newMax > maxRecordsToReturn)
 						newMax = maxRecordsToReturn;
 
-					sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " tickets found; use limit:" + newMax + " to see more");
+					sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " " + itemNamePlural + " found; use limit:" + newMax + " to see more");
 				}
 			}
 
@@ -538,6 +543,7 @@ public class findtickets implements CommandExecutor {
 			sender.sendMessage(plugin.GREEN + "/findtickets" + plugin.WHITE + " p:PlayerName");
 
 		sender.sendMessage(plugin.GREEN + "/findtickets" + plugin.WHITE + " s:StaffName");
+		sender.sendMessage(plugin.GOLD + "For ideas use " + plugin.GREEN + "/findideas");
 	}
 
 }

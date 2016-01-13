@@ -184,7 +184,16 @@ public class SimpleHelpTickets extends JavaPlugin {
 
 	public void onDisable() {
 		// Check for and delete any expired tickets, display progress.
-		log.info("[SimpleHelpTickets] " + expireTickets() + " Expired Tickets Deleted");
+		int expiredTicketCount = expireTickets();
+		int expiredIdeaCount = expireIdeas();
+
+		if (expiredTicketCount == 0 && expiredIdeaCount == 0) {
+			log.info("[SimpleHelpTickets] No expired tickets or ideas were found");
+		} else {
+			log.info("[SimpleHelpTickets] " + expiredTicketCount + " Expired Tickets Deleted");
+			log.info("[SimpleHelpTickets] " + expiredIdeaCount + " Expired Ideas Deleted");
+		}
+
 		service.closeConnection();
 
 		// mysql.close();
@@ -241,6 +250,14 @@ public class SimpleHelpTickets extends JavaPlugin {
 	}
 
 	public int expireTickets() {
+		return expireItems(Utilities.TICKET_TABLE_NAME);
+	}
+
+	public int expireIdeas() {
+		return expireItems(Utilities.IDEA_TABLE_NAME);
+	}
+
+	private int expireItems(String targetTable) {
 		ResultSet rs = null;
 		Statement stmt = null;
 		Statement stmt2 = null;
@@ -256,7 +273,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 			}
 			stmt = con.createStatement();
 			stmt2 = con.createStatement();
-			rs = stmt.executeQuery("SELECT * FROM SHT_Tickets");
+			rs = stmt.executeQuery("SELECT * FROM " + targetTable);
 			while (rs.next()) {
 				String exp = rs.getString("expiration");
 				String id = rs.getString("id");
@@ -280,7 +297,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 					int HasExpired = dateNEW.compareTo(expirationNEW);
 					if (HasExpired >= 0) {
 						expirations++;
-						stmt2.executeUpdate("DELETE FROM SHT_Tickets WHERE id='" + id + "'");
+						stmt2.executeUpdate("DELETE FROM " + targetTable + " WHERE id='" + id + "'");
 					}
 				}
 			}
@@ -311,16 +328,19 @@ public class SimpleHelpTickets extends JavaPlugin {
 		sender.sendMessage(getMessage("UserCommandsMenu-replyticket"));
 		sender.sendMessage(getMessage("UserCommandsMenu-closeticket"));
 		sender.sendMessage(getMessage("UserCommandsMenu-delticket"));
+		sender.sendMessage(getMessage("UserCommandsMenu-idea"));
+		sender.sendMessage(getMessage("UserCommandsMenu-ideacommands"));
+
 		if (sender == null || sender.hasPermission("sht.admin")) {
 			sender.sendMessage(getMessage("AdminCommandsMenu-Title"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-tickets"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-taketicket"));
-			sender.sendMessage(getMessage("AdminCommandsMenu-gototicket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-replyticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-closeticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-delticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-purgeticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-reload"));
+			sender.sendMessage(getMessage("AdminCommandsMenu-ideacommands"));
 		}
 	}
 
@@ -335,7 +355,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 			message = prefix + output;
 			return message;
 		} else if (phrase == "AdminCommandsMenu-purgeticket") {
-			prefix = ChatColor.DARK_AQUA + " /purgetickets [-c/-a]";
+			prefix = ChatColor.DARK_AQUA + " /purgetickets [-c|-a]";
 			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-purgeticket"));
 			message = prefix + output;
 			return message;
@@ -365,12 +385,16 @@ public class SimpleHelpTickets extends JavaPlugin {
 			message = prefix + output;
 			return message;
 		} else if (phrase == "AdminCommandsMenu-tickets") {
-			prefix = ChatColor.DARK_AQUA + " /tickets [ac]";
+			prefix = ChatColor.DARK_AQUA + " /tickets [-v|-a|-c]";
 			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-tickets"));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "AdminCommandsMenu-Title") {
 			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-Title"));
+			message = output;
+			return message;
+		} else if (phrase == "AdminCommandsMenu-ideacommands") {
+			output = ChatColor.DARK_AQUA + " /ideas, /takeidea, /replyidea, /closeidea, /delidea, /purgeideas";
 			message = output;
 			return message;
 		} else if (phrase == "UserCommandsMenu-delticket") {
@@ -417,9 +441,18 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-helptickets"));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "InvalidTicketNumber") {
+		} else if (phrase == "UserCommandsMenu-idea") {
+			prefix = ChatColor.DARK_GREEN + " /idea" + ChatColor.WHITE;
+			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-idea"));
+			message = prefix + output;
+			return message;
+		} else if (phrase == "UserCommandsMenu-ideacommands") {
+			output = ChatColor.DARK_GREEN + " /ideas, /checkidea, /replyidea, /closeidea, /delidea";
+			message = output;
+			return message;
+		} else if (phrase == "InvalidTicketNumber" || phrase == "InvalidIdeaNumber") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("InvalidTicketNumber"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "Error") {
@@ -427,19 +460,19 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString("Error"));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketNotExist") {
+		} else if (phrase == "TicketNotExist" || phrase == "IdeaNotExist") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketNotExist"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "NotYourTicketToCheck") {
+		} else if (phrase == "NotYourTicketToCheck" || phrase == "NotYourIdeaToCheck") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("NotYourTicketToCheck"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "NotYourTicketToClose") {
+		} else if (phrase == "NotYourTicketToClose" || phrase == "NotYourIdeaToClose") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("NotYourTicketToClose"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "NewConfig") {
@@ -462,24 +495,24 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString("NoPermission"));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketAlreadyClosed") {
+		} else if (phrase == "TicketAlreadyClosed" || phrase == "IdeaAlreadyClosed") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketAlreadyClosed"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketClosed") {
+		} else if (phrase == "TicketClosed" || phrase == "IdeaClosed") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketClosed"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketClosedOWNER") {
+		} else if (phrase == "TicketClosedOWNER" || phrase == "IdeaClosedOWNER") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketClosedOWNER"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketClosedADMIN") {
+		} else if (phrase == "TicketClosedADMIN" || phrase == "IdeaClosedADMIN") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketClosedADMIN"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "TicketNotClosed") {
@@ -487,44 +520,44 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString("TicketNotClosed"));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketReopened") {
+		} else if (phrase == "TicketReopened" || phrase == "IdeaReopened") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketReopened"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketReopenedOWNER") {
+		} else if (phrase == "TicketReopenedOWNER" || phrase == "IdeaReopenedOWNER") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketReopenedOWNER"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketReopenedADMIN") {
+		} else if (phrase == "TicketReopenedADMIN" || phrase == "IdeaReopenedADMIN") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketReopenedADMIN"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "AllClosedTicketsPurged") {
+		} else if (phrase == "AllClosedTicketsPurged" || phrase == "AllClosedIdeasPurged") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("AllClosedTicketsPurged"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "AllTicketsPurged") {
+		} else if (phrase == "AllTicketsPurged" || phrase == "AllIdeasPurged") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("AllTicketsPurged"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "AdminRepliedToTicket") {
+		} else if (phrase == "AdminRepliedToTicket" || phrase == "AdminRepliedToIdea") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("AdminRepliedToTicket"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "AdminRepliedToTicketOWNER") {
+		} else if (phrase == "AdminRepliedToTicketOWNER" || phrase == "AdminRepliedToIdeaOWNER") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("AdminRepliedToTicketOWNER"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "UserRepliedToTicket") {
+		} else if (phrase == "UserRepliedToTicket" || phrase == "UserRepliedToIdea") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("UserRepliedToTicket"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "CannotTakeClosedTicket") {
@@ -537,29 +570,24 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString("InvalidWorld"));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TakeTicketOWNER") {
+		} else if (phrase == "TakeTicketOWNER" || phrase == "TakeIdeaOWNER") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TakeTicketOWNER"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TakeTicketADMIN") {
+		} else if (phrase == "TakeTicketADMIN" || phrase == "TakeIdeaADMIN") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TakeTicketADMIN"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketOpen") { // You have successfully opened a
-												// &YHelp
-												// Ticket&g, please wait for it
-												// to be
-												// reviewed"
+		} else if (phrase == "TicketOpen" || phrase == "IdeaOpen") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketOpen"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketOpenADMIN") { // %player &whas opened a
-													// &YHelp Ticket
+		} else if (phrase == "TicketOpenADMIN" || phrase == "IdeaOpenADMIN") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketOpenADMIN"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "TicketMax") {
@@ -567,13 +595,13 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString("TicketMax"));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "NoTickets") {
-			output = replaceColorMacros(getOutputConfig().getString("NoTickets"));
+		} else if (phrase == "NoTickets" || phrase == "NoIdeas") {
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = output;
 			return message;
-		} else if (phrase == "AdminJoin") {
+		} else if (phrase == "AdminJoin" || phrase == "AdminJoinIdeas") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("AdminJoin"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "UserJoin") {
@@ -598,7 +626,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 			return message;
 		}
 
-		return "Error";
+		return "Error: unknown message name";
 	}
 
 	public void notifyAdmins(String msg, CommandSender sender) {
