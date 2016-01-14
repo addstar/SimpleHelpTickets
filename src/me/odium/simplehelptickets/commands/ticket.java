@@ -38,6 +38,7 @@ public class ticket implements CommandExecutor {
 	String adminreply;
 	String expire;
 	String userreply;
+	boolean atConsole;
 
 	DBConnection service = DBConnection.getInstance();
 	ResultSet rs = null;
@@ -94,6 +95,7 @@ public class ticket implements CommandExecutor {
 				status = "OPEN";
 				admin = "NONE";
 				expire = null;
+				atConsole = true;
 			} else {
 				// SET VARIABLES FOR PLAYER
 				date = plugin.getCurrentDTG("date");
@@ -110,40 +112,59 @@ public class ticket implements CommandExecutor {
 				status = "OPEN";
 				admin = "NONE";
 				expire = null;
+				atConsole = false;
 			}
 
-			int maxTickets = plugin.getConfig().getInt("MaxTickets"); // Get ticket limit from config
-			int maxIdeas = plugin.getConfig().getInt("MaxIdeas");     // Get idea limit from config
+			// Get ticket/idea limits from the config
+			int maxTickets = plugin.getConfig().getInt("MaxTickets");
+			int maxIdeas = plugin.getConfig().getInt("MaxIdeas");
+
+			// Get cooldown limits from the config (minimum time between new tickets / ideas)
+			int ticketCooldownSeconds = plugin.getConfig().getInt("TicketCooldownSeconds");
+			int ideaCooldownSeconds = plugin.getConfig().getInt("IdeaCooldownSeconds");
 
 			// REFERENCE CONNECTION AND ADD DATA
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 				// MySQL
-				// CHECK MAX TICKETS OR IDEAS
-				try {
-					con = plugin.mysql.getConnection();
-					stmt = con.createStatement();
-					rs = stmt.executeQuery("SELECT COUNT(uuid) AS itemTotal FROM " + targetTable + " WHERE uuid='" + uuid + "' AND status='OPEN'");
-					rs.next(); // sets pointer to first record in result set
-								// (NEED FOR MySQL)
 
-					int itemTotal = rs.getInt("itemTotal");
-					if (ItemLimitReached(itemTotal, targetTable, maxTickets, maxIdeas, sender)) {
-						return true;
-					}
-
-				} catch (SQLException e) {
-					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
-				} finally {
+				if (!atConsole && !player.hasPermission("sht.admin")) {
+					// CHECK MAX TICKETS OR IDEAS
+					// ALSO CHECK COOLDOWN
 					try {
-						if (rs != null) { rs.close(); rs = null; }
-						if (stmt != null) { stmt.close(); stmt = null; }
+						con = plugin.mysql.getConnection();
+						stmt = con.createStatement();
+						rs = stmt.executeQuery("SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem FROM " + targetTable + " WHERE uuid='" + uuid + "' AND status='OPEN'");
+						rs.next(); // sets pointer to first record in result set (required for MySQL)
+
+						int itemTotal = rs.getInt("itemTotal");
+						if (ItemLimitReached(itemTotal, targetTable, maxTickets, maxIdeas, sender)) {
+							return true;
+						}
+
+						// Get Unix time (in seconds) of the newest ticket or idea
+						long newestItem = rs.getLong("newestItem");
+						if (WaitingForCooldown(newestItem, targetTable, ticketCooldownSeconds, ideaCooldownSeconds, sender)) {
+							return true;
+						}
+
 					} catch (SQLException e) {
-						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-						e.printStackTrace();
+						sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+					} finally {
+						try {
+							if (rs != null) {
+								rs.close();
+								rs = null;
+							}
+							if (stmt != null) {
+								stmt.close();
+								stmt = null;
+							}
+						} catch (SQLException e) {
+							System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+							e.printStackTrace();
+						}
 					}
 				}
-
-				// END CHECK MAX TICKETS
 
 				try {
 					con = plugin.mysql.getConnection();
@@ -187,29 +208,64 @@ public class ticket implements CommandExecutor {
 
 			} else {
 				// SQLite
-				// CHECK MAX TICKETS OR IDEAS
-				try {
-					con = service.getConnection();
-					stmt = con.createStatement();
-					rs = stmt.executeQuery("SELECT COUNT(uuid) AS itemTotal FROM " + targetTable + " WHERE uuid='" + uuid + "' AND status='OPEN'");
 
-					int itemTotal = rs.getInt("itemTotal");
-					if (ItemLimitReached(itemTotal, targetTable, maxTickets, maxIdeas, sender)) {
-						return true;
-					}
-
-				} catch (SQLException e) {
-					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
-				} finally {
+				if (!atConsole && !player.hasPermission("sht.admin")) {
+					// CHECK MAX TICKETS OR IDEAS
+					// ALSO CHECK COOLDOWN
 					try {
-						if (rs != null) { rs.close(); rs = null; }
-						if (stmt != null) { stmt.close(); stmt = null; }
+						con = service.getConnection();
+						stmt = con.createStatement();
+
+						// Construct the Sql to convert dates in the form "dd/MMM/yy HH:mm"
+						// to the form "yyyy-MM-dd HH:mm"
+						String itemTimestamp = "";
+
+						// Year
+						itemTimestamp += "cast(2000+substr(date,8,2) as varchar)  || '-' || ";
+
+						// Numeric Month, 01 through 12
+						itemTimestamp += "substr('0'||cast(Instr('janfebmaraprmayjunjulaugsepoctnovdec', lower(cast(substr(date,4,3) as varchar))) / 3 + 1 as varchar), -2, 2) || '-' || ";
+
+						// Day
+						itemTimestamp += "cast(substr(date,1,2) as varchar) || ' ' || ";
+
+						// Time of day
+						itemTimestamp += "substr(date,11,6)";
+
+						// Now convert the timestamp to UnixTime
+						itemTimestamp = "strftime('%s', " + itemTimestamp + ")";
+
+						rs = stmt.executeQuery("SELECT COUNT(uuid) AS itemTotal, MAX(" + itemTimestamp + ") AS newestItem FROM " + targetTable + " WHERE uuid='" + uuid + "' AND status='OPEN'");
+
+						int itemTotal = rs.getInt("itemTotal");
+						if (ItemLimitReached(itemTotal, targetTable, maxTickets, maxIdeas, sender)) {
+							return true;
+						}
+
+						// Get Unix time (in seconds) of the newest ticket or idea
+						long newestItem = rs.getLong("newestItem");
+						if (WaitingForCooldown(newestItem, targetTable, ticketCooldownSeconds, ideaCooldownSeconds, sender)) {
+							return true;
+						}
+
 					} catch (SQLException e) {
-						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-						e.printStackTrace();
+						sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+					} finally {
+						try {
+							if (rs != null) {
+								rs.close();
+								rs = null;
+							}
+							if (stmt != null) {
+								stmt.close();
+								stmt = null;
+							}
+						} catch (SQLException e) {
+							System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+							e.printStackTrace();
+						}
 					}
 				}
-				// END CHECK MAX TICKETS
 
 				try {
 					con = service.getConnection();
@@ -293,4 +349,36 @@ public class ticket implements CommandExecutor {
 		plugin.notifyAdmins(msg, sender);
 
 	}
+
+	private boolean WaitingForCooldown(
+			long lastItemTime, String targetTable,
+			int ticketCooldownSeconds, int ideaCooldownSeconds,
+			CommandSender sender) {
+
+		long currentTime = System.currentTimeMillis() / 1000;
+		long itemTimeThreshold;
+		long cooldownSeconds;
+		String messageName;
+
+		if (targetTable == Utilities.IDEA_TABLE_NAME) {
+			itemTimeThreshold = lastItemTime + ideaCooldownSeconds;
+			cooldownSeconds = ideaCooldownSeconds;
+			messageName = "IdeaTooSoon";
+		}
+		else {
+			itemTimeThreshold = lastItemTime + ticketCooldownSeconds;
+			cooldownSeconds = ticketCooldownSeconds;
+			messageName = "TicketTooSoon";
+		}
+
+		if (currentTime < itemTimeThreshold) {
+			long cooldownMinutes = Math.round(cooldownSeconds / 60.0);
+			sender.sendMessage(plugin.getMessage(messageName).replace("&arg", Long.toString(cooldownMinutes)));
+
+			return true;
+		}
+
+		return false;
+	}
+
 }

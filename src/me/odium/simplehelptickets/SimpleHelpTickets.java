@@ -602,9 +602,14 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
-		} else if (phrase == "TicketMax") {
+		} else if (phrase == "TicketMax" || phrase == "IdeaMax") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketMax"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
+			message = prefix + output;
+			return message;
+		} else if (phrase == "TicketTooSoon" || phrase == "IdeaTooSoon") {
+			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+			output = replaceColorMacros(getOutputConfig().getString(phrase));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "NoTickets" || phrase == "NoIdeas") {

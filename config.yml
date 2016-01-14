@@ -10,6 +10,8 @@
 MaxTickets: 5
 MaxIdeas: 5
 TicketExpiration: 14
+TicketCooldownSeconds: 300
+IdeaCooldownSeconds: 3600
 NotifyAdminOnTicketClose: true
 MultiWorld: false
 OnJoin:
