@@ -27,6 +27,11 @@ commands:
       description: reply to a help ticket or idea
       permission: sht.ticket
       usage: /replyticket <#> <reply>
+   replyclose:
+      aliases: [replycloseticket, replycloseidea]
+      description: reply to a help ticket or idea then close it
+      permission: sht.ticket
+      usage: /replyclose <#> <reply>
    taketicket:
       aliases: [takeidea]
       description: Assign self to a help ticket or idea

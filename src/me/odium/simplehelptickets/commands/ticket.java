@@ -70,7 +70,13 @@ public class ticket implements CommandExecutor {
 				sb.append(details);
 				sb.append(" ");
 			}
-			String details = sb.toString();
+			String details = sb.toString().trim();
+
+			// Check for incomplete ticket / idea descriptions
+			if (details.length() < 10 || details.indexOf(" ") < 0) {
+				sender.sendMessage(plugin.getMessage("NotEnoughInformation"));
+				return true;
+			}
 
 			if (player == null) {
 				// SET VARIABLES FOR CONSOLE

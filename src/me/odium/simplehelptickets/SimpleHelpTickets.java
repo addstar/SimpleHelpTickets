@@ -21,13 +21,13 @@ import me.odium.simplehelptickets.commands.closeticket;
 import me.odium.simplehelptickets.commands.delticket;
 import me.odium.simplehelptickets.commands.purgetickets;
 import me.odium.simplehelptickets.commands.replyticket;
+import me.odium.simplehelptickets.commands.replyclose;
 import me.odium.simplehelptickets.commands.sht;
 import me.odium.simplehelptickets.commands.taketicket;
 import me.odium.simplehelptickets.commands.ticket;
 import me.odium.simplehelptickets.commands.tickets;
 import me.odium.simplehelptickets.commands.findtickets;
 import me.odium.simplehelptickets.listeners.PListener;
-import me.odium.simplehelptickets.DBConnection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -142,6 +142,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		this.getCommand("tickets").setExecutor(new tickets(this));
 		this.getCommand("checkticket").setExecutor(new checkticket(this));
 		this.getCommand("replyticket").setExecutor(new replyticket(this));
+		this.getCommand("replyclose").setExecutor(new replyclose(this));
 		this.getCommand("taketicket").setExecutor(new taketicket(this));
 		this.getCommand("delticket").setExecutor(new delticket(this));
 		this.getCommand("closeticket").setExecutor(new closeticket(this));
@@ -337,6 +338,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 			sender.sendMessage(getMessage("AdminCommandsMenu-taketicket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-replyticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-closeticket"));
+			sender.sendMessage(getMessage("AdminCommandsMenu-replyclose"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-delticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-purgeticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-reload"));
@@ -374,6 +376,11 @@ public class SimpleHelpTickets extends JavaPlugin {
 			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-replyticket"));
 			message = prefix + output;
 			return message;
+		} else if (phrase == "AdminCommandsMenu-replyclose") {
+			prefix = ChatColor.DARK_AQUA + " /replyclose <#> <Reply>";
+			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-replyclose"));
+			message = prefix + output;
+			return message;
 		} else if (phrase == "AdminCommandsMenu-taketicket") {
 			prefix = ChatColor.DARK_AQUA + " /taketicket <#>";
 			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-taketicket"));
@@ -394,7 +401,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 			message = output;
 			return message;
 		} else if (phrase == "AdminCommandsMenu-ideacommands") {
-			output = ChatColor.DARK_AQUA + " /ideas, /takeidea, /replyidea, /closeidea, /delidea, /purgeideas";
+			output = ChatColor.DARK_AQUA + " /checkidea, /takeidea, /closeidea, /replycloseidea";
 			message = output;
 			return message;
 		} else if (phrase == "UserCommandsMenu-delticket") {
@@ -488,6 +495,11 @@ public class SimpleHelpTickets extends JavaPlugin {
 		} else if (phrase == "ConfigReloaded") {
 			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
 			output = replaceColorMacros(getOutputConfig().getString("ConfigReloaded"));
+			message = prefix + output;
+			return message;
+		} else if (phrase == "NotEnoughInformation") {
+			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+			output = replaceColorMacros(getOutputConfig().getString("NotEnoughInformation"));
 			message = prefix + output;
 			return message;
 		} else if (phrase == "NoPermission") {
