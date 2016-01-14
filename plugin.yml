@@ -20,12 +20,12 @@ commands:
    closeticket:
       aliases: [closeidea]
       description: close a help ticket or idea (-r <#> to reopen)
-      permission:
+      permission: sht.ticket
       usage: /closeticket [-r] <#>
    replyticket:
       aliases: [rticket, replyidea, ridea]
       description: reply to a help ticket or idea
-      permission:
+      permission: sht.ticket
       usage: /replyticket <#> <reply>
    taketicket:
       aliases: [takeidea]
@@ -45,7 +45,7 @@ commands:
    purgetickets:
       aliases: [ptickets, purgeideas]
       description: Purge all expired tickets or ideas
-      permission: sht.admin
+      permission: sht.purgetickets
       usage: /purgetickets
    findtickets:
       aliases: [findideas]

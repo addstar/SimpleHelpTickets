@@ -13,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class purgetickets implements CommandExecutor {
 
@@ -28,6 +29,16 @@ public class purgetickets implements CommandExecutor {
 	Connection con = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+
+		if (sender instanceof Player) {
+			Player player = (Player) sender;
+
+			if (!player.hasPermission("sht.purgetickets")) {
+				sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
+				return true;
+			}
+
+		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
 		String targetTable = Utilities.GetTargetTableName(label);
@@ -46,10 +57,10 @@ public class purgetickets implements CommandExecutor {
 
 			return true;
 		} else if (args.length == 1 && args[0].equalsIgnoreCase("-c")) {
-			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + "This will delete all CLOSED " + itemNamePlural + "!; to confirm, \nuse " + ChatColor.GREEN + "/" + itemNamePlural + " -c confirm");
+			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + "This will delete all CLOSED " + itemNamePlural + "!\n To confirm, use " + ChatColor.GREEN + "/" + itemNamePlural + " -c confirm");
 			return true;
 		} else if (args.length == 1 && args[0].equalsIgnoreCase("-a")) {
-			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + "This will delete ALL " + itemNamePlural + "!; to confirm, \nuse " + ChatColor.GREEN + "/" + itemNamePlural + " -a confirm");
+			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + "This will delete ALL " + itemNamePlural + "!\n To confirm, use " + ChatColor.GREEN + "/" + itemNamePlural + " -a confirm");
 			return true;
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-c") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE CLOSED TICKETS OR IDEAS
