@@ -115,7 +115,7 @@ public class tickets implements CommandExecutor {
 						}
 
 						if (ideasFound > 0) {
-							sender.sendMessage(plugin.GRAY + "(" + Utilities.NumToString(ideasFound) + " open " + Utilities.CheckPlural("ideas", ideasFound) + ")");
+							sender.sendMessage(plugin.BLUE + Utilities.NumToString(ideasFound) + " open " + Utilities.CheckPlural("ideas", ideasFound));
 						}
 					}
 

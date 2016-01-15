@@ -52,7 +52,7 @@ public class ticket implements CommandExecutor {
 		}
 
 		if (args.length == 0) {
-			sender.sendMessage(plugin.GOLD + "[ SimpleHelpTickets ]");
+			sender.sendMessage(plugin.GOLD + "[ Tickets ]");
 			sender.sendMessage(plugin.getMessage("HelpMe_Line1"));
 			sender.sendMessage(plugin.getMessage("HelpMe_Line2"));
 		} else if (args.length > 0) {
@@ -270,25 +270,23 @@ public class ticket implements CommandExecutor {
 				try {
 					con = service.getConnection();
 					stmt = con.createStatement();
-					PreparedStatement statement = con.prepareStatement("insert into " + targetTable + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
-					// description, date, uuid, owner, world, x, y, z, p, f,
-					// reply, status, admin
+					PreparedStatement statement = con.prepareStatement("insert into " + targetTable + " (description, date, uuid, owner, world, x, y, z, p, f, adminreply, userreply, status, admin, expiration) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 
-					statement.setString(2, details);
-					statement.setString(3, date);
-					statement.setString(4, uuid);
-					statement.setString(5, owner);
-					statement.setString(6, world);
-					statement.setDouble(7, locX);
-					statement.setDouble(8, locY);
-					statement.setDouble(9, locZ);
-					statement.setDouble(10, locP);
-					statement.setDouble(11, locF);
-					statement.setString(12, adminreply);
-					statement.setString(13, userreply);
-					statement.setString(14, status);
-					statement.setString(15, admin);
-					statement.setString(16, expire);
+					statement.setString(1, details);
+					statement.setString(2, date);
+					statement.setString(3, uuid);
+					statement.setString(4, owner);
+					statement.setString(5, world);
+					statement.setDouble(6, locX);
+					statement.setDouble(7, locY);
+					statement.setDouble(8, locZ);
+					statement.setDouble(9, locP);
+					statement.setDouble(10, locF);
+					statement.setString(11, adminreply);
+					statement.setString(12, userreply);
+					statement.setString(13, status);
+					statement.setString(14, admin);
+					statement.setString(15, expire);
 
 					statement.executeUpdate();
 					statement.close();
@@ -357,23 +355,25 @@ public class ticket implements CommandExecutor {
 
 		long currentTime = System.currentTimeMillis() / 1000;
 		long itemTimeThreshold;
-		long cooldownSeconds;
 		String messageName;
 
 		if (targetTable == Utilities.IDEA_TABLE_NAME) {
 			itemTimeThreshold = lastItemTime + ideaCooldownSeconds;
-			cooldownSeconds = ideaCooldownSeconds;
 			messageName = "IdeaTooSoon";
 		}
 		else {
 			itemTimeThreshold = lastItemTime + ticketCooldownSeconds;
-			cooldownSeconds = ticketCooldownSeconds;
 			messageName = "TicketTooSoon";
 		}
 
 		if (currentTime < itemTimeThreshold) {
-			long cooldownMinutes = Math.round(cooldownSeconds / 60.0);
-			sender.sendMessage(plugin.getMessage(messageName).replace("&arg", Long.toString(cooldownMinutes)));
+			double minutesUntilNewItem = (itemTimeThreshold - currentTime) / 60.0;
+			long minutesRemaining = (long)Math.floor(minutesUntilNewItem);
+			int secondsRemaining = (int)Math.round((minutesUntilNewItem - minutesRemaining) * 60.0);
+
+			String remainingTime = Long.toString(minutesRemaining) + "m " + Integer.toString(secondsRemaining) + "s";
+
+			sender.sendMessage(plugin.getMessage(messageName).replace("&arg", remainingTime));
 
 			return true;
 		}

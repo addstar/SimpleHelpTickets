@@ -53,6 +53,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 	public ChatColor GRAY = ChatColor.GRAY;
 	public ChatColor WHITE = ChatColor.WHITE;
 	public ChatColor AQUA = ChatColor.AQUA;
+	public ChatColor BLUE = ChatColor.BLUE;
 
 	DBConnection service = DBConnection.getInstance();
 
