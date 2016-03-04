@@ -180,7 +180,10 @@ public class SimpleHelpTickets extends JavaPlugin {
 		}
 		// Check for and delete any expired tickets, display progress.
 		log.info("[SimpleHelpTickets] " + expireTickets() + " Expired Tickets Deleted");
-		getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
+		if (getConfig().getBoolean("BungeeChatIntegration", false)) {
+			getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+		}
 
 	}
 
@@ -655,8 +658,10 @@ public class SimpleHelpTickets extends JavaPlugin {
 			uuid = ply.getUniqueId();
 		}
 
-		// Ensure staff see the message regardless of which server they are on
-		BungeeChat.mirrorChat(msg, getConfig().getString("BungeeChatStaffChannel"));
+		if (getConfig().getBoolean("BungeeChatIntegration", false)) {
+			// Ensure staff see the message regardless of which server they are on
+			BungeeChat.mirrorChat(msg, getConfig().getString("BungeeChatStaffChannel"));
+		}
 
 		// Send to all
 		Collection<? extends Player> players = Bukkit.getOnlinePlayers();
@@ -677,7 +682,9 @@ public class SimpleHelpTickets extends JavaPlugin {
 		if (ply != null) {
 			ply.sendMessage(msg);
 		} else {
-			SendPluginMessage("Message", player, msg);
+			if (getConfig().getBoolean("BungeeChatIntegration", false)) {
+				SendPluginMessage("Message", player, msg);
+			}
 		}
 	}
 

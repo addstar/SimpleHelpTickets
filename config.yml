@@ -14,6 +14,7 @@ TicketCooldownSeconds: 300
 IdeaCooldownSeconds: 3600
 NotifyAdminOnTicketClose: true
 MultiWorld: false
+BungeeChatIntegration: false
 OnJoin:
   DisplayTicketAdmin: true
   DisplayTicketUser: true
