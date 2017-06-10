@@ -3,6 +3,7 @@ package me.odium.simplehelptickets;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -70,7 +71,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		// Look for defaults in the jar
 		InputStream defConfigStream = getResource("output.yml");
 		if (defConfigStream != null) {
-			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
 			OutputConfig.setDefaults(defConfig);
 		}
 	}
