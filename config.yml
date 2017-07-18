@@ -18,6 +18,9 @@ BungeeChatIntegration: false
 OnJoin:
   DisplayTicketAdmin: true
   DisplayTicketUser: true
+TicketReminder:
+  SetReminder: true
+  PeriodInMinutes: 60
 MySQL:
   USE_MYSQL: true
   hostname: localhost

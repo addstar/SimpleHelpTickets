@@ -1,14 +1,7 @@
 package me.odium.simplehelptickets.listeners;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import me.odium.simplehelptickets.manager.TicketManager;
 
-import me.odium.simplehelptickets.DBConnection;
-import me.odium.simplehelptickets.SimpleHelpTickets;
-
-import me.odium.simplehelptickets.Utilities;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,134 +10,15 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PListener implements Listener {
 
-  public SimpleHelpTickets plugin;
-  public PListener(SimpleHelpTickets plugin) {
-    this.plugin = plugin;    
-    Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
-  }
+  TicketManager manager;
 
-  DBConnection service = DBConnection.getInstance();
-  java.sql.Statement stmt;
-  Connection con;
+  public PListener(TicketManager manager) {
+    this.manager = manager;
+  }
 
   @EventHandler(priority = EventPriority.LOW)
   public void onPlayerJoin(PlayerJoinEvent event) {      
     Player player = event.getPlayer();
-    // IF PLAYER IS ADMIN
-    if (player.hasPermission("sht.admin")) {
-      boolean DisplayTicketAdmin = plugin.getConfig().getBoolean("OnJoin.DisplayTicketAdmin");      
-      if (DisplayTicketAdmin == true) {
-
-        try {        
-          if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-            con = plugin.mysql.getConnection();
-          } else {
-            con = service.getConnection();
-          }
-          stmt = con.createStatement();
-
-          int ticketTotal = CountOpenItems(stmt, Utilities.TICKET_TABLE_NAME);
-          if (ticketTotal > 0) {
-            player.sendMessage(plugin.getMessage("AdminJoin").replace("&arg", ticketTotal+""));
-          }
-
-          int ideaTotal = CountOpenItems(stmt, Utilities.IDEA_TABLE_NAME);
-          if (ideaTotal > 0) {
-            player.sendMessage(plugin.getMessage("AdminJoinIdeas").replace("&arg", ideaTotal+""));
-          }
-
-        } catch(Exception e) {
-          plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
-        }
-
-      }
-      // IF PLAYER IS USER      
-    } else {
-      boolean DisplayTicketUser = plugin.getConfig().getBoolean("OnJoin.DisplayTicketUser");
-
-      if (DisplayTicketUser == true) {
-
-        if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-          try {
-            con = plugin.mysql.getConnection();
-            stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
-            rs.next(); //sets pointer to first record in result set
-
-            int ticketTotal = rs.getInt("ticketTotal");
-            if (ticketTotal > 0) {
-              rs.close();
-              rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
-              int openNumber = 0;              
-              while (rs.next()) {
-                String adminreply = rs.getString("adminreply");
-                String status = rs.getString("status");
-                if (status.equalsIgnoreCase("OPEN")) {
-                  openNumber++;
-                }                
-                if (!adminreply.equalsIgnoreCase("NONE") && status.equalsIgnoreCase("OPEN")) {
-                  player.sendMessage(plugin.getMessage("UserJoin-TicketReplied"));
-                }
-              }              
-              if (DisplayTicketUser == true && openNumber > 0) {                
-                player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber+""));              
-              }
-            }
-            rs.close();
-            stmt.close();
-          } catch(Exception e) {
-            plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
-          }      
-        } else {
-          try {
-            con = service.getConnection();
-            stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
-
-            int ticketTotal = rs.getInt("ticketTotal");
-            if (ticketTotal == 0) {
-              // DO NOTHING
-              rs.close();
-              stmt.close();
-            } else if(ticketTotal > 0) {
-              rs.close();
-              rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
-              int openNumber = 0;
-
-              while (rs.next()) {
-                String adminreply = rs.getString("adminreply");
-                String status = rs.getString("status");
-                if (status.equalsIgnoreCase("OPEN")) {
-                  openNumber++;
-                }                
-                if (!adminreply.equalsIgnoreCase("NONE") && status.equalsIgnoreCase("OPEN")) {
-                  player.sendMessage(plugin.getMessage("UserJoin-TicketReplied"));
-                }
-              }
-              if (DisplayTicketUser == true && openNumber > 0) {                
-                player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber+""));              
-              }
-              rs.close();
-              stmt.close();
-            }
-          } catch(Exception e) {
-            plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
-          } 
-        }
-      }
-    }
-  }
-
-  private int CountOpenItems(java.sql.Statement stmt, String targetTable) throws SQLException {
-
-    ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE status='"+"OPEN"+"'");
-
-    if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-      rs.next(); //sets pointer to first record in result set
-    }
-
-    int itemTotal = rs.getInt("ticketTotal");
-    return itemTotal;
-
+    manager.runOnJoin(player);
   }
 }

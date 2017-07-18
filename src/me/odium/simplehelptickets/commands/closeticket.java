@@ -57,6 +57,7 @@ public class closeticket implements CommandExecutor {
 			int id = Integer.parseInt(args[0]);
 
 			boolean success = CloseItem(plugin, sender, targetTable, id);
+			if(success)plugin.reminder.addResponse(sender);
 			return success;
 
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-r")) {

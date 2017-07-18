@@ -50,6 +50,7 @@ public class replyticket implements CommandExecutor {
 			int id = Integer.parseInt(args[0]);
 
 			boolean success = ReplyItem(plugin, sender, targetTable, id, args);
+			if(success)plugin.reminder.addResponse(sender);
 			return success;
 		}
 

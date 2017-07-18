@@ -30,6 +30,8 @@ import me.odium.simplehelptickets.commands.tickets;
 import me.odium.simplehelptickets.commands.findtickets;
 import me.odium.simplehelptickets.listeners.PListener;
 
+import me.odium.simplehelptickets.manager.TicketManager;
+import me.odium.simplehelptickets.threads.TicketReminder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -44,9 +46,11 @@ import au.com.addstar.bc.BungeeChat;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import org.bukkit.scheduler.BukkitTask;
 
 public class SimpleHelpTickets extends JavaPlugin {
-	public Logger log = Logger.getLogger("Minecraft");
+
+	public Logger log;
 
 	public ChatColor GREEN = ChatColor.GREEN;
 	public ChatColor RED = ChatColor.RED;
@@ -57,7 +61,13 @@ public class SimpleHelpTickets extends JavaPlugin {
 	public ChatColor BLUE = ChatColor.BLUE;
 
 	DBConnection service = DBConnection.getInstance();
+	TicketManager manager;
+	public TicketReminder reminder;
+	private BukkitTask reminderTask;
 
+    public TicketManager getManager() {
+        return manager;
+    }
 	// Custom Config
 	private FileConfiguration OutputConfig = null;
 	private File OutputConfigFile = null;
@@ -124,6 +134,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 	public MySQLConnection mysql;
 
 	public void onEnable() {
+	    log = Bukkit.getLogger();
 		log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " enabled.");
 		FileConfiguration cfg = getConfig();
 		FileConfigurationOptions cfgOptions = cfg.options();
@@ -136,8 +147,10 @@ public class SimpleHelpTickets extends JavaPlugin {
 		ccfgOptions.copyDefaults(true);
 		ccfgOptions.copyHeader(true);
 		saveOutputConfig();
+		manager =  new TicketManager(this);
 		// declare new listener
-		new PListener(this);
+		PListener listener = new PListener(manager);
+		Bukkit.getServer().getPluginManager().registerEvents(listener,this);
 		// declare executors
 		this.getCommand("sht").setExecutor(new sht(this));
 		this.getCommand("ticket").setExecutor(new ticket(this));
@@ -185,7 +198,9 @@ public class SimpleHelpTickets extends JavaPlugin {
 		if (getConfig().getBoolean("BungeeChatIntegration", false)) {
 			getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 		}
-
+		if(this.getConfig().getBoolean("TicketReminder.SetReminder",true)) {
+			enableReminder();
+		}
 	}
 
 	public void onDisable() {
@@ -199,7 +214,9 @@ public class SimpleHelpTickets extends JavaPlugin {
 			log.info("[SimpleHelpTickets] " + expiredTicketCount + " Expired Tickets Deleted");
 			log.info("[SimpleHelpTickets] " + expiredIdeaCount + " Expired Ideas Deleted");
 		}
-
+        if(this.getConfig().getBoolean("TicketReminder.SetReminder",true)) {
+            disableReminder(null);
+        }
 		service.closeConnection();
 
 		// mysql.close();
@@ -697,4 +714,38 @@ public class SimpleHelpTickets extends JavaPlugin {
 		Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
 		player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
 	}
+	public void disableReminder(){
+	    disableReminder(null);
+    }
+
+	public void disableReminder(CommandSender sender){
+	    try {
+            reminderTask.cancel();
+            reminder = null;
+        }catch (IllegalStateException e){
+	        if(sender != null){
+	            sender.sendMessage("Reminder Task was not scheduled");
+            }else{
+	            log.severe("SHT Reminder Task was cancelled but never scheduled");
+            }
+        }
+
+    }
+    public void enableReminder(){
+	    enableReminder(null);
+    }
+
+
+    public void enableReminder(CommandSender sender){
+        reminder = new TicketReminder(manager);
+        long minutes = this.getConfig().getLong("TicketReminder.PeriodInMinutes");
+        long period = minutes * 60 * 60;
+        reminderTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, reminder, period, period);
+        if(sender != null){
+           sender.sendMessage("Reminder has been scheduled to run in " + period + " minutes");
+        }else{
+            log.info("SHT Reminder scheduled: "+ period + " minutes");
+        }
+    }
+
 }

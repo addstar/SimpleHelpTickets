@@ -29,48 +29,57 @@ public class sht implements CommandExecutor {
 		if (args.length == 0) {
 			plugin.displayHelp(sender);
 			return true;
-		} else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
-			if (player == null || player.hasPermission("sht.reload")) {
-				// Reload Config
-				File file = new File(plugin.getDataFolder() + File.separator + "config.yml");
-				if (!file.exists()) {
-					sender.sendMessage(plugin.getMessage("NewConfig"));
-					FileConfiguration cfg = plugin.getConfig();
-					FileConfigurationOptions cfgOptions = cfg.options();
-					cfgOptions.copyDefaults(true);
-					cfgOptions.copyHeader(true);
-					plugin.saveConfig();
-				}
-				plugin.reloadConfig();
+		} else if (args.length == 1) {
+			switch (args[0].toLowerCase()){
+				case "reload":
+					if (player == null || player.hasPermission("sht.reload")) {
+						// Reload Config
+						File file = new File(plugin.getDataFolder() + File.separator + "config.yml");
+						if (!file.exists()) {
+							sender.sendMessage(plugin.getMessage("NewConfig"));
+							FileConfiguration cfg = plugin.getConfig();
+							FileConfigurationOptions cfgOptions = cfg.options();
+							cfgOptions.copyDefaults(true);
+							cfgOptions.copyHeader(true);
+							plugin.saveConfig();
+						}
+						plugin.reloadConfig();
 
-				// Reload Output Config
-				File file2 = new File(plugin.getDataFolder() + File.separator + "output.yml");
-				if (!file2.exists()) {
-					sender.sendMessage(plugin.getMessage("NewOutput"));
-					FileConfiguration cfg = plugin.getOutputConfig();
-					FileConfigurationOptions cfgOptions = cfg.options();
-					cfgOptions.copyDefaults(true);
-					cfgOptions.copyHeader(true);
-					plugin.saveOutputConfig();
+						// Reload Output Config
+						File file2 = new File(plugin.getDataFolder() + File.separator + "output.yml");
+						if (!file2.exists()) {
+							sender.sendMessage(plugin.getMessage("NewOutput"));
+							FileConfiguration cfg = plugin.getOutputConfig();
+							FileConfigurationOptions cfgOptions = cfg.options();
+							cfgOptions.copyDefaults(true);
+							cfgOptions.copyHeader(true);
+							plugin.saveOutputConfig();
 
-				}
-				plugin.reloadOutputConfig();
+						}
+						plugin.reloadOutputConfig();
 
-				sender.sendMessage(plugin.getMessage("ConfigReloaded"));
-				return true;
-			} else {
-				sender.sendMessage(plugin.getMessage("NoPermission"));
-				return true;
+						sender.sendMessage(plugin.getMessage("ConfigReloaded"));
+						return true;
+					} else {
+						sender.sendMessage(plugin.getMessage("NoPermission"));
+						return true;
+					}
+				case "check":
+					player.sendMessage(ChatColor.RED + "This feature is disabled.");
+					break;
+				case "stopReminders":
+
+				default:
+					displayHelp(sender);
+					return false;
 			}
-		} else if (args.length == 1 && args[0].equalsIgnoreCase("check")) {
-			// String uuid = player.getUniqueId().toString();
-			// player.sendMessage(ChatColor.BLUE+"Your UUID: "+ChatColor.RESET+uuid);
-			// String uuidName = Bukkit.getOfflinePlayer(uuid).getName();
-			// player.sendMessage(ChatColor.BLUE+"Your Name "+ChatColor.RESET+uuidName);
-			player.sendMessage(ChatColor.RED + "This feature is disabled.");
 		}
-
 		return true;
 	}
+
+	public void displayHelp(CommandSender sender){
+		//todo
+	}
+
 
 }
