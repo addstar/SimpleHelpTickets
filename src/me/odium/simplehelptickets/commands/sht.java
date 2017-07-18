@@ -32,7 +32,7 @@ public class sht implements CommandExecutor {
 		} else if (args.length == 1) {
 			switch (args[0].toLowerCase()){
 				case "reload":
-					if (player == null || player.hasPermission("sht.reload")) {
+					if (player == null || player.hasPermission("sht.manager")) {
 						// Reload Config
 						File file = new File(plugin.getDataFolder() + File.separator + "config.yml");
 						if (!file.exists()) {
@@ -67,8 +67,28 @@ public class sht implements CommandExecutor {
 				case "check":
 					player.sendMessage(ChatColor.RED + "This feature is disabled.");
 					break;
-				case "stopReminders":
-
+				case "stopreminder":
+					if(sender.hasPermission("sht.manager")) {
+						plugin.disableReminder(sender);
+					}else{
+						sender.sendMessage(plugin.getMessage("NoPermission"));
+					}
+					break;
+				case "startreminder":
+					if(sender.hasPermission("sht.manager")) {
+						plugin.enableReminder(sender);
+					}else{
+						sender.sendMessage(plugin.getMessage("NoPermission"));
+					}
+					break;
+				case "runreminder":
+					if(sender.hasPermission("sht.manager")) {
+						plugin.forceReminderRun(sender);
+					}else{
+						sender.sendMessage(plugin.getMessage("NoPermission"));
+					}
+					break;
+				case "help":
 				default:
 					displayHelp(sender);
 					return false;
@@ -78,7 +98,15 @@ public class sht implements CommandExecutor {
 	}
 
 	public void displayHelp(CommandSender sender){
-		//todo
+		sender.sendMessage( "&cUsage:");
+		sender.sendMessage("&c/sht check - disabled feature");
+		if(sender.hasPermission("sht.manager")) {
+			sender.sendMessage("&c/sht reload - reloads the plugin");
+			sender.sendMessage("&c/sht stopreminder - turns of the reminder task");
+			sender.sendMessage("&c/sht startreminder - turns on the reminder task");
+			sender.sendMessage("&c/sht runreminder -  runs the reminder task immdediately");
+		}
+			sender.sendMessage("&c/sht help - shows this message");
 	}
 
 

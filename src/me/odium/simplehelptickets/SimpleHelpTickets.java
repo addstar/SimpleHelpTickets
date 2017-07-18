@@ -748,4 +748,9 @@ public class SimpleHelpTickets extends JavaPlugin {
         }
     }
 
+    public void forceReminderRun(CommandSender sender){
+        sender.sendMessage("Running SHT Reminder for all onine");
+        Bukkit.getScheduler().runTaskAsynchronously(this, reminder);
+    }
+
 }
