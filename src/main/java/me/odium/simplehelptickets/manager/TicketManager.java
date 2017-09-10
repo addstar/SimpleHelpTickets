@@ -130,8 +130,7 @@ public void ShowAdminTickets(Player player){
             rs.next(); //sets pointer to first record in result set
         }
 
-        int itemTotal = rs.getInt("ticketTotal");
-        return itemTotal;
+        return rs.getInt("ticketTotal");
 
     }
 

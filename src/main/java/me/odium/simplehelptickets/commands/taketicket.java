@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -99,7 +100,7 @@ public class taketicket implements CommandExecutor {
 			// String owner = rs.getString("owner");
 			String owner = rs.getString("owner");
 			String strloc = null;
-			if (plugin.getConfig().getBoolean("MultiWorld") == true) {
+			if (plugin.getConfig().getBoolean("MultiWorld")) {
 				worldName = rs.getString("world");
 				strloc = "(" + rs.getInt("x") + ", " + rs.getInt("y") + ", " + rs.getInt("z") + ")";
 			}
@@ -124,7 +125,7 @@ public class taketicket implements CommandExecutor {
 			sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + Utilities.Capitalize(itemName) + " " + id + ChatColor.RESET + ChatColor.GOLD + " ]");
 			sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + owner);
 			sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + date);
-			if (plugin.getConfig().getBoolean("MultiWorld") == true) {
+			if (plugin.getConfig().getBoolean("MultiWorld")) {
 				sender.sendMessage(ChatColor.BLUE + " Location: " + ChatColor.WHITE + worldName + " " + ChatColor.GRAY + strloc);
 			}
 			if (status.contains("OPEN")) {
@@ -157,7 +158,7 @@ public class taketicket implements CommandExecutor {
 			String messageName;
 
 			// NOTIFY -OTHER- ADMINS
-			if (targetTable == Utilities.IDEA_TABLE_NAME)
+			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 				messageName = "TakeIdeaADMIN";
 			else
 				messageName = "TakeTicketADMIN";
@@ -166,7 +167,7 @@ public class taketicket implements CommandExecutor {
 			plugin.notifyAdmins(msg, player);
 
 			// NOTIFY USER
-			if (targetTable == Utilities.IDEA_TABLE_NAME)
+			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 				messageName = "TakeIdeaOWNER";
 			else
 				messageName = "TakeTicketOWNER";
@@ -177,7 +178,7 @@ public class taketicket implements CommandExecutor {
 			return true;
 		} catch (Exception e) {
 			String messageName;
-			if (targetTable == Utilities.IDEA_TABLE_NAME)
+			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 				messageName = "IdeaNotExist";
 			else
 				messageName = "TicketNotExist";

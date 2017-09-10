@@ -3,6 +3,7 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -13,8 +14,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import javax.swing.*;
 
 public class tickets implements CommandExecutor {
 
@@ -61,14 +60,14 @@ public class tickets implements CommandExecutor {
 				boolean allTickets = false;
 				boolean allClosed = false;
 
-				for (int i = 0; i < args.length; i++) {
-					if (args[i].equalsIgnoreCase("-v"))
+				for (String arg : args) {
+					if (arg.equalsIgnoreCase("-v"))
 						verboseMode = true;
 
-					if (args[i].equalsIgnoreCase("-a"))
+					if (arg.equalsIgnoreCase("-a"))
 						allTickets = true;
 
-					if (args[i].equalsIgnoreCase("-c"))
+					if (arg.equalsIgnoreCase("-c"))
 						allClosed = true;
 				}
 
@@ -236,7 +235,7 @@ public class tickets implements CommandExecutor {
 	}
 
 	private void ReportNoItems(CommandSender sender, String targetTable) {
-		if (targetTable == Utilities.IDEA_TABLE_NAME)
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 			sender.sendMessage(plugin.getMessage("NoIdeas"));
 		else
 			sender.sendMessage(plugin.getMessage("NoTickets"));

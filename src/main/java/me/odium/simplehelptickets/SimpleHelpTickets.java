@@ -32,6 +32,7 @@ import me.odium.simplehelptickets.listeners.PListener;
 
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.threads.TicketReminder;
+import me.odium.test.SimpleMailPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -39,6 +40,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.FileConfigurationOptions;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import au.com.addstar.bc.BungeeChat;
@@ -64,6 +66,9 @@ public class SimpleHelpTickets extends JavaPlugin {
 	TicketManager manager;
 	public TicketReminder reminder;
 	private BukkitTask reminderTask;
+	public boolean useMail =false;
+	public SimpleMailPlugin mailPlugin;
+
 
     public TicketManager getManager() {
         return manager;
@@ -192,6 +197,13 @@ public class SimpleHelpTickets extends JavaPlugin {
 				log.info("[SimpleHelpTickets] " + "Error: " + e);
 			}
 		}
+		if(this.getConfig().getBoolean("useSimpleMail", false)){
+            Plugin plugin = Bukkit.getPluginManager().getPlugin("SimpleMail");
+            if(plugin != null && plugin instanceof SimpleMailPlugin){
+                mailPlugin = (SimpleMailPlugin) plugin;
+                useMail = true;
+            }
+        }
 		// Check for and delete any expired tickets, display progress.
 		log.info("[SimpleHelpTickets] " + expireTickets() + " Expired Tickets Deleted");
 
@@ -373,299 +385,329 @@ public class SimpleHelpTickets extends JavaPlugin {
 		String output;
 		String message;
 
-		if (phrase == "AdminCommandsMenu-reload") {
-			prefix = ChatColor.DARK_AQUA + " /helptickets reload";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-reload"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-purgeticket") {
-			prefix = ChatColor.DARK_AQUA + " /purgetickets [-c|-a]";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-purgeticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-delticket") {
-			prefix = ChatColor.DARK_AQUA + " /delticket <#>";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-delticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-closeticket") {
-			prefix = ChatColor.DARK_AQUA + " /closeticket [r] <#>";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-closeticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-replyticket") {
-			prefix = ChatColor.DARK_AQUA + " /replyticket <#> <Reply>";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-replyticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-replyclose") {
-			prefix = ChatColor.DARK_AQUA + " /replyclose <#> <Reply>";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-replyclose"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-taketicket") {
-			prefix = ChatColor.DARK_AQUA + " /taketicket <#>";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-taketicket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-gototicket") {
-			prefix = ChatColor.DARK_AQUA + " /gototicket <#>";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-gototicket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-tickets") {
-			prefix = ChatColor.DARK_AQUA + " /tickets [-v|-a|-c]";
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-tickets"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-Title") {
-			output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-Title"));
-			message = output;
-			return message;
-		} else if (phrase == "AdminCommandsMenu-ideacommands") {
-			output = ChatColor.DARK_AQUA + " /checkidea, /takeidea, /closeidea, /replycloseidea";
-			message = output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-delticket") {
-			prefix = ChatColor.GREEN + " /delticket <#>";
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-delticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-closeticket") {
-			prefix = ChatColor.GREEN + " /closeticket <#>";
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-closeticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-replyticket") {
-			prefix = ChatColor.GREEN + " /replyticket <#> <Reply>";
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-replyticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-checkticket") {
-			prefix = ChatColor.GREEN + " /checkticket <#>";
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-checkticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-tickets") {
-			prefix = ChatColor.GREEN + " /tickets";
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-tickets"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-ticket") {
-			prefix = ChatColor.GREEN + " /ticket <Description>";
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-ticket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-Title") {
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-Title"));
-			message = output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-helpme") {
-			prefix = ChatColor.DARK_GREEN + " /helpme" + ChatColor.WHITE;
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-helpme"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-helptickets") {
-			prefix = ChatColor.DARK_GREEN + " /helptickets" + ChatColor.WHITE;
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-helptickets"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-idea") {
-			prefix = ChatColor.DARK_GREEN + " /idea" + ChatColor.WHITE;
-			output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-idea"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserCommandsMenu-ideacommands") {
-			output = ChatColor.DARK_GREEN + " /ideas, /checkidea, /replyidea, /closeidea, /delidea";
-			message = output;
-			return message;
-		} else if (phrase == "InvalidTicketNumber" || phrase == "InvalidIdeaNumber") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "Error") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("Error"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketNotExist" || phrase == "IdeaNotExist") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "NotYourTicketToCheck" || phrase == "NotYourIdeaToCheck") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "NotYourTicketToClose" || phrase == "NotYourIdeaToClose") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "NewConfig") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("NewConfig"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "NewOutput") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("NewOutput"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "ConfigReloaded") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("ConfigReloaded"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "NotEnoughInformation") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("NotEnoughInformation"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "NoPermission") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("NoPermission"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketAlreadyClosed" || phrase == "IdeaAlreadyClosed") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketClosed" || phrase == "IdeaClosed") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketClosedOWNER" || phrase == "IdeaClosedOWNER") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketClosedADMIN" || phrase == "IdeaClosedADMIN") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketNotClosed") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("TicketNotClosed"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketReopened" || phrase == "IdeaReopened") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketReopenedOWNER" || phrase == "IdeaReopenedOWNER") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketReopenedADMIN" || phrase == "IdeaReopenedADMIN") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AllClosedTicketsPurged" || phrase == "AllClosedIdeasPurged") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AllTicketsPurged" || phrase == "AllIdeasPurged") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminRepliedToTicket" || phrase == "AdminRepliedToIdea") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "AdminRepliedToTicketOWNER" || phrase == "AdminRepliedToIdeaOWNER") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserRepliedToTicket" || phrase == "UserRepliedToIdea") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "CannotTakeClosedTicket") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("CannotTakeClosedTicket"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "InvalidWorld") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString("InvalidWorld"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TakeTicketOWNER" || phrase == "TakeIdeaOWNER") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TakeTicketADMIN" || phrase == "TakeIdeaADMIN") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketOpen" || phrase == "IdeaOpen") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketOpenADMIN" || phrase == "IdeaOpenADMIN") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketMax" || phrase == "IdeaMax") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "TicketTooSoon" || phrase == "IdeaTooSoon") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "NoTickets" || phrase == "NoIdeas") {
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = output;
-			return message;
-		} else if (phrase == "AdminJoin" || phrase == "AdminJoinIdeas") {
-			prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
-			output = replaceColorMacros(getOutputConfig().getString(phrase));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserJoin") {
-			prefix = ChatColor.GOLD + "* ";
-			output = replaceColorMacros(getOutputConfig().getString("UserJoin"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "UserJoin-TicketReplied") {
-			prefix = ChatColor.GOLD + "* ";
-			output = replaceColorMacros(getOutputConfig().getString("UserJoin-TicketReplied"));
-			message = prefix + output;
-			return message;
-		} else if (phrase == "HelpMe_Line1") {
-			prefix = ChatColor.GOLD + "* ";
-			output = replaceColorMacros(getOutputConfig().getString("HelpMe_Line1"));
-			message = output;
-			return message;
-		} else if (phrase == "HelpMe_Line2") {
-			prefix = ChatColor.GOLD + "* ";
-			output = replaceColorMacros(getOutputConfig().getString("HelpMe_Line2"));
-			message = output;
-			return message;
-		}
+		switch (phrase) {
+			case "AdminCommandsMenu-reload":
+				prefix = ChatColor.DARK_AQUA + " /helptickets reload";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-reload"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-purgeticket":
+				prefix = ChatColor.DARK_AQUA + " /purgetickets [-c|-a]";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-purgeticket"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-delticket":
+				prefix = ChatColor.DARK_AQUA + " /delticket <#>";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-delticket"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-closeticket":
+				prefix = ChatColor.DARK_AQUA + " /closeticket [r] <#>";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-closeticket"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-replyticket":
+				prefix = ChatColor.DARK_AQUA + " /replyticket <#> <Reply>";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-replyticket"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-replyclose":
+				prefix = ChatColor.DARK_AQUA + " /replyclose <#> <Reply>";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-replyclose"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-taketicket":
+				prefix = ChatColor.DARK_AQUA + " /taketicket <#>";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-taketicket"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-gototicket":
+				prefix = ChatColor.DARK_AQUA + " /gototicket <#>";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-gototicket"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-tickets":
+				prefix = ChatColor.DARK_AQUA + " /tickets [-v|-a|-c]";
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-tickets"));
+				message = prefix + output;
+				return message;
+			case "AdminCommandsMenu-Title":
+				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-Title"));
+				message = output;
+				return message;
+			case "AdminCommandsMenu-ideacommands":
+				output = ChatColor.DARK_AQUA + " /checkidea, /takeidea, /closeidea, /replycloseidea";
+				message = output;
+				return message;
+			case "UserCommandsMenu-delticket":
+				prefix = ChatColor.GREEN + " /delticket <#>";
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-delticket"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-closeticket":
+				prefix = ChatColor.GREEN + " /closeticket <#>";
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-closeticket"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-replyticket":
+				prefix = ChatColor.GREEN + " /replyticket <#> <Reply>";
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-replyticket"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-checkticket":
+				prefix = ChatColor.GREEN + " /checkticket <#>";
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-checkticket"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-tickets":
+				prefix = ChatColor.GREEN + " /tickets";
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-tickets"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-ticket":
+				prefix = ChatColor.GREEN + " /ticket <Description>";
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-ticket"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-Title":
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-Title"));
+				message = output;
+				return message;
+			case "UserCommandsMenu-helpme":
+				prefix = ChatColor.DARK_GREEN + " /helpme" + ChatColor.WHITE;
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-helpme"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-helptickets":
+				prefix = ChatColor.DARK_GREEN + " /helptickets" + ChatColor.WHITE;
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-helptickets"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-idea":
+				prefix = ChatColor.DARK_GREEN + " /idea" + ChatColor.WHITE;
+				output = replaceColorMacros(getOutputConfig().getString("UserCommandsMenu-idea"));
+				message = prefix + output;
+				return message;
+			case "UserCommandsMenu-ideacommands":
+				output = ChatColor.DARK_GREEN + " /ideas, /checkidea, /replyidea, /closeidea, /delidea";
+				message = output;
+				return message;
+			case "InvalidTicketNumber":
+			case "InvalidIdeaNumber":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "Error":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("Error"));
+				message = prefix + output;
+				return message;
+			case "TicketNotExist":
+			case "IdeaNotExist":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "NotYourTicketToCheck":
+			case "NotYourIdeaToCheck":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "NotYourTicketToClose":
+			case "NotYourIdeaToClose":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "NewConfig":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("NewConfig"));
+				message = prefix + output;
+				return message;
+			case "NewOutput":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("NewOutput"));
+				message = prefix + output;
+				return message;
+			case "ConfigReloaded":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("ConfigReloaded"));
+				message = prefix + output;
+				return message;
+			case "NotEnoughInformation":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("NotEnoughInformation"));
+				message = prefix + output;
+				return message;
+			case "NoPermission":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("NoPermission"));
+				message = prefix + output;
+				return message;
+			case "TicketAlreadyClosed":
+			case "IdeaAlreadyClosed":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketClosed":
+			case "IdeaClosed":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "IdeaClosedMail":
+			case "TicketClosedMail":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketClosedOWNER":
+			case "IdeaClosedOWNER":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketClosedADMIN":
+			case "IdeaClosedADMIN":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketNotClosed":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("TicketNotClosed"));
+				message = prefix + output;
+				return message;
+			case "TicketReopened":
+			case "IdeaReopened":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketReopenedOWNER":
+			case "IdeaReopenedOWNER":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketReopenedADMIN":
+			case "IdeaReopenedADMIN":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "AllClosedTicketsPurged":
+			case "AllClosedIdeasPurged":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "AllTicketsPurged":
+			case "AllIdeasPurged":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "AdminRepliedToTicket":
+			case "AdminRepliedToIdea":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "AdminRepliedToTicketOWNER":
+			case "AdminRepliedToIdeaOWNER":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "UserRepliedToTicket":
+			case "UserRepliedToIdea":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "CannotTakeClosedTicket":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("CannotTakeClosedTicket"));
+				message = prefix + output;
+				return message;
+			case "InvalidWorld":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString("InvalidWorld"));
+				message = prefix + output;
+				return message;
+			case "TakeTicketOWNER":
+			case "TakeIdeaOWNER":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TakeTicketADMIN":
+			case "TakeIdeaADMIN":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketOpen":
+			case "IdeaOpen":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketOpenADMIN":
+			case "IdeaOpenADMIN":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketMax":
+			case "IdeaMax":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "TicketTooSoon":
+			case "IdeaTooSoon":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "NoTickets":
+			case "NoIdeas":
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = output;
+				return message;
+			case "AdminJoin":
+			case "AdminJoinIdeas":
+				prefix = replaceColorMacros(getOutputConfig().getString("Prefix"));
+				output = replaceColorMacros(getOutputConfig().getString(phrase));
+				message = prefix + output;
+				return message;
+			case "UserJoin":
+				prefix = ChatColor.GOLD + "* ";
+				output = replaceColorMacros(getOutputConfig().getString("UserJoin"));
+				message = prefix + output;
+				return message;
+			case "UserJoin-TicketReplied":
+				prefix = ChatColor.GOLD + "* ";
+				output = replaceColorMacros(getOutputConfig().getString("UserJoin-TicketReplied"));
+				message = prefix + output;
+				return message;
+			case "HelpMe_Line1":
+				output = replaceColorMacros(getOutputConfig().getString("HelpMe_Line1"));
+				message = output;
+				return message;
+			case "HelpMe_Line2":
+				output = replaceColorMacros(getOutputConfig().getString("HelpMe_Line2"));
+				message = output;
+				return message;
+            default:
+                return "Error: unknown message name";
 
-		return "Error: unknown message name";
+		}
 	}
 
 	public void notifyAdmins(String msg, CommandSender sender) {
@@ -751,6 +793,18 @@ public class SimpleHelpTickets extends JavaPlugin {
     public void forceReminderRun(CommandSender sender){
         sender.sendMessage("Running SHT Reminder for all onine");
         Bukkit.getScheduler().runTaskAsynchronously(this, reminder);
+    }
+
+    public void sendMailOnClose(CommandSender sender, String target, String message){
+        if(!useMail)return;
+        String senderUsername = sender.getName();
+        UUID senderUUID = null;
+        if(sender instanceof Player){
+            senderUUID = ((Player)sender).getUniqueId();
+        }
+        mailPlugin.SendMailMessage(sender,senderUsername,senderUUID,target,
+               message);
+        sender.sendMessage("Mail has been set to " + target + " informing them: " +message);
     }
 
 }

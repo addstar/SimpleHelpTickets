@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 import me.odium.simplehelptickets.DBConnection;
@@ -63,7 +64,7 @@ public class ticket implements CommandExecutor {
 			// Build the command string
 			StringBuilder sb = new StringBuilder();
 			for (String arg : args)
-				sb.append(arg + " ");
+				sb.append(arg).append(" ");
 			String[] temp = sb.toString().split(" ");
 			String[] temp2 = Arrays.copyOfRange(temp, 0, temp.length);
 			sb.delete(0, sb.length());
@@ -74,7 +75,7 @@ public class ticket implements CommandExecutor {
 			String details = sb.toString().trim();
 
 			// Check for incomplete ticket / idea descriptions
-			if (details.length() < 10 || details.indexOf(" ") < 0) {
+			if (details.length() < 10 || !details.contains(" ")) {
 				sender.sendMessage(plugin.getMessage("NotEnoughInformation"));
 				return true;
 			}
@@ -311,7 +312,7 @@ public class ticket implements CommandExecutor {
 
 	private boolean ItemLimitReached(int itemTotal, String targetTable, int maxTickets, int maxIdeas, CommandSender sender) {
 
-		if (targetTable == Utilities.IDEA_TABLE_NAME) {
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 			if (itemTotal >= maxIdeas) {
 				sender.sendMessage(plugin.getMessage("IdeaMax").replace("&arg", Integer.toString(maxIdeas)));
 				return true;
@@ -330,7 +331,7 @@ public class ticket implements CommandExecutor {
 		String messageName;
 
 		// Message player
-		if (targetTable == Utilities.IDEA_TABLE_NAME)
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 			messageName = "IdeaOpen";
 		else
 			messageName = "TicketOpen";
@@ -338,7 +339,7 @@ public class ticket implements CommandExecutor {
 		sender.sendMessage(plugin.getMessage(messageName));
 
 		// Notify admins of new ticket
-		if (targetTable == Utilities.IDEA_TABLE_NAME)
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 			messageName = "IdeaOpenADMIN";
 		else
 			messageName = "TicketOpenADMIN";
@@ -357,7 +358,7 @@ public class ticket implements CommandExecutor {
 		long itemTimeThreshold;
 		String messageName;
 
-		if (targetTable == Utilities.IDEA_TABLE_NAME) {
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 			itemTimeThreshold = lastItemTime + ideaCooldownSeconds;
 			messageName = "IdeaTooSoon";
 		}

@@ -1,6 +1,7 @@
 name: SimpleHelpTickets
 main: me.odium.simplehelptickets.SimpleHelpTickets
 version: ${plugin.version}
+description: ${project.description}
 commands:
    sht:
       aliases: [helptickets, simplehelptickets]

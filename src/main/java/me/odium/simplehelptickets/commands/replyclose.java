@@ -3,7 +3,7 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -38,7 +38,7 @@ public class replyclose implements CommandExecutor {
 		String itemName = Utilities.GetTargetItemName(targetTable);
 
 		if (args.length <= 1) {
-			if (itemName == "idea")
+			if (Objects.equals(itemName, "idea"))
 				sender.sendMessage("/replycloseidea <#> <reply>");
 			else
 				sender.sendMessage("/replyclose <#> <reply>");
@@ -47,7 +47,7 @@ public class replyclose implements CommandExecutor {
 
 			String messageName;
 			String notExistMessageName;
-			if (targetTable == Utilities.IDEA_TABLE_NAME) {
+			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 				messageName = "InvalidIdeaNumber";
 				notExistMessageName = "IdeaNotExist";
 			} else {
@@ -91,7 +91,7 @@ public class replyclose implements CommandExecutor {
 				}
 				// CHECK TICKET STATUS IS NOT ALREADY CLOSED, IF SO END HERE.
 				if (rs.getString("status").equalsIgnoreCase("CLOSED")) {
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "IdeaAlreadyClosed";
 					else
 						messageName = "TicketAlreadyClosed";

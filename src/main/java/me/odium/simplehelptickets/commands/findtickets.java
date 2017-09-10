@@ -76,7 +76,7 @@ public class findtickets implements CommandExecutor {
 		int ticketIDStart = 0;
 		int ticketIDEnd = Integer.MAX_VALUE;
 
-		String searchPhrase = "";
+		StringBuilder searchPhrase = new StringBuilder();
 		boolean wildCardsAdded = false;
 
 		boolean showDates = false;
@@ -102,57 +102,57 @@ public class findtickets implements CommandExecutor {
 			}
 
 			// Step through the arguments
-			for (int i = 0; i < args.length; i++) {
+			for (String arg : args) {
 				boolean searchWord = true;
 
 				// optionLength is the length of the option, including the colon; 0 if no match
 				int optionLength;
 
 				// Match both o: and p: for ticket owner/player
-				optionLength = FindOption(args[i], "o");
+				optionLength = FindOption(arg, "o");
 				if (optionLength == 0)
-					optionLength = FindOption(args[i], "p");
+					optionLength = FindOption(arg, "p");
 
 				if (optionLength > 0) {
 					searchWord = false;
-					ticketOwner = args[i].substring(optionLength);
+					ticketOwner = arg.substring(optionLength);
 				}
 
 				// Match both s: and a: for staff/admin responder
-				optionLength = FindOption(args[i], "s");
+				optionLength = FindOption(arg, "s");
 				if (optionLength == 0)
-					optionLength = FindOption(args[i], "a");
+					optionLength = FindOption(arg, "a");
 
 				if (optionLength > 0) {
 					// Staff filter (aka admin filter)
 					searchWord = false;
-					staffName = args[i].substring(optionLength);
+					staffName = arg.substring(optionLength);
 				}
 
-				optionLength = FindOption(args[i], "t");
+				optionLength = FindOption(arg, "t");
 				if (optionLength > 0) {
 					searchWord = false;
 
-					String timeSpec = args[i].substring(optionLength);
+					String timeSpec = arg.substring(optionLength);
 
 					recentTimeStartMillisec = GetSearchStartTime(sender, timeSpec);
 					if (recentTimeStartMillisec == 0) {
-						sender.sendMessage(ChatColor.RED + "Invalid time interval, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid time interval, " + arg);
 						return true;
 					}
 
 					mostRecentTimeDefined = true;
 				}
 
-				optionLength = FindOption(args[i], "from");
+				optionLength = FindOption(arg, "from");
 				if (optionLength > 0) {
 					searchWord = false;
 
-					String datePart = args[i].substring(optionLength);
+					String datePart = arg.substring(optionLength);
 					Date parsedDate = ParseDate(datePart);
 
 					if (parsedDate == null) {
-						sender.sendMessage(ChatColor.RED + "Invalid date value, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid date value, " + arg);
 						sender.sendMessage(ChatColor.AQUA + "Example dates: 2015-11-15 or 2015-11-15T3:00");
 						return true;
 					}
@@ -161,15 +161,15 @@ public class findtickets implements CommandExecutor {
 					dateRangeDefined = true;
 				}
 
-				optionLength = FindOption(args[i], "to");
+				optionLength = FindOption(arg, "to");
 				if (optionLength > 0) {
 					searchWord = false;
 
-					String datePart = args[i].substring(optionLength);
+					String datePart = arg.substring(optionLength);
 					Date parsedDate = ParseDate(datePart);
 
 					if (parsedDate == null) {
-						sender.sendMessage(ChatColor.RED + "Invalid date value, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid date value, " + arg);
 						sender.sendMessage(ChatColor.AQUA + "Example dates: 2015-11-15 or 2015-11-15T3:00");
 						return true;
 					}
@@ -178,85 +178,85 @@ public class findtickets implements CommandExecutor {
 					dateRangeDefined = true;
 				}
 
-				optionLength = FindOption(args[i], "first");
+				optionLength = FindOption(arg, "first");
 				if (optionLength > 0) {
 					searchWord = false;
 
 					try {
-						ticketIDStart = Integer.parseInt(args[i].substring(optionLength));
+						ticketIDStart = Integer.parseInt(arg.substring(optionLength));
 					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED + "Invalid starting ID, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid starting ID, " + arg);
 						return true;
 					}
 				}
 
-				optionLength = FindOption(args[i], "last");
+				optionLength = FindOption(arg, "last");
 				if (optionLength > 0) {
 					searchWord = false;
 
 					try {
-						ticketIDEnd = Integer.parseInt(args[i].substring(optionLength));
+						ticketIDEnd = Integer.parseInt(arg.substring(optionLength));
 					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED + "Invalid ending ID, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid ending ID, " + arg);
 						return true;
 					}
 				}
 
-				optionLength = FindOption(args[i], "limit");
+				optionLength = FindOption(arg, "limit");
 				if (optionLength > 0) {
 					searchWord = false;
 
 					try {
-						ticketsToShow = Integer.parseInt(args[i].substring(optionLength));
+						ticketsToShow = Integer.parseInt(arg.substring(optionLength));
 					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED + "Invalid record count, " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Invalid record count, " + arg);
 						return true;
 					}
 				}
 
-				optionLength = FindOption(args[i], "dates");
+				optionLength = FindOption(arg, "dates");
 				if (optionLength > 0) {
 					searchWord = false;
 
-					if (args[i].substring(optionLength).equalsIgnoreCase("on")) {
+					if (arg.substring(optionLength).equalsIgnoreCase("on")) {
 						showDates = true;
-					} else if (args[i].substring(optionLength).equalsIgnoreCase("off")) {
+					} else if (arg.substring(optionLength).equalsIgnoreCase("off")) {
 						showDates = false;
 					} else {
-						sender.sendMessage(ChatColor.RED + "Use dates:on or dates:off, not " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Use dates:on or dates:off, not " + arg);
 						return true;
 					}
 				}
 
-				optionLength = FindOption(args[i], "reply");
+				optionLength = FindOption(arg, "reply");
 				if (optionLength > 0) {
 					searchWord = false;
 
-					if (args[i].substring(optionLength).equalsIgnoreCase("on")) {
+					if (arg.substring(optionLength).equalsIgnoreCase("on")) {
 						showReplies = true;
-					} else if (args[i].substring(optionLength).equalsIgnoreCase("off")) {
+					} else if (arg.substring(optionLength).equalsIgnoreCase("off")) {
 						showReplies = false;
 					} else {
-						sender.sendMessage(ChatColor.RED + "Use reply:on or reply:off, not " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Use reply:on or reply:off, not " + arg);
 						return true;
 					}
 				}
 
-				optionLength = FindOption(args[i], "sort");
+				optionLength = FindOption(arg, "sort");
 				if (optionLength > 0) {
 					searchWord = false;
 
-					if (args[i].substring(optionLength).equalsIgnoreCase("asc")) {
+					if (arg.substring(optionLength).equalsIgnoreCase("asc")) {
 						sortDirection = "asc";
-					} else if (args[i].substring(optionLength).equalsIgnoreCase("desc")) {
+					} else if (arg.substring(optionLength).equalsIgnoreCase("desc")) {
 						sortDirection = "desc";
 					} else {
-						sender.sendMessage(ChatColor.RED + "Use sort:asc or sort:desc, not " + args[i]);
+						sender.sendMessage(ChatColor.RED + "Use sort:asc or sort:desc, not " + arg);
 						return true;
 					}
 				}
 
-				if (args[i].equalsIgnoreCase("-v") || args[i].equalsIgnoreCase("-verbose")) {
+				if (arg.equalsIgnoreCase("-v") || arg.equalsIgnoreCase("-verbose")) {
 					// Verbose switch
 					searchWord = false;
 					showReplies = true;
@@ -264,10 +264,10 @@ public class findtickets implements CommandExecutor {
 				}
 
 				if (searchWord) {
-					if (searchPhrase.isEmpty())
-						searchPhrase = args[i];
+					if (searchPhrase.length() == 0)
+						searchPhrase = new StringBuilder(arg);
 					else
-						searchPhrase += " " + args[i];
+						searchPhrase.append(" ").append(arg);
 				}
 			}
 
@@ -279,14 +279,14 @@ public class findtickets implements CommandExecutor {
 
 			staffName = PossiblyAddWildcards(staffName);
 
-			if (searchPhrase.isEmpty())
-				searchPhrase = "%";
+			if (searchPhrase.length() == 0)
+				searchPhrase = new StringBuilder("%");
 			else {
-				String updatedSearchPhrase = PossiblyAddWildcards(searchPhrase);
+				String updatedSearchPhrase = PossiblyAddWildcards(searchPhrase.toString());
 				if (updatedSearchPhrase.length() > searchPhrase.length() ) {
 					// Added % wildcards
 					wildCardsAdded = true;
-					searchPhrase = updatedSearchPhrase;
+					searchPhrase = new StringBuilder(updatedSearchPhrase);
 				}
 			}
 
@@ -358,9 +358,9 @@ public class findtickets implements CommandExecutor {
 			statement.setString(2, Utilities.NumToString(ticketIDEnd));
 			statement.setString(3, ticketOwner);
 			statement.setString(4, staffName);
-			statement.setString(5, searchPhrase);
-			statement.setString(6, searchPhrase);
-			statement.setString(7, searchPhrase);
+			statement.setString(5, searchPhrase.toString());
+			statement.setString(6, searchPhrase.toString());
+			statement.setString(7, searchPhrase.toString());
 
 			rs = statement.executeQuery();
 
@@ -378,7 +378,7 @@ public class findtickets implements CommandExecutor {
 				int newMaxDays = (int) Math.ceil((System.currentTimeMillis() - recentTimeStartMillisec) / 1000.0 / 86400.0) * 2;
 
 				String ticketContentDescription = "";
-				if (!searchPhrase.isEmpty() && !searchPhrase.equalsIgnoreCase("%")) {
+				if ((searchPhrase.length() > 0) && !searchPhrase.toString().equalsIgnoreCase("%")) {
 					if (wildCardsAdded)
 						ticketContentDescription = " with text '" + searchPhrase.substring(1, searchPhrase.length() - 1) + "'";
 					else
@@ -493,8 +493,7 @@ public class findtickets implements CommandExecutor {
 		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
 
 		try {
-			Date parsedDate = sdf.parse(dateValue);
-			return parsedDate;
+			return sdf.parse(dateValue);
 
 		} catch (ParseException ex) {
 			return null;

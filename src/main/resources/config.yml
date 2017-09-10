@@ -15,6 +15,7 @@ IdeaCooldownSeconds: 3600
 NotifyAdminOnTicketClose: true
 MultiWorld: false
 BungeeChatIntegration: false
+useSimpleMail:false
 OnJoin:
   DisplayTicketAdmin: true
   DisplayTicketUser: true

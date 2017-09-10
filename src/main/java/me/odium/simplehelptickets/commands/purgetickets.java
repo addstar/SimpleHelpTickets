@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -48,7 +49,7 @@ public class purgetickets implements CommandExecutor {
 			// PURGE EXPIRED TICKETS OR IDEAS
 
 			int expiredItems;
-			if (targetTable == Utilities.IDEA_TABLE_NAME)
+			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 				expiredItems= plugin.expireIdeas();
 			else
 				expiredItems= plugin.expireTickets();
@@ -74,7 +75,7 @@ public class purgetickets implements CommandExecutor {
 				stmt.executeUpdate("DELETE FROM " + targetTable + " WHERE status='" + "CLOSED" + "'");
 
 				String messageName;
-				if (targetTable == Utilities.IDEA_TABLE_NAME)
+				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 					messageName = "AllClosedIdeasPurged";
 				else
 					messageName = "AllClosedTicketsPurged";
@@ -115,7 +116,7 @@ public class purgetickets implements CommandExecutor {
 				}
 
 				String messageName;
-				if (targetTable == Utilities.IDEA_TABLE_NAME)
+				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 					messageName = "AllIdeasPurged";
 				else
 					messageName = "AllTicketsPurged";

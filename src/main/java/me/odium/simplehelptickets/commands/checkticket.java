@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -46,7 +47,7 @@ public class checkticket implements CommandExecutor {
 
 			for (char c : args[0].toCharArray()) {
 				if (!Character.isDigit(c)) {
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "InvalidIdeaNumber";
 					else
 						messageName = "InvalidTicketNumber";
@@ -88,7 +89,7 @@ public class checkticket implements CommandExecutor {
 					String admin = rs.getString("admin");
 					String adminreply = rs.getString("adminreply");
 					String userreply = rs.getString("userreply");
-					if (plugin.getConfig().getBoolean("MultiWorld") == true) {
+					if (plugin.getConfig().getBoolean("MultiWorld",false)) {
 						world = rs.getString("world");
 						strloc = "(" + rs.getInt("x") + ", " + rs.getInt("y") + ", " + rs.getInt("z") + ")";
 					}
@@ -101,7 +102,7 @@ public class checkticket implements CommandExecutor {
 					sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + itemName + " " + id + ChatColor.RESET + ChatColor.GOLD + " ]");
 					sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + owner);
 					sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + date);
-					if (plugin.getConfig().getBoolean("MultiWorld") == true) {
+					if (plugin.getConfig().getBoolean("MultiWorld",false)) {
 						sender.sendMessage(ChatColor.BLUE + " Location: " + ChatColor.WHITE + world + " " + ChatColor.GRAY + strloc);
 					}
 					if (status.contains("OPEN")) {
@@ -143,7 +144,7 @@ public class checkticket implements CommandExecutor {
 				}
 			} catch (SQLException e) {
 				if (e.toString().contains("empty result set.")) {
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "IdeaNotExist";
 					else
 						messageName = "TicketNotExist";

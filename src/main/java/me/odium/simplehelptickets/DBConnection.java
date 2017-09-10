@@ -24,7 +24,7 @@ public class DBConnection {
 	/**
 	 * We set the plugin that is to be used for these connections.
 	 * 
-	 * @param plugin
+	 * @param plugin the Plugin
 	 */
 	public void setPlugin(SimpleHelpTickets plugin) {
 		this.plugin = plugin;

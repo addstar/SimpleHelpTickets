@@ -3,6 +3,7 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -13,8 +14,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import javax.rmi.CORBA.Util;
 
 public class delticket implements CommandExecutor {
 
@@ -42,7 +41,7 @@ public class delticket implements CommandExecutor {
 
 		String messageName;
 		String notExistMessageName;
-		if (targetTable == Utilities.IDEA_TABLE_NAME) {
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 			messageName = "InvalidIdeaNumber";
 			notExistMessageName = "IdeaNotExist";
 		} else {

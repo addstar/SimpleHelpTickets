@@ -80,7 +80,7 @@ public class MySQLConnection extends Database {
 	// return connection;
 	// }
 	public Connection getConnection() {
-		if (checkConnection() == false) {
+		if (!checkConnection()) {
 			try {
 				this.close();
 				this.open();
@@ -115,7 +115,7 @@ public class MySQLConnection extends Database {
 	 *            the database query
 	 * @return ResultSet of the query
 	 * 
-	 * @throws SQLException
+	 * @throws SQLException if fails
 	 * */
 	public ResultSet query(String query) throws SQLException {
 		Statement statement = null;
@@ -190,10 +190,10 @@ public class MySQLConnection extends Database {
 		StringBuilder sb1 = new StringBuilder();
 		StringBuilder sb2 = new StringBuilder();
 		for (String s : column) {
-			sb1.append(s + ",");
+			sb1.append(s).append(",");
 		}
 		for (String s : value) {
-			sb2.append("'" + s + "',");
+			sb2.append("'").append(s).append("',");
 		}
 		String columns = sb1.toString().substring(0, sb1.toString().length() - 1);
 		String values = sb2.toString().substring(0, sb2.toString().length() - 1);

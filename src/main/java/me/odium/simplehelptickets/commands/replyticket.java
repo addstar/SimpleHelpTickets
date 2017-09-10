@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -34,7 +35,7 @@ public class replyticket implements CommandExecutor {
 		} else {
 
 			String messageName;
-			if (targetTable == Utilities.IDEA_TABLE_NAME) {
+			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 				messageName = "InvalidIdeaNumber";
 			} else {
 				messageName = "InvalidTicketNumber";
@@ -66,7 +67,7 @@ public class replyticket implements CommandExecutor {
 		String idText = String.valueOf(id);
 
 		String notExistMessageName;
-		if (targetTable == Utilities.IDEA_TABLE_NAME) {
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 			notExistMessageName = "IdeaNotExist";
 		} else {
 			notExistMessageName = "TicketNotExist";
@@ -81,7 +82,7 @@ public class replyticket implements CommandExecutor {
 
 			StringBuilder sb = new StringBuilder();
 			for (String arg : args)
-				sb.append(arg + " ");
+				sb.append(arg).append(" ");
 			String[] temp = sb.toString().split(" ");
 			String[] temp2 = Arrays.copyOfRange(temp, 1, temp.length);
 			sb.delete(0, sb.length());
@@ -191,7 +192,7 @@ public class replyticket implements CommandExecutor {
 						}
 
 						String messageName;
-						if (targetTable == Utilities.IDEA_TABLE_NAME)
+						if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 							messageName = "UserRepliedToIdea";
 						else
 							messageName = "UserRepliedToTicket";
@@ -227,7 +228,7 @@ public class replyticket implements CommandExecutor {
 					// INFORM OTHER ADMINS THAT AN ADMIN REPLIED TO ITEM
 
 					String messageName;
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "AdminRepliedToIdea";
 					else
 						messageName = "AdminRepliedToTicket";
@@ -289,7 +290,7 @@ public class replyticket implements CommandExecutor {
 
 	private static void NotifyOwnerOfReply(SimpleHelpTickets plugin, String targetTable, int id, String admin, String owner) {
 		String messageName;
-		if (targetTable == Utilities.IDEA_TABLE_NAME)
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 			messageName = "AdminRepliedToIdeaOWNER";
 		else
 			messageName = "AdminRepliedToTicketOWNER";
@@ -301,7 +302,7 @@ public class replyticket implements CommandExecutor {
 	private static void NotifyReplied(SimpleHelpTickets plugin, CommandSender sender, int id, String targetTable) {
 
 		String messageName;
-		if (targetTable == Utilities.IDEA_TABLE_NAME)
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 			messageName = "AdminRepliedToIdea";
 		else
 			messageName = "AdminRepliedToTicket";

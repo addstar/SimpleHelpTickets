@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Objects;
 
 import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -44,7 +45,7 @@ public class closeticket implements CommandExecutor {
 			// CHECK TICKETNUMBER IS A DIGIT
 			for (char c : args[0].toCharArray()) {
 				if (!Character.isDigit(c)) {
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "InvalidIdeaNumber";
 					else
 						messageName = "InvalidTicketNumber";
@@ -66,7 +67,7 @@ public class closeticket implements CommandExecutor {
 			// CHECK TICKETNUMBER IS A DIGIT
 			for (char c : args[1].toCharArray()) {
 				if (!Character.isDigit(c)) {
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "InvalidIdeaNumber";
 					else
 						messageName = "InvalidTicketNumber";
@@ -116,7 +117,7 @@ public class closeticket implements CommandExecutor {
 					// UPDATE THE TICKET
 					stmt.executeUpdate("UPDATE " + targetTable + " SET status='" + "OPEN" + "', admin='" + admin + "', expiration=NULL WHERE id='" + id + "'");
 
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "IdeaReopened";
 					else
 						messageName = "TicketReopened";
@@ -126,14 +127,14 @@ public class closeticket implements CommandExecutor {
 					// TICKET
 					if (target != null && target != player) {
 
-						if (targetTable == Utilities.IDEA_TABLE_NAME)
+						if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 							messageName = "IdeaReopenedOWNER";
 						else
 							messageName = "TicketReopenedOWNER";
 						target.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
 					}
 
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "IdeaReopenedADMIN";
 					else
 						messageName = "TicketReopenedADMIN";
@@ -152,7 +153,7 @@ public class closeticket implements CommandExecutor {
 				}
 			} catch (Exception e) {
 				if (e.toString().contains("ResultSet closed")) {
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "IdeaNotExist";
 					else
 						messageName = "TicketNotExist";
@@ -186,8 +187,9 @@ public class closeticket implements CommandExecutor {
 		String idText = String.valueOf(id);
 
 		String messageName;
+		String mailmessageName = null;
 		String notExistMessageName;
-		if (targetTable == Utilities.IDEA_TABLE_NAME) {
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 			notExistMessageName = "IdeaNotExist";
 		} else {
 			notExistMessageName = "TicketNotExist";
@@ -225,7 +227,7 @@ public class closeticket implements CommandExecutor {
 			// CHECK ITEM STATUS IS NOT ALREADY CLOSED, IF SO END HERE.
 			if (rs.getString("status").equalsIgnoreCase("CLOSED")) {
 
-				if (targetTable == Utilities.IDEA_TABLE_NAME)
+				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 					messageName = "IdeaAlreadyClosed";
 				else
 					messageName = "TicketAlreadyClosed";
@@ -256,25 +258,33 @@ public class closeticket implements CommandExecutor {
 				// UPDATE THE ITEM
 				stmt.executeUpdate("UPDATE " + targetTable + " SET status='" + "CLOSED" + "', admin='" + admin + "', expiration='" + expiration + "' WHERE id='" + id + "'");
 
-				if (targetTable == Utilities.IDEA_TABLE_NAME)
+				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 					messageName = "IdeaClosed";
-				else
+					mailmessageName = "IdeaClosedMail";
+				}
+				else{
 					messageName = "TicketClosed";
-
+					mailmessageName = "TicketClosedMail";
+				}
 				sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id));
-
-				if (targetTable == Utilities.IDEA_TABLE_NAME)
+				plugin.sendMailOnClose(sender,owner,plugin.getMessage(mailmessageName).replace("&arg", "" + id));
+				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
 					messageName = "IdeaClosedADMIN";
-				else
+					mailmessageName = "IdeaClosedMail";
+				}
+				else {
 					messageName = "TicketClosedADMIN";
-
+					mailmessageName = "TicketClosedMail";
+				}
 				String msg = plugin.getMessage(messageName).replace("&arg", "" + idText).replace("&admin", admin);
+				plugin.sendMailOnClose(sender,owner,plugin.getMessage(mailmessageName).replace("&arg", "" + id));
+
 				plugin.notifyAdmins(msg, null);
 
 				// IF ITEM OWNER IS USER WHO CLOSED THE ITEM, LET THEM
 				// KNOW OF THE CHANGE TO THEIR ITEM
 				if (!uuid.equals(player.getUniqueId().toString())) {
-					if (targetTable == Utilities.IDEA_TABLE_NAME)
+					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 						messageName = "IdeaClosedOWNER";
 					else
 						messageName = "TicketClosedOWNER";
@@ -284,7 +294,7 @@ public class closeticket implements CommandExecutor {
 				}
 				return true;
 			} else {
-				if (targetTable == Utilities.IDEA_TABLE_NAME)
+				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 					messageName = "NotYourIdeaToClose";
 				else
 					messageName = "NotYourTicketToClose";
@@ -292,7 +302,7 @@ public class closeticket implements CommandExecutor {
 				return true;
 			}
 		} catch (Exception e) {
-			if (targetTable == Utilities.IDEA_TABLE_NAME)
+			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 				messageName = "IdeaNotExist";
 			else
 				messageName = "TicketNotExist";

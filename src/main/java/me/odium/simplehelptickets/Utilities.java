@@ -2,14 +2,13 @@ package me.odium.simplehelptickets;
 
 
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
+import java.util.Objects;
 
 public class Utilities {
 
@@ -53,7 +52,7 @@ public class Utilities {
 	}
 
 	public static String GetTargetItemName(String targetTable) {
-		if (targetTable == Utilities.IDEA_TABLE_NAME)
+		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
 			return "idea";
 		else
 			return "ticket";
