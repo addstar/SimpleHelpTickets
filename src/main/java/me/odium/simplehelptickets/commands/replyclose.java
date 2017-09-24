@@ -9,6 +9,7 @@ import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
 import me.odium.simplehelptickets.Utilities;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,10 +39,8 @@ public class replyclose implements CommandExecutor {
 		String itemName = Utilities.GetTargetItemName(targetTable);
 
 		if (args.length <= 1) {
-			if (Objects.equals(itemName, "idea"))
-				sender.sendMessage("/replycloseidea <#> <reply>");
-			else
-				sender.sendMessage("/replyclose <#> <reply>");
+			// Show syntax: /replycloseticket or /replycloseidea
+			sender.sendMessage(ChatColor.WHITE + "/replyclose" + itemName + " <#> <reply>");
 			return true;
 		} else {
 

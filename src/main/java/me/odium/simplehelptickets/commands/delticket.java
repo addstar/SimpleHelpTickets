@@ -50,6 +50,7 @@ public class delticket implements CommandExecutor {
 		}
 
 		if (args.length == 0) {
+			// Show syntax: /delticket or /delidea
 			sender.sendMessage(ChatColor.WHITE + "/del" + itemName + " <#>");
 			return true;
 		} else if (args.length == 1) {

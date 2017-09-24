@@ -41,6 +41,7 @@ public class checkticket implements CommandExecutor {
 		String messageName;
 
 		if (args.length != 1) {
+			// Show syntax: /checkticket or /checkidea
 			sender.sendMessage(ChatColor.WHITE + "/check" + itemName + " <#>");
 			return true;
 		} else {

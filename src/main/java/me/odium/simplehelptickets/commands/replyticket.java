@@ -30,6 +30,7 @@ public class replyticket implements CommandExecutor {
 		String itemName = Utilities.GetTargetItemName(targetTable);
 
 		if (args.length <= 1) {
+			// Show syntax: /replyticket or /replyidea
 			sender.sendMessage("/reply" + itemName + " <#> <reply>");
 			return true;
 		} else {

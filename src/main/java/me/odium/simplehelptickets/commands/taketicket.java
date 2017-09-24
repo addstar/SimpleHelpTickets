@@ -48,6 +48,7 @@ public class taketicket implements CommandExecutor {
 		}
 
 		if (args.length == 0) {
+			// Show syntax: /taketicket or /takeidea
 			sender.sendMessage(ChatColor.WHITE + "/take" + itemName + " <#>");
 			return true;
 		}

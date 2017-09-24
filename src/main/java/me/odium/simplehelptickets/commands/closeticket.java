@@ -37,6 +37,7 @@ public class closeticket implements CommandExecutor {
         String messageName;
 
         if (args.length == 0) {
+            // Show syntax: /closeticket or /closeidea
             sender.sendMessage(ChatColor.WHITE + "/close" + itemName + " <#>");
             sender.sendMessage(ChatColor.GRAY + "(reopen with /close" + itemName + " -r <#>)");
             return true;
