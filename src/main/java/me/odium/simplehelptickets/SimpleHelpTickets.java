@@ -798,20 +798,25 @@ public class SimpleHelpTickets extends JavaPlugin {
     }
 
     public void forceReminderRun(CommandSender sender){
-        sender.sendMessage("Running SHT Reminder for all onine");
+        sender.sendMessage("Running SHT Reminder for all online");
         Bukkit.getScheduler().runTaskAsynchronously(this, reminder);
     }
 
-    public void sendMailOnClose(CommandSender sender, String target, String message){
-        if(!useMail)return;
+    public void sendMailOnClose(CommandSender sender, String target, String message) {
+        if (!useMail) return;
         String senderUsername = sender.getName();
         UUID senderUUID = null;
-        if(sender instanceof Player){
+        if (sender instanceof Player) {
             senderUUID = ((Player)sender).getUniqueId();
         }
-        mailPlugin.SendMailMessage(sender,senderUsername,senderUUID,target,
-               message);
-        sender.sendMessage("Mail has been set to " + target + " informing them: " +message);
+
+        try {
+            mailPlugin.SendMailMessage(sender, senderUsername, senderUUID, target, message);
+            sender.sendMessage(replaceColorMacros("[Tickets] &wMail has been sent to " + target + " informing them: ") + message);
+        } catch (Exception ex) {
+            sender.sendMessage(replaceColorMacros("[Tickets] &wUnable to send mail to " + target + " informing them of the closed item: ") + ex.getMessage());
+        }
+
     }
 
 }
