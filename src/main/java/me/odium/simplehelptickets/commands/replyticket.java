@@ -102,7 +102,8 @@ public class replyticket implements CommandExecutor {
 
 			if (player == null) {
 				// CONSOLE COMMANDS
-				String admin = "CONSOLE";
+				String admin = sender.getName();
+
 				// CHECK IF ITEM EXISTS
 				rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE id='" + id + "'");
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -112,6 +113,7 @@ public class replyticket implements CommandExecutor {
 					sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", idText));
 					return true;
 				}
+
 				stmt.executeUpdate("UPDATE " + targetTable + " SET adminreply='" + admin + ": " + details + "', admin='" + admin + "' WHERE id='" + id + "'");
 
 				NotifyReplied(plugin, sender, id, targetTable);

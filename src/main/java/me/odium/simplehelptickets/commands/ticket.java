@@ -84,7 +84,7 @@ public class ticket implements CommandExecutor {
 				// SET VARIABLES FOR CONSOLE
 				date = plugin.getCurrentDTG("date");
 				uuid = "CONSOLE";
-				owner = "CONSOLE";
+				owner = sender.getName();
 				world = "NONE";
 				locX = 00;
 				locY = 00;

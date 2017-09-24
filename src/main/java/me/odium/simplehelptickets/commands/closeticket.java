@@ -108,10 +108,10 @@ public class closeticket implements CommandExecutor {
                 Player target = Bukkit.getPlayer(rs.getString("uuid"));
                 // IF PLAYER IS CONSOLE OR ADMIN
                 if (player == null || player.hasPermission("sht.admin")) {
-                    // SET THE ADMIN VARIABLE TO RELECT CONSOLE/ADMIN
+                    // SET THE ADMIN VARIABLE TO REFLECT CONSOLE/ADMIN
                     String admin = "ADMIN";
                     if (player == null) {
-                        admin = "CONSOLE";
+                        admin = sender.getName();;
                     } else if (rs.getString("uuid").contains(player.getUniqueId().toString()) || player.hasPermission("sht.admin")) {
                         admin = player.getName();
                     }
@@ -253,7 +253,7 @@ public class closeticket implements CommandExecutor {
                 String admin = "ADMIN";
 
                 if (player == null) {
-                    admin = "CONSOLE";
+                    admin = sender.getName();;
                 } else if (uuid.equals(player.getUniqueId().toString()) || player.hasPermission("sht.admin")) {
                     admin = player.getName();
                 }
@@ -274,13 +274,13 @@ public class closeticket implements CommandExecutor {
                 }
                 sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id));
                 plugin.sendMailOnClose(sender, owner, plugin.getMessage(mailmessageName).replace("&arg", "" + id));
+
                 if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
                     messageName = "IdeaClosedADMIN";
-                    mailmessageName = "IdeaClosedMail";
                 } else {
                     messageName = "TicketClosedADMIN";
-                    mailmessageName = "TicketClosedMail";
                 }
+
                 String msg = plugin.getMessage(messageName).replace("&arg", "" + idText).replace("&admin", admin);
                 plugin.notifyAdmins(msg, null);
 
