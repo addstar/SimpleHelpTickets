@@ -103,6 +103,7 @@ public class replyclose implements CommandExecutor {
 				boolean success = replyticket.ReplyItem(plugin, sender, targetTable, id, args);
 				if(success)plugin.reminder.addResponse(sender);
 				if (!success) return false;
+
 				// CLOSE THE TICKET OR IDEA
 				success = closeticket.CloseItem(plugin, sender, targetTable, id);
 				return success;

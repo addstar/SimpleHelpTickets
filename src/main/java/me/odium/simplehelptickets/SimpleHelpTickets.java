@@ -152,6 +152,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		// declare new listener
 		PListener listener = new PListener(manager);
 		Bukkit.getServer().getPluginManager().registerEvents(listener,this);
+
 		// declare executors
 		this.getCommand("sht").setExecutor(new sht(this));
 		this.getCommand("ticket").setExecutor(new ticket(this));
@@ -726,7 +727,12 @@ public class SimpleHelpTickets extends JavaPlugin {
 
 		if (getConfig().getBoolean("BungeeChatIntegration", false)) {
 			// Ensure staff see the message regardless of which server they are on
-			BungeeChat.mirrorChat(msg, getConfig().getString("BungeeChatStaffChannel"));
+			String staffChannel = getConfig().getString("BungeeChatStaffChannel");
+			if (staffChannel == null){
+				sender.sendMessage("Config file is missing setting BungeeChatStaffChannel");
+			}else {
+				BungeeChat.mirrorChat(msg, staffChannel);
+			}
 		}
 
 		// Send to all players with permission sht.admin
