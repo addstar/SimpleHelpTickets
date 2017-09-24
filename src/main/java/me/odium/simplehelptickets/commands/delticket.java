@@ -108,12 +108,18 @@ public class delticket implements CommandExecutor {
 				// PLAYER COMMANDS
 			} else {
 				try {
+					if (!player.hasPermission("sht.purgetickets")) {
+						sender.sendMessage(plugin.getMessage("NoPermission"));
+						return true;
+					}
+
 					if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 						con = plugin.mysql.getConnection();
 					} else {
 						con = service.getConnection();
 					}
 					stmt = con.createStatement();
+
 					// CHECK IF TICKET EXISTS
 					rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE id='" + args[0] + "'");
 					if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -129,7 +135,7 @@ public class delticket implements CommandExecutor {
 						rs.next(); // sets pointer to first record in result set
 					}
 					String playerUUID = player.getUniqueId().toString();
-					if (!rs.getString("uuid").equals(playerUUID) && !player.hasPermission("sht.admin")) {
+					if (!rs.getString("uuid").equals(playerUUID) && !player.hasPermission("sht.purgetickets")) {
 						sender.sendMessage(plugin.GRAY + "[SimpleHelpTickets] " + plugin.RED + itemName + " " + rs.getString("id") + " is not your ticket to delete.");
 						return true;
 					} else {
