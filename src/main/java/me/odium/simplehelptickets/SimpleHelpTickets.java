@@ -761,8 +761,14 @@ public class SimpleHelpTickets extends JavaPlugin {
 		out.writeUTF(data1);
 		out.writeUTF(data2);
 		Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
-		player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+		if (player == null)
+		{
+			// No players are online; cannot send a message to the player using BungeeCord
+		} else {
+			player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+		}
 	}
+
 	public void disableReminder(){
 	    disableReminder(null);
     }
