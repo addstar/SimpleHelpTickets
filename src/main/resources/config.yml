@@ -30,3 +30,4 @@ MySQL:
   user: simpletickets
   password: simpletickets
 BungeeChatStaffChannel: StaffNotice
+useSimpleMail: true
