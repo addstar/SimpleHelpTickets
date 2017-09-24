@@ -9,11 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -168,6 +164,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		this.getCommand("closeticket").setExecutor(new closeticket(this));
 		this.getCommand("purgetickets").setExecutor(new purgetickets(this));
 		this.getCommand("findtickets").setExecutor(new findtickets(this));
+
 		// If MySQL
 		if (this.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 			// Get Database Details
@@ -377,6 +374,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 			sender.sendMessage(getMessage("AdminCommandsMenu-purgeticket"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-reload"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-ideacommands"));
+			sender.sendMessage(getMessage("AdminCommandsMenu-aliases"));
 		}
 	}
 
@@ -402,7 +400,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 				message = prefix + output;
 				return message;
 			case "AdminCommandsMenu-closeticket":
-				prefix = ChatColor.DARK_AQUA + " /closeticket [r] <#>";
+				prefix = ChatColor.DARK_AQUA + " /closeticket [-r] <#>";
 				output = replaceColorMacros(getOutputConfig().getString("AdminCommandsMenu-closeticket"));
 				message = prefix + output;
 				return message;
@@ -437,6 +435,14 @@ public class SimpleHelpTickets extends JavaPlugin {
 				return message;
 			case "AdminCommandsMenu-ideacommands":
 				output = ChatColor.DARK_AQUA + " /checkidea, /takeidea, /closeidea, /replycloseidea";
+				message = output;
+				return message;
+			case "AdminCommandsMenu-aliases":
+				output = ChatColor.BLUE + " Aliases:\n" +
+						"   Check with /chticket or /cht\n" +
+						"   Reply with /rticket\n" +
+						"   Close with /clt\n" +
+						"   Replyclose with /rct";
 				message = output;
 				return message;
 			case "UserCommandsMenu-delticket":
@@ -723,8 +729,9 @@ public class SimpleHelpTickets extends JavaPlugin {
 			BungeeChat.mirrorChat(msg, getConfig().getString("BungeeChatStaffChannel"));
 		}
 
-		// Send to all
+		// Send to all players with permission sht.admin
 		Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+
 		for (Player p : players) {
 			// Only notify ticket admins, but DO NOT notify the "excluded"
 			// player
@@ -737,7 +744,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 	}
 
 	public void notifyUser(String msg, String player) {
-		//System.out.println("notifyUser(): " + player + " => " + msg);
+		// System.out.println("notifyUser(): " + player + " => " + msg);
 		Player ply = Bukkit.getPlayerExact(player);
 		if (ply != null) {
 			ply.sendMessage(msg);

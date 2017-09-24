@@ -19,7 +19,7 @@ commands:
       permission:
       usage: /tickets [-v|-a|-c]
    closeticket:
-      aliases: [closeidea]
+      aliases: [closeidea, clt]
       description: close a help ticket or idea (-r <#> to reopen)
       permission: sht.ticket
       usage: /closeticket [-r] <#>
@@ -29,7 +29,7 @@ commands:
       permission: sht.ticket
       usage: /replyticket <#> <reply>
    replyclose:
-      aliases: [replycloseticket, replycloseidea]
+      aliases: [replycloseticket, replycloseidea, rct]
       description: reply to a help ticket or idea then close it
       permission: sht.ticket
       usage: /replyclose <#> <reply>
@@ -39,7 +39,7 @@ commands:
       permission: sht.admin
       usage: /taketicket <#>
    checkticket:
-      aliases: [chticket, checkidea, chidea]
+      aliases: [chticket, checkidea, chidea, cht]
       description: check your help ticket or idea
       permission:
       usage: /checkticket <#>
