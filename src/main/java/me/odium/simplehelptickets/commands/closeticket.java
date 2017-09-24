@@ -286,7 +286,7 @@ public class closeticket implements CommandExecutor {
 
                 // IF ITEM OWNER IS USER WHO CLOSED THE ITEM, LET THEM
                 // KNOW OF THE CHANGE TO THEIR ITEM
-                if (!uuid.equals(player.getUniqueId().toString())) {
+                if (player != null && !uuid.equals(player.getUniqueId().toString())) {
                     if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
                         messageName = "IdeaClosedOWNER";
                     else
