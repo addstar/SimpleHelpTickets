@@ -824,9 +824,9 @@ public class SimpleHelpTickets extends JavaPlugin {
 
         try {
             mailPlugin.SendMailMessage(sender, senderUsername, senderUUID, target, message);
-            sender.sendMessage(replaceColorMacros("[Tickets] &wMail has been sent to " + target + " informing them: ") + message);
+            sender.sendMessage(replaceColorMacros("&2[Tickets] &wMail has been sent to " + target + " informing them: ") + message);
         } catch (Exception ex) {
-            sender.sendMessage(replaceColorMacros("[Tickets] &wUnable to send mail to " + target + " informing them of the closed item: ") + ex.getMessage());
+            sender.sendMessage(replaceColorMacros("&2[Tickets] &wUnable to send mail to " + target + " informing them of the closed item: ") + ex.getMessage());
         }
 
     }
