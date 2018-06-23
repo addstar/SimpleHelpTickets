@@ -32,6 +32,7 @@ import me.odium.test.SimpleMailPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.FileConfigurationOptions;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -41,7 +42,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import au.com.addstar.bc.BungeeChat;
 
-import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import org.bukkit.scheduler.BukkitTask;
@@ -50,20 +50,20 @@ public class SimpleHelpTickets extends JavaPlugin {
 
 	public Logger log;
 
-	public ChatColor GREEN = ChatColor.GREEN;
-	public ChatColor RED = ChatColor.RED;
-	public ChatColor GOLD = ChatColor.GOLD;
-	public ChatColor GRAY = ChatColor.GRAY;
-	public ChatColor WHITE = ChatColor.WHITE;
-	public ChatColor AQUA = ChatColor.AQUA;
-	public ChatColor BLUE = ChatColor.BLUE;
+    public final ChatColor GREEN = ChatColor.GREEN;
+    public final ChatColor RED = ChatColor.RED;
+    public final ChatColor GOLD = ChatColor.GOLD;
+    public final ChatColor GRAY = ChatColor.GRAY;
+    public final ChatColor WHITE = ChatColor.WHITE;
+    public final ChatColor AQUA = ChatColor.AQUA;
+    public final ChatColor BLUE = ChatColor.BLUE;
 
-	DBConnection service = DBConnection.getInstance();
-	TicketManager manager;
+    private final DBConnection service = DBConnection.getInstance();
+    private TicketManager manager;
 	public TicketReminder reminder;
 	private BukkitTask reminderTask;
-	public boolean useMail =false;
-	public SimpleMailPlugin mailPlugin;
+    private boolean useMail = false;
+    private SimpleMailPlugin mailPlugin;
 
 
     public TicketManager getManager() {
@@ -107,7 +107,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 
 	// End Custom Config
 
-	public String replaceColorMacros(String str) {
+    private String replaceColorMacros(String str) {
 		str = str.replace("&r", ChatColor.RED.toString());
 		str = str.replace("&R", ChatColor.DARK_RED.toString());
 		str = str.replace("&y", ChatColor.YELLOW.toString());
@@ -172,10 +172,17 @@ public class SimpleHelpTickets extends JavaPlugin {
 			String hostname = this.getConfig().getString("MySQL.hostname");
 			String hostport = this.getConfig().getString("MySQL.hostport");
 			String database = this.getConfig().getString("MySQL.database");
-			String user = this.getConfig().getString("MySQL.user");
-			String password = this.getConfig().getString("MySQL.password");
+            Properties props = new Properties();
+            props.put("user", this.getConfig().getString("Mysql.user", "username"));
+            props.put("password", this.getConfig().getString("Mysql.pass", "password"));
+            ConfigurationSection dbprops = this.getConfig().getConfigurationSection("Mysql.properties");
+            if (dbprops != null) {
+                for (Map.Entry<String, Object> entry : dbprops.getValues(false).entrySet()) {
+                    props.put(entry.getKey(), entry.getValue());
+                }
+            }
 			// Get Connection
-			mysql = new MySQLConnection(hostname, hostport, database, user, password);
+            mysql = new MySQLConnection(hostname, hostport, database, props);
 			// Open Connection
 			try {
 				mysql.open();
@@ -197,7 +204,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		}
 		if(this.getConfig().getBoolean("useSimpleMail", false)){
             Plugin plugin = Bukkit.getPluginManager().getPlugin("SimpleMail");
-            if(plugin != null && plugin instanceof SimpleMailPlugin){
+            if (plugin instanceof SimpleMailPlugin) {
                 mailPlugin = (SimpleMailPlugin) plugin;
                 useMail = true;
             }
@@ -364,7 +371,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		sender.sendMessage(getMessage("UserCommandsMenu-idea"));
 		sender.sendMessage(getMessage("UserCommandsMenu-ideacommands"));
 
-		if (sender == null || sender.hasPermission("sht.admin")) {
+        if (sender.hasPermission("sht.admin")) {
 			sender.sendMessage(getMessage("AdminCommandsMenu-Title"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-tickets"));
 			sender.sendMessage(getMessage("AdminCommandsMenu-taketicket"));
@@ -761,19 +768,13 @@ public class SimpleHelpTickets extends JavaPlugin {
 		}
 	}
 
-	public void SendPluginMessage(String subchannel, String data1, String data2) {
+    private void SendPluginMessage(String subchannel, String data1, String data2) {
 		ByteArrayDataOutput out = ByteStreams.newDataOutput();
 		out.writeUTF(subchannel);
 		out.writeUTF(data1);
 		out.writeUTF(data2);
-		Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
-		if (player == null)
-		{
-			// No players are online; cannot send a message to the player using BungeeCord
-		} else {
-			player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
-		}
-	}
+        Bukkit.getServer().sendPluginMessage(this, "BungeeCord", out.toByteArray());
+    }
 
 	public void disableReminder(){
 	    disableReminder(null);
@@ -792,7 +793,8 @@ public class SimpleHelpTickets extends JavaPlugin {
         }
 
     }
-    public void enableReminder(){
+
+    private void enableReminder() {
 	    enableReminder(null);
     }
 

@@ -18,16 +18,31 @@ import org.bukkit.entity.Player;
 
 public class checkticket implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+    private final SimpleHelpTickets plugin;
 
 	public checkticket(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 
-	DBConnection service = DBConnection.getInstance();
-	ResultSet rs = null;
-	java.sql.Statement stmt = null;
-	Connection con = null;
+    private final DBConnection service = DBConnection.getInstance();
+    private ResultSet rs = null;
+    private java.sql.Statement stmt = null;
+
+    static boolean checkInvalidNumber(CommandSender sender, String[] args, String targetTable, SimpleHelpTickets plugin) {
+        String messageName;
+        for (char c : args[0].toCharArray()) {
+            if (!Character.isDigit(c)) {
+                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                    messageName = "InvalidIdeaNumber";
+                else
+                    messageName = "InvalidTicketNumber";
+
+                sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+                return true;
+            }
+        }
+        return false;
+    }
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
@@ -46,20 +61,11 @@ public class checkticket implements CommandExecutor {
 			return true;
 		} else {
 
-			for (char c : args[0].toCharArray()) {
-				if (!Character.isDigit(c)) {
-					if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-						messageName = "InvalidIdeaNumber";
-					else
-						messageName = "InvalidTicketNumber";
-
-					sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
-					return true;
-				}
-			}
+            if (checkInvalidNumber(sender, args, targetTable, plugin)) return true;
 
 			int ticketNumber = Integer.parseInt(args[0]);
 			try {
+                Connection con = null;
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					con = plugin.mysql.getConnection();
 				} else {
@@ -156,14 +162,8 @@ public class checkticket implements CommandExecutor {
 					return true;
 				}
     		} finally {
-    			try {
-    				if (rs != null) { rs.close(); rs = null; }
-    				if (stmt != null) { stmt.close(); stmt = null; }
-    			} catch (SQLException e) {
-    				System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-    				e.printStackTrace();
-    			}
-    		}
+                closeticket.closeResources(rs, stmt);
+            }
 			return true;
 		}
 	}

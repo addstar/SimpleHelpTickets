@@ -12,10 +12,10 @@ import java.util.Objects;
 
 public class Utilities {
 
-	public static String IDEA_TABLE_NAME = "SHT_Ideas";
-	public static String TICKET_TABLE_NAME = "SHT_Tickets";
+	public static final String IDEA_TABLE_NAME = "SHT_Ideas";
+	public static final String TICKET_TABLE_NAME = "SHT_Tickets";
 
-	private static SimpleDateFormat mShortDateFormater;
+	private static final SimpleDateFormat mShortDateFormater;
 
 	static {
 		// Static constructor

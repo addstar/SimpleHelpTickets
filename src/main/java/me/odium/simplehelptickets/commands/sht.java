@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 
 public class sht implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+	private final SimpleHelpTickets plugin;
 
 	public sht(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
@@ -65,7 +65,7 @@ public class sht implements CommandExecutor {
 						return true;
 					}
 				case "check":
-					player.sendMessage(ChatColor.RED + "This feature is disabled.");
+					if (player != null) player.sendMessage(ChatColor.RED + "This feature is disabled.");
 					break;
 				case "stopreminder":
 					if(sender.hasPermission("sht.manager")) {
@@ -97,7 +97,7 @@ public class sht implements CommandExecutor {
 		return true;
 	}
 
-	public void displayHelp(CommandSender sender){
+	private void displayHelp(CommandSender sender) {
 		sender.sendMessage( "&cUsage:");
 		sender.sendMessage("&c/sht check - disabled feature");
 		if(sender.hasPermission("sht.manager")) {

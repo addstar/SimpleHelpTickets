@@ -7,10 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DBConnection {
-	private static DBConnection instance = new DBConnection();
-	public Connection con = null;
-	public int Timeout = 30;
-	public Statement stmt = null;
+	private static final DBConnection instance = new DBConnection();
+	private final Statement stmt = null;
+	private Connection con = null;
 
 	private SimpleHelpTickets plugin;
 
@@ -75,7 +74,8 @@ public class DBConnection {
 			setConnection();
 		}
 		Statement stmt = con.createStatement();
-		stmt.setQueryTimeout(Timeout); // set timeout to 30 sec.
+		int timeout = 30;
+		stmt.setQueryTimeout(timeout); // set timeout to 30 sec.
 	}
 
 	public Statement getStatement() {

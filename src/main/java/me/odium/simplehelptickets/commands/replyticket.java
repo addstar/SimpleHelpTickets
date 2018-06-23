@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 
 public class replyticket implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+	private final SimpleHelpTickets plugin;
 
 	public replyticket(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
@@ -281,13 +281,7 @@ public class replyticket implements CommandExecutor {
 			}
 			return false;
 		} finally {
-			try {
-				if (rs != null) { rs.close(); rs = null; }
-				if (stmt != null) { stmt.close(); stmt = null; }
-			} catch (SQLException e) {
-				System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-				e.printStackTrace();
-			}
+			closeticket.closeResources(rs, stmt);
 		}
 	}
 

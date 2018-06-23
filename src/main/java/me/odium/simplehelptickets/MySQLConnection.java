@@ -5,47 +5,44 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 public class MySQLConnection extends Database {
 	private String hostname = "";
 	private String portnmbr = "";
-	private String username = "";
-	private String password = "";
+    private final Properties properties;
 	private String database = "";
 	private SimpleHelpTickets plugin;
 
-	public MySQLConnection(String hostname, String portnmbr, String database, String username, String password) {
+    public MySQLConnection(String host, String portnmbr, String database, Properties props) {
 		super();
-		this.hostname = hostname;
+        this.hostname = host;
 		this.portnmbr = portnmbr;
 		this.database = database;
-		this.username = username;
-		this.password = password;
+        properties = props;
 	}
 
 	/**
 	 * open database connection
 	 * 
 	 * */
-	public Connection open() {
+    public void open() {
 		String url = "";
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			url = "jdbc:mysql://" + this.hostname + ":" + this.portnmbr + "/" + this.database;
-			this.connection = DriverManager.getConnection(url, this.username, this.password);
-			return this.connection;
-		} catch (SQLException e) {
+            this.connection = DriverManager.getConnection(url, properties);
+        } catch (SQLException e) {
 			System.out.print("Could not connect to MySQL server!");
 		} catch (ClassNotFoundException e) {
 			System.out.print("JDBC Driver not found!");
 		}
-		return null;
-	}
+    }
 
 	/**
 	 * close database connection
 	 * */
-	public void close() {
+    private void close() {
 		try {
 			if (connection != null)
 				connection.close();
@@ -96,7 +93,7 @@ public class MySQLConnection extends Database {
 	 * 
 	 * @return true if still active
 	 * */
-	public boolean checkConnection() {
+    private boolean checkConnection() {
 		try {
 			if (connection != null && connection.isValid(2)) {
 				return true;
@@ -113,42 +110,37 @@ public class MySQLConnection extends Database {
 	 * 
 	 * @param query
 	 *            the database query
-	 * @return ResultSet of the query
-	 * 
+     *
 	 * @throws SQLException if fails
 	 * */
-	public ResultSet query(String query) throws SQLException {
+    private void query(String query) throws SQLException {
 		Statement statement = null;
 		ResultSet result = null;
 		try {
 			statement = connection.createStatement();
 			result = statement.executeQuery(query);
-			return result;
-		} catch (SQLException e) {
+        } catch (SQLException e) {
 			if (e.getMessage().equals("Can not issue data manipulation statements with executeQuery().")) {
 				try {
 					statement.executeUpdate(query);
 				} catch (SQLException ex) {
-					if (e.getMessage().startsWith("You have an error in your SQL syntax;")) {
-						String temp = (e.getMessage().split(";")[0].substring(0, 36) + e.getMessage().split(";")[1].substring(91));
-						temp = temp.substring(0, temp.lastIndexOf("'"));
-						throw new SQLException(temp);
-					} else {
-						ex.printStackTrace();
-					}
-				}
-			} else if (e.getMessage().startsWith("You have an error in your SQL syntax;")) {
-				String temp = (e.getMessage().split(";")[0].substring(0, 36) + e.getMessage().split(";")[1].substring(91));
-				temp = temp.substring(0, temp.lastIndexOf("'"));
-				throw new SQLException(temp);
-			} else {
-				e.printStackTrace();
-			}
-		}
-		return null;
-	}
+                    handleExceptions(e, ex);
+                }
+            } else handleExceptions(e, e);
+        }
+    }
 
-	/**
+    private void handleExceptions(SQLException e, SQLException ex) throws SQLException {
+        if (e.getMessage().startsWith("You have an error in your SQL syntax;")) {
+            String temp = (e.getMessage().split(";")[0].substring(0, 36) + e.getMessage().split(";")[1].substring(91));
+            temp = temp.substring(0, temp.lastIndexOf("'"));
+            throw new SQLException(temp);
+        } else {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
 	 * Empties a table
 	 * 
 	 * @param table

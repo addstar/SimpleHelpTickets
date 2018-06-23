@@ -3,6 +3,7 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -19,169 +20,10 @@ import org.bukkit.entity.Player;
 
 public class closeticket implements CommandExecutor {
 
-    public SimpleHelpTickets plugin;
+    private final SimpleHelpTickets plugin;
 
     public closeticket(SimpleHelpTickets plugin) {
         this.plugin = plugin;
-    }
-
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        Player player = null;
-        if (sender instanceof Player) {
-            player = (Player) sender;
-        }
-
-        // Use the command name to determine if we are working with a ticket or an idea
-        String targetTable = Utilities.GetTargetTableName(label);
-        String itemName = Utilities.GetTargetItemName(targetTable);
-        String messageName;
-
-        if (args.length == 0) {
-            // Show syntax: /closeticket or /closeidea
-            sender.sendMessage(ChatColor.WHITE + "/close" + itemName + " <#>");
-            sender.sendMessage(ChatColor.GRAY + "(reopen with /close" + itemName + " -r <#>)");
-            return true;
-        } else if (args.length == 1) {
-            // CLOSING TICKET
-            // CHECK TICKETNUMBER IS A DIGIT
-            for (char c : args[0].toCharArray()) {
-                if (!Character.isDigit(c)) {
-                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-                        messageName = "InvalidIdeaNumber";
-                    else
-                        messageName = "InvalidTicketNumber";
-
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
-                    return true;
-                }
-            }
-
-            int id = Integer.parseInt(args[0]);
-
-            boolean success = CloseItem(plugin, sender, targetTable, id);
-            if (success) plugin.reminder.addResponse(sender);
-            return success;
-
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("-r")) {
-
-            // REOPENING A TICKET
-            // CHECK TICKETNUMBER IS A DIGIT
-            for (char c : args[1].toCharArray()) {
-                if (!Character.isDigit(c)) {
-                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-                        messageName = "InvalidIdeaNumber";
-                    else
-                        messageName = "InvalidTicketNumber";
-
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[1]));
-                    return true;
-                }
-            }
-
-            int id = Integer.parseInt(args[1]);
-
-            DBConnection service = DBConnection.getInstance();
-            ResultSet rs = null;
-            java.sql.Statement stmt = null;
-            Connection con;
-
-            // OPEN CONNECTION
-            try {
-                if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-                    con = plugin.mysql.getConnection();
-                } else {
-                    con = service.getConnection();
-                }
-                stmt = con.createStatement();
-                // GET TICKET FROM DB
-                rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
-                if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-                    rs.next(); // sets pointer to first record in result set
-                }
-                // CHECK TICKET IS NOT ALREADY OPEN, IF SO END HERE.
-                if (rs.getString("status").equalsIgnoreCase("OPEN")) {
-                    sender.sendMessage(plugin.getMessage("TicketNotClosed").replace("&arg", args[1]));
-                    return true;
-                }
-                // CHECK THE OWNER OF THE TICKET, AND GET CUSTOM OUTPUT FROM
-                // CONFIG
-                Player target = Bukkit.getPlayer(rs.getString("uuid"));
-                // IF PLAYER IS CONSOLE OR ADMIN
-                if (player == null || player.hasPermission("sht.admin")) {
-                    // SET THE ADMIN VARIABLE TO REFLECT CONSOLE/ADMIN
-                    String admin = "ADMIN";
-                    if (player == null) {
-                        admin = sender.getName();;
-                    } else if (rs.getString("uuid").contains(player.getUniqueId().toString()) || player.hasPermission("sht.admin")) {
-                        admin = player.getName();
-                    }
-                    // UPDATE THE TICKET
-                    stmt.executeUpdate("UPDATE " + targetTable + " SET status='" + "OPEN" + "', admin='" + admin + "', expiration=NULL WHERE id='" + id + "'");
-
-                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-                        messageName = "IdeaReopened";
-                    else
-                        messageName = "TicketReopened";
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
-
-                    // IF TICKETOWNER IS ONLINE, TELL THEM OF CHANGES TO THEIR
-                    // TICKET
-                    if (target != null && target != player) {
-
-                        if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-                            messageName = "IdeaReopenedOWNER";
-                        else
-                            messageName = "TicketReopenedOWNER";
-                        target.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
-                    }
-
-                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-                        messageName = "IdeaReopenedADMIN";
-                    else
-                        messageName = "TicketReopenedADMIN";
-
-                    // INFORM ADMINS OF CHANGES TO TICKET
-                    Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-                    for (Player op : players) {
-                        if (op.hasPermission("sht.admin") && plugin.getConfig().getBoolean("NotifyAdminOnTicketClose") && op != sender) {
-                            op.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
-                        }
-                    }
-                    return true;
-                } else {
-                    sender.sendMessage(plugin.getMessage("NoPermission"));
-                    return true;
-                }
-            } catch (Exception e) {
-                if (e.toString().contains("ResultSet closed")) {
-                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-                        messageName = "IdeaNotExist";
-                    else
-                        messageName = "TicketNotExist";
-
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[1]));
-                    return true;
-                } else {
-                    sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
-                    return true;
-                }
-            } finally {
-                try {
-                    if (rs != null) {
-                        rs.close();
-                        rs = null;
-                    }
-                    if (stmt != null) {
-                        stmt.close();
-                        stmt = null;
-                    }
-                } catch (SQLException e) {
-                    System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-                    e.printStackTrace();
-                }
-            }
-        }
-        return false;
     }
 
     public static boolean CloseItem(SimpleHelpTickets plugin, CommandSender sender, String targetTable, int id) {
@@ -253,7 +95,7 @@ public class closeticket implements CommandExecutor {
                 String admin = "ADMIN";
 
                 if (player == null) {
-                    admin = sender.getName();;
+                    admin = sender.getName();
                 } else if (uuid.equals(player.getUniqueId().toString()) || player.hasPermission("sht.admin")) {
                     admin = player.getName();
                 }
@@ -321,19 +163,160 @@ public class closeticket implements CommandExecutor {
                 return true;
             }
         } finally {
+            closeResources(rs, stmt);
+        }
+    }
+
+    static void closeResources(ResultSet rs, Statement stmt) {
+        try {
+            if (rs != null) {
+                rs.close();
+                rs = null;
+            }
+            if (stmt != null) {
+                stmt.close();
+                stmt = null;
+            }
+        } catch (SQLException e) {
+            System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+            e.printStackTrace();
+        }
+    }
+
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        Player player = null;
+        if (sender instanceof Player) {
+            player = (Player) sender;
+        }
+
+        // Use the command name to determine if we are working with a ticket or an idea
+        String targetTable = Utilities.GetTargetTableName(label);
+        String itemName = Utilities.GetTargetItemName(targetTable);
+        String messageName;
+
+        if (args.length == 0) {
+            // Show syntax: /closeticket or /closeidea
+            sender.sendMessage(ChatColor.WHITE + "/close" + itemName + " <#>");
+            sender.sendMessage(ChatColor.GRAY + "(reopen with /close" + itemName + " -r <#>)");
+            return true;
+        } else if (args.length == 1) {
+            // CLOSING TICKET
+            // CHECK TICKETNUMBER IS A DIGIT
+            if (checkticket.checkInvalidNumber(sender, args, targetTable, plugin)) return true;
+
+            int id = Integer.parseInt(args[0]);
+
+            boolean success = CloseItem(plugin, sender, targetTable, id);
+            if (success) plugin.reminder.addResponse(sender);
+            return success;
+
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("-r")) {
+
+            // REOPENING A TICKET
+            // CHECK TICKETNUMBER IS A DIGIT
+            for (char c : args[1].toCharArray()) {
+                if (!Character.isDigit(c)) {
+                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                        messageName = "InvalidIdeaNumber";
+                    else
+                        messageName = "InvalidTicketNumber";
+
+                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[1]));
+                    return true;
+                }
+            }
+
+            int id = Integer.parseInt(args[1]);
+
+            DBConnection service = DBConnection.getInstance();
+            ResultSet rs = null;
+            java.sql.Statement stmt = null;
+            Connection con;
+
+            // OPEN CONNECTION
             try {
-                if (rs != null) {
-                    rs.close();
-                    rs = null;
+                if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
+                    con = plugin.mysql.getConnection();
+                } else {
+                    con = service.getConnection();
                 }
-                if (stmt != null) {
-                    stmt.close();
-                    stmt = null;
+                stmt = con.createStatement();
+                // GET TICKET FROM DB
+                rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
+                if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
+                    rs.next(); // sets pointer to first record in result set
                 }
-            } catch (SQLException e) {
-                System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-                e.printStackTrace();
+                // CHECK TICKET IS NOT ALREADY OPEN, IF SO END HERE.
+                if (rs.getString("status").equalsIgnoreCase("OPEN")) {
+                    sender.sendMessage(plugin.getMessage("TicketNotClosed").replace("&arg", args[1]));
+                    return true;
+                }
+                // CHECK THE OWNER OF THE TICKET, AND GET CUSTOM OUTPUT FROM
+                // CONFIG
+                Player target = Bukkit.getPlayer(rs.getString("uuid"));
+                // IF PLAYER IS CONSOLE OR ADMIN
+                if (player == null || player.hasPermission("sht.admin")) {
+                    // SET THE ADMIN VARIABLE TO REFLECT CONSOLE/ADMIN
+                    String admin = "ADMIN";
+                    if (player == null) {
+                        admin = sender.getName();
+                    } else if (rs.getString("uuid").contains(player.getUniqueId().toString()) || player.hasPermission("sht.admin")) {
+                        admin = player.getName();
+                    }
+                    // UPDATE THE TICKET
+                    stmt.executeUpdate("UPDATE " + targetTable + " SET status='" + "OPEN" + "', admin='" + admin + "', expiration=NULL WHERE id='" + id + "'");
+
+                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                        messageName = "IdeaReopened";
+                    else
+                        messageName = "TicketReopened";
+                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
+
+                    // IF TICKETOWNER IS ONLINE, TELL THEM OF CHANGES TO THEIR
+                    // TICKET
+                    if (target != null && target != player) {
+
+                        if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                            messageName = "IdeaReopenedOWNER";
+                        else
+                            messageName = "TicketReopenedOWNER";
+                        target.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
+                    }
+
+                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                        messageName = "IdeaReopenedADMIN";
+                    else
+                        messageName = "TicketReopenedADMIN";
+
+                    // INFORM ADMINS OF CHANGES TO TICKET
+                    Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+                    for (Player op : players) {
+                        if (op.hasPermission("sht.admin") && plugin.getConfig().getBoolean("NotifyAdminOnTicketClose") && op != sender) {
+                            op.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
+                        }
+                    }
+                    return true;
+                } else {
+                    sender.sendMessage(plugin.getMessage("NoPermission"));
+                    return true;
+                }
+            } catch (Exception e) {
+                if (e.toString().contains("ResultSet closed")) {
+                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                        messageName = "IdeaNotExist";
+                    else
+                        messageName = "TicketNotExist";
+
+                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[1]));
+                    return true;
+                } else {
+                    sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+                    return true;
+                }
+            } finally {
+                closeResources(rs, stmt);
             }
         }
+        return false;
     }
 }

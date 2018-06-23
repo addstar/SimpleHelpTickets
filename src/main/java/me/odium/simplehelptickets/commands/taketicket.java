@@ -2,7 +2,6 @@ package me.odium.simplehelptickets.commands;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
 
@@ -21,16 +20,15 @@ import org.bukkit.entity.Player;
 
 public class taketicket implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+	private final SimpleHelpTickets plugin;
 
 	public taketicket(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 
-	DBConnection service = DBConnection.getInstance();
-	ResultSet rs = null;
-	java.sql.Statement stmt = null;
-	Connection con = null;
+	private final DBConnection service = DBConnection.getInstance();
+	private ResultSet rs = null;
+	private java.sql.Statement stmt = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
@@ -63,6 +61,7 @@ public class taketicket implements CommandExecutor {
 		int ticketNumber = Integer.parseInt(args[0]);
 
 		try {
+			Connection con = null;
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 				con = plugin.mysql.getConnection();
 			} else {
@@ -198,13 +197,7 @@ public class taketicket implements CommandExecutor {
 				return true;
 			}
 		} finally {
-			try {
-				if (rs != null) { rs.close(); rs = null; }
-				if (stmt != null) { stmt.close(); stmt = null; }
-			} catch (SQLException e) {
-				System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-				e.printStackTrace();
-			}
+			closeticket.closeResources(rs, stmt);
 		}
 	}
 }

@@ -3,8 +3,7 @@ package me.odium.simplehelptickets;
 import java.sql.Connection;
 
 public abstract class Database {
-	protected boolean connected;
-	protected Connection connection;
+	Connection connection;
 
 	protected enum Statements {
 		SELECT, INSERT, UPDATE, DELETE, DO, REPLACE, LOAD, HANDLER, CALL,
@@ -16,8 +15,8 @@ public abstract class Database {
 
 	public int lastUpdate;
 
-	public Database() {
-		this.connected = false;
+	Database() {
+		boolean connected = false;
 		this.connection = null;
 	}
 

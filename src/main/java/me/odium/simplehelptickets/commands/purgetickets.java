@@ -2,7 +2,6 @@ package me.odium.simplehelptickets.commands;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Objects;
 
@@ -18,16 +17,15 @@ import org.bukkit.entity.Player;
 
 public class purgetickets implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+	private final SimpleHelpTickets plugin;
 
 	public purgetickets(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 
-	DBConnection service = DBConnection.getInstance();
-	ResultSet rs = null;
-	Statement stmt = null;
-	Connection con = null;
+	private final DBConnection service = DBConnection.getInstance();
+	private final ResultSet rs = null;
+	private Statement stmt = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
@@ -45,6 +43,7 @@ public class purgetickets implements CommandExecutor {
 		String targetTable = Utilities.GetTargetTableName(label);
 		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
+		Connection con = null;
 		if (args.length == 0) {
 			// PURGE EXPIRED TICKETS OR IDEAS
 
@@ -84,19 +83,7 @@ public class purgetickets implements CommandExecutor {
 			} catch (Exception e) {
 				sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 			} finally {
-				try {
-					if (rs != null) {
-						rs.close();
-						rs = null;
-					}
-					if (stmt != null) {
-						stmt.close();
-						stmt = null;
-					}
-				} catch (SQLException e) {
-					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-					e.printStackTrace();
-				}
+				closeticket.closeResources(rs, stmt);
 			}
 			return true;
 
@@ -125,19 +112,7 @@ public class purgetickets implements CommandExecutor {
 			} catch (Exception e) {
 				plugin.log.info("[Tickets] " + "Error: " + e);
 			} finally {
-				try {
-					if (rs != null) {
-						rs.close();
-						rs = null;
-					}
-					if (stmt != null) {
-						stmt.close();
-						stmt = null;
-					}
-				} catch (SQLException e) {
-					System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-					e.printStackTrace();
-				}
+				closeticket.closeResources(rs, stmt);
 			}
 			return true;
 		} else {

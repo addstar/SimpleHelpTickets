@@ -21,7 +21,7 @@ public class TimeParser
      * @param string String to convert to Seconds
      * @return Seconds
      */
-    public static int parseStringToSecs(String string)
+    private static int parseStringToSecs(String string)
     {
         Matcher m = TIME_PATTERN.matcher(string);
         int total = 0;

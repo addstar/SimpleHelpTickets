@@ -18,33 +18,17 @@ import org.bukkit.entity.Player;
 
 public class ticket implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+	private final SimpleHelpTickets plugin;
 
 	public ticket(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 
-	String date;
-	String uuid;
-	String owner;
-	String world;
-	double locX;
-	double locY;
-	double locZ;
-	double locP;
-	double locF;
 	String reply;
-	String status;
-	String admin;
-	String adminreply;
-	String expire;
-	String userreply;
-	boolean atConsole;
 
-	DBConnection service = DBConnection.getInstance();
-	ResultSet rs = null;
-	Connection con = null;
-	java.sql.Statement stmt = null;
+	private final DBConnection service = DBConnection.getInstance();
+	private ResultSet rs = null;
+	private java.sql.Statement stmt = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
@@ -80,17 +64,32 @@ public class ticket implements CommandExecutor {
 				return true;
 			}
 
+			boolean atConsole;
+			String userreply;
+			String expire;
+			String adminreply;
+			String admin;
+			String status;
+			double locF;
+			double locP;
+			double locZ;
+			double locY;
+			double locX;
+			String world;
+			String owner;
+			String uuid;
+			String date;
 			if (player == null) {
 				// SET VARIABLES FOR CONSOLE
 				date = plugin.getCurrentDTG("date");
 				uuid = "CONSOLE";
 				owner = sender.getName();
 				world = "NONE";
-				locX = 00;
-				locY = 00;
-				locZ = 00;
-				locP = 00;
-				locF = 00;
+				locX = 0D;
+				locY = 0D;
+				locZ = 0D;
+				locP = 0D;
+				locF = 0D;
 				adminreply = "NONE";
 				userreply = "NONE";
 				status = "OPEN";
@@ -125,6 +124,7 @@ public class ticket implements CommandExecutor {
 			int ideaCooldownSeconds = plugin.getConfig().getInt("IdeaCooldownSeconds");
 
 			// REFERENCE CONNECTION AND ADD DATA
+			Connection con = null;
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 				// MySQL
 
@@ -151,19 +151,7 @@ public class ticket implements CommandExecutor {
 					} catch (SQLException e) {
 						sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					} finally {
-						try {
-							if (rs != null) {
-								rs.close();
-								rs = null;
-							}
-							if (stmt != null) {
-								stmt.close();
-								stmt = null;
-							}
-						} catch (SQLException e) {
-							System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-							e.printStackTrace();
-						}
+						closeticket.closeResources(rs, stmt);
 					}
 				}
 
@@ -198,13 +186,7 @@ public class ticket implements CommandExecutor {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					e.printStackTrace();
 				} finally {
-					try {
-						if (rs != null) { rs.close(); rs = null; }
-						if (stmt != null) { stmt.close(); stmt = null; }
-					} catch (SQLException e) {
-						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-						e.printStackTrace();
-					}
+					closeticket.closeResources(rs, stmt);
 				}
 
 			} else {
@@ -252,19 +234,7 @@ public class ticket implements CommandExecutor {
 					} catch (SQLException e) {
 						sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					} finally {
-						try {
-							if (rs != null) {
-								rs.close();
-								rs = null;
-							}
-							if (stmt != null) {
-								stmt.close();
-								stmt = null;
-							}
-						} catch (SQLException e) {
-							System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-							e.printStackTrace();
-						}
+						closeticket.closeResources(rs, stmt);
 					}
 				}
 
@@ -297,13 +267,7 @@ public class ticket implements CommandExecutor {
 				} catch (Exception e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 				} finally {
-					try {
-						if (rs != null) { rs.close(); rs = null; }
-						if (stmt != null) { stmt.close(); stmt = null; }
-					} catch (SQLException e) {
-						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-						e.printStackTrace();
-					}
+					closeticket.closeResources(rs, stmt);
 				}
 			}
 		}

@@ -16,10 +16,10 @@ import java.sql.Statement;
  */
 public class TicketManager {
 
-    public SimpleHelpTickets plugin;
+    private final SimpleHelpTickets plugin;
     private Statement stmt;
     private Connection con;
-    DBConnection service = DBConnection.getInstance();
+    private final DBConnection service = DBConnection.getInstance();
 
 
 
@@ -51,8 +51,7 @@ public void ShowAdminTickets(Player player){
 }
 
 
-
-    public void ShowPlayerOpenTickets(Player player){
+    private void ShowPlayerOpenTickets(Player player) {
         if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
             try {
                 con = plugin.mysql.getConnection();
@@ -65,16 +64,7 @@ public void ShowAdminTickets(Player player){
                     rs.close();
                     rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
                     int openNumber = 0;
-                    while (rs.next()) {
-                        String adminreply = rs.getString("adminreply");
-                        String status = rs.getString("status");
-                        if (status.equalsIgnoreCase("OPEN")) {
-                            openNumber++;
-                        }
-                        if (!adminreply.equalsIgnoreCase("NONE") && status.equalsIgnoreCase("OPEN")) {
-                            player.sendMessage(plugin.getMessage("UserJoin-TicketReplied"));
-                        }
-                    }
+                    openNumber = findOpenNumber(player, rs, openNumber);
                     if (openNumber > 0) {
                         player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber+""));
                     }
@@ -100,26 +90,31 @@ public void ShowAdminTickets(Player player){
                     rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
                     int openNumber = 0;
 
-                    while (rs.next()) {
-                        String adminreply = rs.getString("adminreply");
-                        String status = rs.getString("status");
-                        if (status.equalsIgnoreCase("OPEN")) {
-                            openNumber++;
-                        }
-                        if (!adminreply.equalsIgnoreCase("NONE") && status.equalsIgnoreCase("OPEN")) {
-                            player.sendMessage(plugin.getMessage("UserJoin-TicketReplied"));
-                        }
-                    }
+                    openNumber = findOpenNumber(player, rs, openNumber);
                     if (openNumber > 0) {
-                        player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber+""));
+                        player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber + ""));
                     }
                     rs.close();
                     stmt.close();
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
             }
         }
+    }
+
+    private int findOpenNumber(Player player, ResultSet rs, int openNumber) throws SQLException {
+        while (rs.next()) {
+            String adminreply = rs.getString("adminreply");
+            String status = rs.getString("status");
+            if (status.equalsIgnoreCase("OPEN")) {
+                openNumber++;
+            }
+            if (!adminreply.equalsIgnoreCase("NONE") && status.equalsIgnoreCase("OPEN")) {
+                player.sendMessage(plugin.getMessage("UserJoin-TicketReplied"));
+            }
+        }
+        return openNumber;
     }
 
     private int CountOpenItems(java.sql.Statement stmt, String targetTable) throws SQLException {

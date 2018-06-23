@@ -29,5 +29,7 @@ MySQL:
   database: simpletickets
   user: simpletickets
   password: simpletickets
+  properties:
+    useSSL: false
 BungeeChatStaffChannel: StaffNotice
 useSimpleMail: true

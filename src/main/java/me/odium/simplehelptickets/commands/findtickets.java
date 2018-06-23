@@ -3,7 +3,6 @@ package me.odium.simplehelptickets.commands;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -22,18 +21,17 @@ import org.bukkit.entity.Player;
 
 public class findtickets implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+    private final SimpleHelpTickets plugin;
 
 	public findtickets(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 
-	DBConnection service = DBConnection.getInstance();
-	ResultSet rs = null;
-	java.sql.Statement stmt = null;
-	Connection con = null;
+    private final DBConnection service = DBConnection.getInstance();
+    private ResultSet rs = null;
+    private java.sql.Statement stmt = null;
 
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
 
 		boolean atConsole = true;
@@ -308,7 +306,8 @@ public class findtickets implements CommandExecutor {
 				sender.sendMessage(plugin.AQUA + "Note: Maximum record count set to " + ticketsToShow);
 			}
 
-			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
+            Connection con = null;
+            if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 				con = plugin.mysql.getConnection();
 			} else {
 				con = service.getConnection();
@@ -410,20 +409,8 @@ public class findtickets implements CommandExecutor {
 			sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 			return true;
 		} finally {
-			try {
-				if (rs != null) {
-					rs.close();
-					rs = null;
-				}
-				if (stmt != null) {
-					stmt.close();
-					stmt = null;
-				}
-			} catch (SQLException e) {
-				System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-				e.printStackTrace();
-			}
-		}
+            closeticket.closeResources(rs, stmt);
+        }
 
 	}
 

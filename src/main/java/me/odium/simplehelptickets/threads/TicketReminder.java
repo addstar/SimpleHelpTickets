@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class TicketReminder implements Runnable {
 
-    Cache<CommandSender, Integer> responses;
-    TicketManager manager;
+    private final Cache<CommandSender, Integer> responses;
+    private final TicketManager manager;
 
 
     public TicketReminder(TicketManager manager) {

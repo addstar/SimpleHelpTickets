@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PListener implements Listener {
 
-  TicketManager manager;
+  private final TicketManager manager;
 
   public PListener(TicketManager manager) {
     this.manager = manager;

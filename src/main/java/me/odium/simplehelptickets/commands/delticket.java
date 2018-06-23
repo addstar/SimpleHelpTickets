@@ -17,17 +17,16 @@ import org.bukkit.entity.Player;
 
 public class delticket implements CommandExecutor {
 
-	public SimpleHelpTickets plugin;
+	private final SimpleHelpTickets plugin;
 
 	public delticket(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 
-	DBConnection service = DBConnection.getInstance();
-	ResultSet rs = null;
-	java.sql.Statement stmt = null;
-	java.sql.Statement stmt2 = null;
-	Connection con = null;
+	private final DBConnection service = DBConnection.getInstance();
+	private ResultSet rs = null;
+	private java.sql.Statement stmt = null;
+	private java.sql.Statement stmt2 = null;
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = null;
@@ -65,6 +64,7 @@ public class delticket implements CommandExecutor {
 			itemName = Utilities.Capitalize(itemName);
 
 			// CONSOLE COMMANDS
+			Connection con = null;
 			if (player == null) {
 				try {
 					if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -91,19 +91,11 @@ public class delticket implements CommandExecutor {
 					if (e.toString().contains("ResultSet closed")) {
 						sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 						return true;
-					} else {
 					}
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					return true;
 				} finally {
-					try {
-						if (rs != null) { rs.close(); rs = null; }
-						if (stmt != null) { stmt.close(); stmt = null; }
-						if (stmt2 != null) { stmt2.close(); stmt2 = null; }
-					} catch (SQLException e) {
-						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-						e.printStackTrace();
-					}
+					closeResources();
 				}
 				// PLAYER COMMANDS
 			} else {
@@ -147,17 +139,30 @@ public class delticket implements CommandExecutor {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
 					return true;
 				} finally {
-					try {
-						if (rs != null) { rs.close(); rs = null; }
-						if (stmt != null) { stmt.close(); stmt = null; }
-						if (stmt2 != null) { stmt2.close(); stmt2 = null; }
-					} catch (SQLException e) {
-						System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-						e.printStackTrace();
-					}
+					closeResources();
 				}
 			}
 		}
 		return false;
+	}
+
+	private void closeResources() {
+		try {
+			if (rs != null) {
+				rs.close();
+				rs = null;
+			}
+			if (stmt != null) {
+				stmt.close();
+				stmt = null;
+			}
+			if (stmt2 != null) {
+				stmt2.close();
+				stmt2 = null;
+			}
+		} catch (SQLException e) {
+			System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+			e.printStackTrace();
+		}
 	}
 }
