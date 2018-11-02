@@ -4,10 +4,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Objects;
 
-import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -22,7 +21,6 @@ public class tickets implements CommandExecutor {
 		this.plugin = plugin;
 	}
 
-	private final DBConnection service = DBConnection.getInstance();
 	private ResultSet rs = null;
 	private java.sql.Statement stmt = null;
 
@@ -48,11 +46,7 @@ public class tickets implements CommandExecutor {
 		Connection con = null;
 		if (player == null || player.hasPermission("sht.admin")) {
 			try {
-				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-					con = plugin.mysql.getConnection();
-				} else {
-					con = service.getConnection();
-				}
+				con = plugin.service.getConnection();
 				stmt = con.createStatement();
 
 				boolean verboseMode = false;
@@ -176,11 +170,7 @@ public class tickets implements CommandExecutor {
 		} else {
 			// DISPLAY USER TICKETS OR IDEAS
 			try {
-				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-					con = plugin.mysql.getConnection();
-				} else {
-					con = service.getConnection();
-				}
+				con = plugin.service.getConnection();
 				stmt = con.createStatement();
 				rs = stmt.executeQuery(GetItemSelectQuery(targetTable, "uuid='" + player.getUniqueId().toString() + "'", maxRecordsToReturn));
 				int itemsFound = 0;

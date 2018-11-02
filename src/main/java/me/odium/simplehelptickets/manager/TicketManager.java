@@ -1,8 +1,7 @@
 package me.odium.simplehelptickets.manager;
 
-import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.entity.Player;
 
 import java.sql.Connection;
@@ -19,7 +18,6 @@ public class TicketManager {
     private final SimpleHelpTickets plugin;
     private Statement stmt;
     private Connection con;
-    private final DBConnection service = DBConnection.getInstance();
 
 
 
@@ -28,11 +26,7 @@ public class TicketManager {
     }
 public void ShowAdminTickets(Player player){
     try {
-        if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-            con = plugin.mysql.getConnection();
-        } else {
-            con = service.getConnection();
-        }
+        con = plugin.service.getConnection();
         stmt = con.createStatement();
 
         int ticketTotal = CountOpenItems(stmt, Utilities.TICKET_TABLE_NAME);
@@ -54,7 +48,7 @@ public void ShowAdminTickets(Player player){
     private void ShowPlayerOpenTickets(Player player) {
         if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
             try {
-                con = plugin.mysql.getConnection();
+                con = plugin.service.getConnection();
                 stmt = con.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
                 rs.next(); //sets pointer to first record in result set
@@ -76,7 +70,7 @@ public void ShowAdminTickets(Player player){
             }
         } else {
             try {
-                con = service.getConnection();
+                con = plugin.service.getConnection();
                 stmt = con.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
 

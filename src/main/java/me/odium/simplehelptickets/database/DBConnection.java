@@ -1,4 +1,7 @@
-package me.odium.simplehelptickets;
+package me.odium.simplehelptickets.database;
+
+import me.odium.simplehelptickets.SimpleHelpTickets;
+import me.odium.simplehelptickets.utilities.Utilities;
 
 import java.io.File;
 import java.sql.Connection;
@@ -6,18 +9,13 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DBConnection {
-	private static final DBConnection instance = new DBConnection();
+public class DBConnection extends Database {
 	private final Statement stmt = null;
-	private Connection con = null;
 
-	private SimpleHelpTickets plugin;
+    SimpleHelpTickets plugin;
 
-	private DBConnection() {
-	}
-
-	public synchronized static DBConnection getInstance() {
-		return instance;
+    public DBConnection(SimpleHelpTickets plugin) {
+        super(plugin);
 	}
 
 	/**
@@ -29,20 +27,20 @@ public class DBConnection {
 		this.plugin = plugin;
 	}
 
-	public void setConnection() throws SQLException, ClassNotFoundException {
+    public void open() throws SQLException, ClassNotFoundException {
 		Class.forName("org.sqlite.JDBC");
 		// con = DriverManager.getConnection("jdbc:sqlite:Tickets.db");
-		con = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + File.separator + "Tickets.db");
+        connection = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + File.separator + "Tickets.db");
 
 	}
 
 	public Connection getConnection() {
-		return con;
-	}
+        return connection;
+    }
 
-	public void closeConnection() {
+    public void close() {
 		try {
-			con.close();
+            connection.close();
 		} catch (Exception ignore) {
 		}
 	}
@@ -50,7 +48,7 @@ public class DBConnection {
 	public void createTable() {
 		Statement stmt;
 		try {
-			stmt = con.createStatement();
+            stmt = connection.createStatement();
 
 			String columnList = " (id INTEGER PRIMARY KEY, description text, date datetime, "
 					+ "uuid varchar(36), owner varchar(20), world varchar(30), x double(30,20), y double(30,20), z double(30,20), "
@@ -70,10 +68,10 @@ public class DBConnection {
 	}
 
 	public void setStatement() throws Exception {
-		if (con == null) {
-			setConnection();
-		}
-		Statement stmt = con.createStatement();
+        if (connection == null) {
+            open();
+        }
+        Statement stmt = connection.createStatement();
 		int timeout = 30;
 		stmt.setQueryTimeout(timeout); // set timeout to 30 sec.
 	}
@@ -82,7 +80,7 @@ public class DBConnection {
 		return stmt;
 	}
 
-	public void executeStmt(String instruction) throws SQLException {
+    public void executeStatement(String instruction) throws SQLException {
 		stmt.executeUpdate(instruction);
 	}
 

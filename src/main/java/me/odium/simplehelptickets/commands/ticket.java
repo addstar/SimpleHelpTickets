@@ -8,9 +8,8 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
-import me.odium.simplehelptickets.DBConnection;
 
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,7 +25,6 @@ public class ticket implements CommandExecutor {
 
 	String reply;
 
-	private final DBConnection service = DBConnection.getInstance();
 	private ResultSet rs = null;
 	private java.sql.Statement stmt = null;
 
@@ -124,7 +122,7 @@ public class ticket implements CommandExecutor {
 			int ideaCooldownSeconds = plugin.getConfig().getInt("IdeaCooldownSeconds");
 
 			// REFERENCE CONNECTION AND ADD DATA
-			Connection con = null;
+            Connection con;
 			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 				// MySQL
 
@@ -132,7 +130,7 @@ public class ticket implements CommandExecutor {
 					// CHECK MAX TICKETS OR IDEAS
 					// ALSO CHECK COOLDOWN
 					try {
-						con = plugin.mysql.getConnection();
+                        con = plugin.service.getConnection();
 						stmt = con.createStatement();
 						rs = stmt.executeQuery("SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem FROM " + targetTable + " WHERE uuid='" + uuid + "' AND status='OPEN'");
 						rs.next(); // sets pointer to first record in result set (required for MySQL)
@@ -156,31 +154,7 @@ public class ticket implements CommandExecutor {
 				}
 
 				try {
-					con = plugin.mysql.getConnection();
-					stmt = con.createStatement();
-					PreparedStatement statement = con
-							.prepareStatement("insert into " + targetTable + " (description, date, uuid, owner, world, x, y, z, p, f, adminreply, userreply, status, admin, expiration) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
-
-					statement.setString(1, details);
-					statement.setString(2, date);
-					statement.setString(3, uuid);
-					statement.setString(4, owner);
-					statement.setString(5, world);
-					statement.setDouble(6, locX);
-					statement.setDouble(7, locY);
-					statement.setDouble(8, locZ);
-					statement.setDouble(9, locP);
-					statement.setDouble(10, locF);
-					statement.setString(11, adminreply);
-					statement.setString(12, userreply);
-					statement.setString(13, status);
-					statement.setString(14, admin);
-					statement.setString(15, expire);
-
-					statement.executeUpdate();
-					statement.close();
-
-					NotifyItemOpened(sender, targetTable);
+                    insertRecord(sender, targetTable, details, userreply, expire, adminreply, admin, status, locF, locP, locZ, locY, locX, world, owner, uuid, date);
 
 				} catch (SQLException e) {
 					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
@@ -196,7 +170,7 @@ public class ticket implements CommandExecutor {
 					// CHECK MAX TICKETS OR IDEAS
 					// ALSO CHECK COOLDOWN
 					try {
-						con = service.getConnection();
+                        con = plugin.service.getConnection();
 						stmt = con.createStatement();
 
 						// Construct the Sql to convert dates in the form "dd/MMM/yy HH:mm"
@@ -239,39 +213,44 @@ public class ticket implements CommandExecutor {
 				}
 
 				try {
-					con = service.getConnection();
-					stmt = con.createStatement();
-					PreparedStatement statement = con.prepareStatement("insert into " + targetTable + " (description, date, uuid, owner, world, x, y, z, p, f, adminreply, userreply, status, admin, expiration) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+                    insertRecord(sender, targetTable, details, userreply, expire, adminreply, admin, status, locF, locP, locZ, locY, locX, world, owner, uuid, date);
 
-					statement.setString(1, details);
-					statement.setString(2, date);
-					statement.setString(3, uuid);
-					statement.setString(4, owner);
-					statement.setString(5, world);
-					statement.setDouble(6, locX);
-					statement.setDouble(7, locY);
-					statement.setDouble(8, locZ);
-					statement.setDouble(9, locP);
-					statement.setDouble(10, locF);
-					statement.setString(11, adminreply);
-					statement.setString(12, userreply);
-					statement.setString(13, status);
-					statement.setString(14, admin);
-					statement.setString(15, expire);
+                } catch (Exception e) {
+                    sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+                } finally {
+                    closeticket.closeResources(rs, stmt);
+                }
+            }
+        }
+        return true;
+    }
 
-					statement.executeUpdate();
-					statement.close();
+    private void insertRecord(CommandSender sender, String targetTable, String details, String userreply, String expire, String adminreply, String admin, String status, double locF, double locP, double locZ, double locY, double locX, String world, String owner, String uuid, String date) throws SQLException {
+        Connection con;
+        con = plugin.service.getConnection();
+        stmt = con.createStatement();
+        PreparedStatement statement = con.prepareStatement("insert into " + targetTable + " (description, date, uuid, owner, world, x, y, z, p, f, adminreply, userreply, status, admin, expiration) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 
-					NotifyItemOpened(sender, targetTable);
+        statement.setString(1, details);
+        statement.setString(2, date);
+        statement.setString(3, uuid);
+        statement.setString(4, owner);
+        statement.setString(5, world);
+        statement.setDouble(6, locX);
+        statement.setDouble(7, locY);
+        statement.setDouble(8, locZ);
+        statement.setDouble(9, locP);
+        statement.setDouble(10, locF);
+        statement.setString(11, adminreply);
+        statement.setString(12, userreply);
+        statement.setString(13, status);
+        statement.setString(14, admin);
+        statement.setString(15, expire);
 
-				} catch (Exception e) {
-					sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
-				} finally {
-					closeticket.closeResources(rs, stmt);
-				}
-			}
-		}
-		return true;
+        statement.executeUpdate();
+        statement.close();
+
+        NotifyItemOpened(sender, targetTable);
 	}
 
 	private boolean ItemLimitReached(int itemTotal, String targetTable, int maxTickets, int maxIdeas, CommandSender sender) {

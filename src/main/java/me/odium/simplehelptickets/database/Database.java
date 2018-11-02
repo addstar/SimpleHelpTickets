@@ -1,9 +1,14 @@
-package me.odium.simplehelptickets;
+package me.odium.simplehelptickets.database;
+
+import me.odium.simplehelptickets.SimpleHelpTickets;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public abstract class Database {
+
 	Connection connection;
+	protected SimpleHelpTickets plugin;
 
 	protected enum Statements {
 		SELECT, INSERT, UPDATE, DELETE, DO, REPLACE, LOAD, HANDLER, CALL,
@@ -15,12 +20,21 @@ public abstract class Database {
 
 	public int lastUpdate;
 
-	Database() {
-		boolean connected = false;
-		this.connection = null;
+	Database(SimpleHelpTickets plugin) {
+		this.plugin = plugin;
 	}
 
-	protected Statements getStatement(String query) {
+	public abstract Connection getConnection();
+
+	public abstract void createTable();
+
+	public abstract void executeStatement(String query) throws SQLException;
+
+	public abstract void open() throws SQLException, ClassNotFoundException;
+
+	public abstract void close();
+
+	public Statements getStatement(String query) {
 		String trimmedQuery = query.trim();
 		if (trimmedQuery.substring(0,6).equalsIgnoreCase("SELECT"))
 			return Statements.SELECT;

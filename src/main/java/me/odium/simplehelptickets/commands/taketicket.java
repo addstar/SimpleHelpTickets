@@ -5,10 +5,9 @@ import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
 
-import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -25,8 +24,6 @@ public class taketicket implements CommandExecutor {
 	public taketicket(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
-
-	private final DBConnection service = DBConnection.getInstance();
 	private ResultSet rs = null;
 	private java.sql.Statement stmt = null;
 
@@ -61,12 +58,7 @@ public class taketicket implements CommandExecutor {
 		int ticketNumber = Integer.parseInt(args[0]);
 
 		try {
-			Connection con = null;
-			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-				con = plugin.mysql.getConnection();
-			} else {
-				con = service.getConnection();
-			}
+			Connection con = plugin.service.getConnection();
 			stmt = con.createStatement();
 
 			rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + ticketNumber + "'");

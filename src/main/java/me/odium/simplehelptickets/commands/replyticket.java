@@ -6,10 +6,9 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Objects;
 
-import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -60,7 +59,6 @@ public class replyticket implements CommandExecutor {
 
 	public static boolean ReplyItem(SimpleHelpTickets plugin, CommandSender sender, String targetTable, int id, String[] args) {
 
-		DBConnection service = DBConnection.getInstance();
 		ResultSet rs = null;
 		java.sql.Statement stmt = null;
 		Connection con = null;
@@ -93,11 +91,7 @@ public class replyticket implements CommandExecutor {
 			}
 			String details = sb.toString().replace("'", "''");
 
-			if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-				con = plugin.mysql.getConnection();
-			} else {
-				con = service.getConnection();
-			}
+			con = plugin.service.getConnection();
 			stmt = con.createStatement();
 
 			if (player == null) {
@@ -119,11 +113,7 @@ public class replyticket implements CommandExecutor {
 				NotifyReplied(plugin, sender, id, targetTable);
 
 				try {
-					if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-						con = plugin.mysql.getConnection();
-					} else {
-						con = service.getConnection();
-					}
+					con = plugin.service.getConnection();
 					stmt = con.createStatement();
 
 					rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
@@ -182,11 +172,7 @@ public class replyticket implements CommandExecutor {
 					NotifyReplied(plugin, sender, id, targetTable);
 
 					try {
-						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-							con = plugin.mysql.getConnection();
-						} else {
-							con = service.getConnection();
-						}
+						con = plugin.service.getConnection();
 						stmt = con.createStatement();
 						rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -240,11 +226,7 @@ public class replyticket implements CommandExecutor {
 					plugin.notifyAdmins(msg, null);
 
 					try {
-						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-							con = plugin.mysql.getConnection();
-						} else {
-							con = service.getConnection();
-						}
+						con = plugin.service.getConnection();
 						stmt = con.createStatement();
 						rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {

@@ -7,10 +7,9 @@ import java.sql.Statement;
 import java.util.Collection;
 import java.util.Objects;
 
-import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -28,7 +27,6 @@ public class closeticket implements CommandExecutor {
 
     public static boolean CloseItem(SimpleHelpTickets plugin, CommandSender sender, String targetTable, int id) {
 
-        DBConnection service = DBConnection.getInstance();
         ResultSet rs = null;
         java.sql.Statement stmt = null;
         Connection con;
@@ -51,11 +49,7 @@ public class closeticket implements CommandExecutor {
                 player = (Player) sender;
             }
 
-            if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-                con = plugin.mysql.getConnection();
-            } else {
-                con = service.getConnection();
-            }
+            con = plugin.service.getConnection();
             stmt = con.createStatement();
 
             // CHECK IF ITEM EXISTS
@@ -228,18 +222,13 @@ public class closeticket implements CommandExecutor {
 
             int id = Integer.parseInt(args[1]);
 
-            DBConnection service = DBConnection.getInstance();
             ResultSet rs = null;
             java.sql.Statement stmt = null;
             Connection con;
 
             // OPEN CONNECTION
             try {
-                if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-                    con = plugin.mysql.getConnection();
-                } else {
-                    con = service.getConnection();
-                }
+                con = plugin.service.getConnection();
                 stmt = con.createStatement();
                 // GET TICKET FROM DB
                 rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");

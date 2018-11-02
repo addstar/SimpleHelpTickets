@@ -5,10 +5,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Objects;
 
-import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,7 +22,6 @@ public class purgetickets implements CommandExecutor {
 		this.plugin = plugin;
 	}
 
-	private final DBConnection service = DBConnection.getInstance();
 	private final ResultSet rs = null;
 	private Statement stmt = null;
 
@@ -65,11 +63,7 @@ public class purgetickets implements CommandExecutor {
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-c") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE CLOSED TICKETS OR IDEAS
 			try {
-				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-					con = plugin.mysql.getConnection();
-				} else {
-					con = service.getConnection();
-				}
+				con = plugin.service.getConnection();
 				stmt = con.createStatement();
 				stmt.executeUpdate("DELETE FROM " + targetTable + " WHERE status='" + "CLOSED" + "'");
 
@@ -90,11 +84,7 @@ public class purgetickets implements CommandExecutor {
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-a") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE ALL TICKETS OR IDEAS
 			try {
-				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-					con = plugin.mysql.getConnection();
-				} else {
-					con = service.getConnection();
-				}
+				con = plugin.service.getConnection();
 				stmt = con.createStatement();
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					stmt.executeUpdate("TRUNCATE " + targetTable);

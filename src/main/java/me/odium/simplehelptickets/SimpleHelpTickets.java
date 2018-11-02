@@ -24,10 +24,14 @@ import me.odium.simplehelptickets.commands.taketicket;
 import me.odium.simplehelptickets.commands.ticket;
 import me.odium.simplehelptickets.commands.tickets;
 import me.odium.simplehelptickets.commands.findtickets;
+import me.odium.simplehelptickets.database.DBConnection;
+import me.odium.simplehelptickets.database.Database;
+import me.odium.simplehelptickets.database.MySQLConnection;
 import me.odium.simplehelptickets.listeners.PListener;
 
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.threads.TicketReminder;
+import me.odium.simplehelptickets.utilities.Utilities;
 import me.odium.test.SimpleMailPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -58,7 +62,7 @@ public class SimpleHelpTickets extends JavaPlugin {
     public final ChatColor AQUA = ChatColor.AQUA;
     public final ChatColor BLUE = ChatColor.BLUE;
 
-    private final DBConnection service = DBConnection.getInstance();
+    public Database service;
     private TicketManager manager;
 	public TicketReminder reminder;
 	private BukkitTask reminderTask;
@@ -132,8 +136,6 @@ public class SimpleHelpTickets extends JavaPlugin {
 		return str;
 	}
 
-	public MySQLConnection mysql;
-
 	public void onEnable() {
 	    log = Bukkit.getLogger();
 		log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " enabled.");
@@ -182,12 +184,12 @@ public class SimpleHelpTickets extends JavaPlugin {
                 }
             }
 			// Get Connection
-            mysql = new MySQLConnection(hostname, hostport, database, props);
+            service = new MySQLConnection(hostname, hostport, database, props, this);
 			// Open Connection
 			try {
-				mysql.open();
+                service.open();
 				log.info("[SimpleHelpTickets] Connected to MySQL Database");
-				mysql.createTable();
+                service.createTable();
 			} catch (Exception e) {
 				log.info(e.getMessage());
 			}
@@ -195,8 +197,8 @@ public class SimpleHelpTickets extends JavaPlugin {
 		} else {
 			// Create connection & table
 			try {
-				service.setPlugin(this);
-				service.setConnection();
+                service = new DBConnection(this);
+                service.open();
 				service.createTable();
 			} catch (Exception e) {
 				log.info("[SimpleHelpTickets] " + "Error: " + e);
@@ -234,7 +236,7 @@ public class SimpleHelpTickets extends JavaPlugin {
         if(this.getConfig().getBoolean("TicketReminder.SetReminder",true)) {
             disableReminder(null);
         }
-		service.closeConnection();
+        service.close();
 
 		// mysql.close();
 
@@ -306,11 +308,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		Date dateNEW;
 		Date expirationNEW;
 		try {
-			if (getConfig().getBoolean("MySQL.USE_MYSQL")) {
-				con = mysql.getConnection();
-			} else {
-				con = service.getConnection();
-			}
+            con = service.getConnection();
 			stmt = con.createStatement();
 			stmt2 = con.createStatement();
 			rs = stmt.executeQuery("SELECT * FROM " + targetTable);

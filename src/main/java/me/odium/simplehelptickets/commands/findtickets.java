@@ -8,11 +8,10 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import me.odium.simplehelptickets.DBConnection;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
-import me.odium.simplehelptickets.TimeParser;
-import me.odium.simplehelptickets.Utilities;
+import me.odium.simplehelptickets.utilities.TimeParser;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -27,7 +26,6 @@ public class findtickets implements CommandExecutor {
 		this.plugin = plugin;
 	}
 
-    private final DBConnection service = DBConnection.getInstance();
     private ResultSet rs = null;
     private java.sql.Statement stmt = null;
 
@@ -306,13 +304,7 @@ public class findtickets implements CommandExecutor {
 				sender.sendMessage(plugin.AQUA + "Note: Maximum record count set to " + ticketsToShow);
 			}
 
-            Connection con = null;
-            if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-				con = plugin.mysql.getConnection();
-			} else {
-				con = service.getConnection();
-			}
-
+			Connection con = plugin.service.getConnection();
 			stmt = con.createStatement();
 
 			String sqlStatement =

@@ -1,4 +1,4 @@
-package me.odium.simplehelptickets;
+package me.odium.simplehelptickets.utilities;
 
 
 import org.bukkit.ChatColor;

@@ -1,4 +1,4 @@
-package me.odium.simplehelptickets;
+package me.odium.simplehelptickets.utilities;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;

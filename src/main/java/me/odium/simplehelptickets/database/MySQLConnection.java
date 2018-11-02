@@ -1,4 +1,6 @@
-package me.odium.simplehelptickets;
+package me.odium.simplehelptickets.database;
+
+import me.odium.simplehelptickets.SimpleHelpTickets;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,18 +8,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.logging.Level;
 
 public class MySQLConnection extends Database {
 	private String hostname = "";
-	private String portnmbr = "";
+    private String port = "";
     private final Properties properties;
 	private String database = "";
-	private SimpleHelpTickets plugin;
 
-    public MySQLConnection(String host, String portnmbr, String database, Properties props) {
-		super();
+    public MySQLConnection(String host, String port, String database, Properties props, SimpleHelpTickets plugin) {
+        super(plugin);
         this.hostname = host;
-		this.portnmbr = portnmbr;
+        this.port = port;
 		this.database = database;
         properties = props;
 	}
@@ -30,7 +32,7 @@ public class MySQLConnection extends Database {
 		String url = "";
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			url = "jdbc:mysql://" + this.hostname + ":" + this.portnmbr + "/" + this.database;
+            url = "jdbc:mysql://" + this.hostname + ":" + this.port + "/" + this.database;
             this.connection = DriverManager.getConnection(url, properties);
         } catch (SQLException e) {
 			System.out.print("Could not connect to MySQL server!");
@@ -42,7 +44,7 @@ public class MySQLConnection extends Database {
 	/**
 	 * close database connection
 	 * */
-    private void close() {
+    public void close() {
 		try {
 			if (connection != null)
 				connection.close();
@@ -53,13 +55,14 @@ public class MySQLConnection extends Database {
 
 	public void createTable() {
 		try {
+            if (!checkConnection()) open();
 			String queryFields = " (id INTEGER AUTO_INCREMENT PRIMARY KEY, description varchar(128), date timestamp, uuid varchar(36), owner varchar(20), world varchar(30), x double(30,20), y double(30,20), z double(30,20), p double(30,20), f double(30,20), adminreply varchar(128), userreply varchar(128), status varchar(16), admin varchar(30) collate latin1_swedish_ci, expiration timestamp NULL DEFAULT NULL)";
 
 			String queryTickets = "CREATE TABLE IF NOT EXISTS SHT_Tickets" + queryFields;
-			this.query(queryTickets);
+            this.executeStatement(queryTickets);
 
 			String queryIdeas = "CREATE TABLE IF NOT EXISTS SHT_Ideas" + queryFields;
-			this.query(queryIdeas);
+            this.executeStatement(queryIdeas);
 
 		} catch (Exception e) {
 			plugin.log.info("[Tickets] MySQL createTable Error: " + e);
@@ -113,30 +116,29 @@ public class MySQLConnection extends Database {
      *
 	 * @throws SQLException if fails
 	 * */
-    private void query(String query) throws SQLException {
+    public void executeStatement(String query) throws SQLException {
 		Statement statement = null;
 		ResultSet result = null;
 		try {
 			statement = connection.createStatement();
-			result = statement.executeQuery(query);
+            statement.executeQuery(query);
         } catch (SQLException e) {
 			if (e.getMessage().equals("Can not issue data manipulation statements with executeQuery().")) {
 				try {
 					statement.executeUpdate(query);
 				} catch (SQLException ex) {
-                    handleExceptions(e, ex);
+                    plugin.log.warning(ex.getMessage());
+                    plugin.log.warning("Preceded by" + e.getMessage());
+                    ex.printStackTrace();
                 }
-            } else handleExceptions(e, e);
-        }
-    }
+            } else {
+                plugin.log.warning(e.getMessage());
+                if (plugin.log.getLevel() == Level.FINE) {
+                    e.printStackTrace();
+                }
+                ;
+            }
 
-    private void handleExceptions(SQLException e, SQLException ex) throws SQLException {
-        if (e.getMessage().startsWith("You have an error in your SQL syntax;")) {
-            String temp = (e.getMessage().split(";")[0].substring(0, 36) + e.getMessage().split(";")[1].substring(91));
-            temp = temp.substring(0, temp.lastIndexOf("'"));
-            throw new SQLException(temp);
-        } else {
-            ex.printStackTrace();
         }
     }
 
