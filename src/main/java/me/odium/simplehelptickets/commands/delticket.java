@@ -65,7 +65,7 @@ public class delticket implements CommandExecutor {
 			Connection con = null;
 			if (player == null) {
 				try {
-					con = plugin.service.getConnection();
+                    con = plugin.databaseService.getConnection();
 					stmt = con.createStatement();
 					// CHECK IF TICKET EXISTS
 					rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE id='" + args[0] + "'");
@@ -98,7 +98,7 @@ public class delticket implements CommandExecutor {
 						sender.sendMessage(plugin.getMessage("NoPermission"));
 						return true;
 					}
-					con = plugin.service.getConnection();
+                    con = plugin.databaseService.getConnection();
 					stmt = con.createStatement();
 					// CHECK IF TICKET EXISTS
 					rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE id='" + args[0] + "'");

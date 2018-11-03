@@ -21,8 +21,8 @@ import me.odium.simplehelptickets.commands.replyticket;
 import me.odium.simplehelptickets.commands.replyclose;
 import me.odium.simplehelptickets.commands.sht;
 import me.odium.simplehelptickets.commands.taketicket;
-import me.odium.simplehelptickets.commands.ticket;
-import me.odium.simplehelptickets.commands.tickets;
+import me.odium.simplehelptickets.commands.CreateTicket;
+import me.odium.simplehelptickets.commands.TicketsCommand;
 import me.odium.simplehelptickets.commands.findtickets;
 import me.odium.simplehelptickets.database.DBConnection;
 import me.odium.simplehelptickets.database.Database;
@@ -62,7 +62,7 @@ public class SimpleHelpTickets extends JavaPlugin {
     public final ChatColor AQUA = ChatColor.AQUA;
     public final ChatColor BLUE = ChatColor.BLUE;
 
-    public Database service;
+    public Database databaseService;
     private TicketManager manager;
 	public TicketReminder reminder;
 	private BukkitTask reminderTask;
@@ -157,8 +157,8 @@ public class SimpleHelpTickets extends JavaPlugin {
 
 		// declare executors
 		this.getCommand("sht").setExecutor(new sht(this));
-		this.getCommand("ticket").setExecutor(new ticket(this));
-		this.getCommand("tickets").setExecutor(new tickets(this));
+        this.getCommand("ticket").setExecutor(new CreateTicket(this));
+        this.getCommand("tickets").setExecutor(new TicketsCommand(this));
 		this.getCommand("checkticket").setExecutor(new checkticket(this));
 		this.getCommand("replyticket").setExecutor(new replyticket(this));
 		this.getCommand("replyclose").setExecutor(new replyclose(this));
@@ -171,35 +171,20 @@ public class SimpleHelpTickets extends JavaPlugin {
 		// If MySQL
 		if (this.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 			// Get Database Details
-			String hostname = this.getConfig().getString("MySQL.hostname");
-			String hostport = this.getConfig().getString("MySQL.hostport");
-			String database = this.getConfig().getString("MySQL.database");
-            Properties props = new Properties();
-            props.put("user", this.getConfig().getString("Mysql.user", "username"));
-            props.put("password", this.getConfig().getString("Mysql.pass", "password"));
-            ConfigurationSection dbprops = this.getConfig().getConfigurationSection("Mysql.properties");
-            if (dbprops != null) {
-                for (Map.Entry<String, Object> entry : dbprops.getValues(false).entrySet()) {
-                    props.put(entry.getKey(), entry.getValue());
-                }
-            }
-			// Get Connection
-            service = new MySQLConnection(hostname, hostport, database, props, this);
-			// Open Connection
-			try {
-                service.open();
+            ConfigurationSection section = this.getConfig().getConfigurationSection("MySQL");
+            try {
+                databaseService = new MySQLConnection(section, this);
 				log.info("[SimpleHelpTickets] Connected to MySQL Database");
-                service.createTable();
+                databaseService.createTable();
 			} catch (Exception e) {
 				log.info(e.getMessage());
 			}
-
 		} else {
 			// Create connection & table
 			try {
-                service = new DBConnection(this);
-                service.open();
-				service.createTable();
+                databaseService = new DBConnection(this);
+                databaseService.open();
+                databaseService.createTable();
 			} catch (Exception e) {
 				log.info("[SimpleHelpTickets] " + "Error: " + e);
 			}
@@ -236,7 +221,7 @@ public class SimpleHelpTickets extends JavaPlugin {
         if(this.getConfig().getBoolean("TicketReminder.SetReminder",true)) {
             disableReminder(null);
         }
-        service.close();
+        databaseService.close();
 
 		// mysql.close();
 
@@ -292,68 +277,14 @@ public class SimpleHelpTickets extends JavaPlugin {
 	}
 
 	public int expireTickets() {
-		return expireItems(Utilities.TICKET_TABLE_NAME);
+        return manager.expireItems(Utilities.TICKET_TABLE_NAME);
 	}
 
 	public int expireIdeas() {
-		return expireItems(Utilities.IDEA_TABLE_NAME);
+        return manager.expireItems(Utilities.IDEA_TABLE_NAME);
 	}
 
-	private int expireItems(String targetTable) {
-		ResultSet rs = null;
-		Statement stmt = null;
-		Statement stmt2 = null;
-		Connection con = null;
-		int expirations = 0;
-		Date dateNEW;
-		Date expirationNEW;
-		try {
-            con = service.getConnection();
-			stmt = con.createStatement();
-			stmt2 = con.createStatement();
-			rs = stmt.executeQuery("SELECT * FROM " + targetTable);
-			while (rs.next()) {
-				String exp = rs.getString("expiration");
-				String id = rs.getString("id");
-				// IF AN EXPIRATION HAS BEEN APPLIED
-				if (exp != null) {
-					// CONVERT DATE-STRINGS FROM DB TO DATES
-					if (getConfig().getBoolean("MySQL.USE_MYSQL")) {
-						Date date = rs.getTimestamp("date");
-						Date expiration = rs.getTimestamp("expiration");
-						dateNEW = date;
-						expirationNEW = expiration;
-					} else {
-						String date = rs.getString("date");
-						String expiration = rs.getString("expiration");
 
-						dateNEW = new SimpleDateFormat("dd/MMM/yy HH:mm", Locale.ENGLISH).parse(getCurrentDTG(date));
-						expirationNEW = new SimpleDateFormat("dd/MMM/yy HH:mm", Locale.ENGLISH).parse(expiration);
-					}
-
-					// COMPARE STRINGS
-					int HasExpired = dateNEW.compareTo(expirationNEW);
-					if (HasExpired >= 0) {
-						expirations++;
-						stmt2.executeUpdate("DELETE FROM " + targetTable + " WHERE id='" + id + "'");
-					}
-				}
-			}
-			// return expirations;
-		} catch (Exception e) {
-			log.info("[SimpleHelpTickets] " + "Error: " + e);
-		} finally {
-			try {
-				if (rs != null) { rs.close(); rs = null; }
-				if (stmt != null) { stmt.close(); stmt = null; }
-				if (stmt2 != null) { stmt2.close(); stmt2 = null; }
-			} catch (SQLException e) {
-				System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-				e.printStackTrace();
-			}
-		}
-		return expirations;
-	}
 
 	public void displayHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.RED + "Tickets" + " v" + getDescription().getVersion() + ChatColor.RESET + ChatColor.GOLD + " ]");

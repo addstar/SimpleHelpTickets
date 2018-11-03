@@ -1,8 +1,6 @@
 package me.odium.simplehelptickets.commands;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -22,9 +20,6 @@ public class purgetickets implements CommandExecutor {
 		this.plugin = plugin;
 	}
 
-	private final ResultSet rs = null;
-	private Statement stmt = null;
-
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
 		if (sender instanceof Player) {
@@ -41,7 +36,6 @@ public class purgetickets implements CommandExecutor {
 		String targetTable = Utilities.GetTargetTableName(label);
 		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
-		Connection con = null;
 		if (args.length == 0) {
 			// PURGE EXPIRED TICKETS OR IDEAS
 
@@ -63,7 +57,7 @@ public class purgetickets implements CommandExecutor {
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-c") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE CLOSED TICKETS OR IDEAS
 			try {
-				con = plugin.service.getConnection();
+				con = plugin.databaseService.getConnection();
 				stmt = con.createStatement();
 				stmt.executeUpdate("DELETE FROM " + targetTable + " WHERE status='" + "CLOSED" + "'");
 
@@ -84,7 +78,7 @@ public class purgetickets implements CommandExecutor {
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-a") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE ALL TICKETS OR IDEAS
 			try {
-				con = plugin.service.getConnection();
+				con = plugin.databaseService.getConnection();
 				stmt = con.createStatement();
 				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
 					stmt.executeUpdate("TRUNCATE " + targetTable);

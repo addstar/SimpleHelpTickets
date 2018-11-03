@@ -91,7 +91,7 @@ public class replyticket implements CommandExecutor {
 			}
 			String details = sb.toString().replace("'", "''");
 
-			con = plugin.service.getConnection();
+			con = plugin.databaseService.getConnection();
 			stmt = con.createStatement();
 
 			if (player == null) {
@@ -113,7 +113,7 @@ public class replyticket implements CommandExecutor {
 				NotifyReplied(plugin, sender, id, targetTable);
 
 				try {
-					con = plugin.service.getConnection();
+					con = plugin.databaseService.getConnection();
 					stmt = con.createStatement();
 
 					rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
@@ -172,7 +172,7 @@ public class replyticket implements CommandExecutor {
 					NotifyReplied(plugin, sender, id, targetTable);
 
 					try {
-						con = plugin.service.getConnection();
+						con = plugin.databaseService.getConnection();
 						stmt = con.createStatement();
 						rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -226,7 +226,7 @@ public class replyticket implements CommandExecutor {
 					plugin.notifyAdmins(msg, null);
 
 					try {
-						con = plugin.service.getConnection();
+						con = plugin.databaseService.getConnection();
 						stmt = con.createStatement();
 						rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");
 						if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {

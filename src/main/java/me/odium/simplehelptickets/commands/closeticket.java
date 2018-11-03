@@ -49,7 +49,7 @@ public class closeticket implements CommandExecutor {
                 player = (Player) sender;
             }
 
-            con = plugin.service.getConnection();
+            con = plugin.databaseService.getConnection();
             stmt = con.createStatement();
 
             // CHECK IF ITEM EXISTS
@@ -228,7 +228,7 @@ public class closeticket implements CommandExecutor {
 
             // OPEN CONNECTION
             try {
-                con = plugin.service.getConnection();
+                con = plugin.databaseService.getConnection();
                 stmt = con.createStatement();
                 // GET TICKET FROM DB
                 rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + id + "'");

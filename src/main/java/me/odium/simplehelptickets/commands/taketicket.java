@@ -58,7 +58,7 @@ public class taketicket implements CommandExecutor {
 		int ticketNumber = Integer.parseInt(args[0]);
 
 		try {
-			Connection con = plugin.service.getConnection();
+            Connection con = plugin.databaseService.getConnection();
 			stmt = con.createStatement();
 
 			rs = stmt.executeQuery("SELECT * FROM " + targetTable + " WHERE id='" + ticketNumber + "'");

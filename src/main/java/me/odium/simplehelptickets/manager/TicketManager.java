@@ -1,13 +1,20 @@
 package me.odium.simplehelptickets.manager;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
+import me.odium.simplehelptickets.database.Database;
+import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Created for use for the Add5tar MC Minecraft server
@@ -16,127 +23,250 @@ import java.sql.Statement;
 public class TicketManager {
 
     private final SimpleHelpTickets plugin;
-    private Statement stmt;
-    private Connection con;
-
-
 
     public TicketManager(SimpleHelpTickets plugin) {
         this.plugin = plugin;
     }
-public void ShowAdminTickets(Player player){
-    try {
-        con = plugin.service.getConnection();
-        stmt = con.createStatement();
 
-        int ticketTotal = CountOpenItems(stmt, Utilities.TICKET_TABLE_NAME);
-        if (ticketTotal > 0) {
-            player.sendMessage(plugin.getMessage("AdminJoin").replace("&arg", ticketTotal+""));
+    public void ShowAdminTickets(Player player) {
+        int total = getTickets(Utilities.TICKET_TABLE_NAME, null, Ticket.Status.OPEN).size();
+        if (total > 0) {
+            player.sendMessage(plugin.getMessage("AdminJoin").replace("&arg", total + ""));
         }
-
-        int ideaTotal = CountOpenItems(stmt, Utilities.IDEA_TABLE_NAME);
-        if (ideaTotal > 0) {
-            player.sendMessage(plugin.getMessage("AdminJoinIdeas").replace("&arg", ideaTotal+""));
+        int ideas = getTickets(Utilities.IDEA_TABLE_NAME, null, Ticket.Status.OPEN).size();
+        if (ideas > 0) {
+            player.sendMessage(plugin.getMessage("AdminJoinIdeas").replace("&arg", ideas + ""));
         }
-
-    } catch(Exception e) {
-        plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
     }
-}
 
-
-    private void ShowPlayerOpenTickets(Player player) {
-        if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-            try {
-                con = plugin.service.getConnection();
-                stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
-                rs.next(); //sets pointer to first record in result set
-
-                int ticketTotal = rs.getInt("ticketTotal");
-                if (ticketTotal > 0) {
-                    rs.close();
-                    rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
-                    int openNumber = 0;
-                    openNumber = findOpenNumber(player, rs, openNumber);
-                    if (openNumber > 0) {
-                        player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber+""));
-                    }
+    private List<Ticket> getTickets(String table, Player player, Ticket.Status status) {
+        String sql;
+        if (player != null) {
+            sql = "SELECT * FROM " + table + " WHERE uuid='" + player.getUniqueId().toString() + "' and status = '" + status.name() + "'";
+        } else {
+            sql = "SELECT * FROM " + table + " WHERE status = '" + status.name() + "'";
+        }
+        List<Ticket> tickets = new ArrayList<>();
+        Database db = plugin.databaseService;
+        Connection con = db.getConnection();
+        if (con != null) {
+            try (Statement statement = con.createStatement();
+                 ResultSet result = statement.executeQuery(sql)) {
+                while (result.next()) {
+                    tickets.add(getFromResultRow(result));
                 }
-                rs.close();
-                stmt.close();
-            } catch(Exception e) {
-                plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
+                con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         } else {
-            try {
-                con = plugin.service.getConnection();
-                stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
+            plugin.log.warning("Unable to get Database Connection");
+        }
+        return tickets;
+    }
 
-                int ticketTotal = rs.getInt("ticketTotal");
-                if (ticketTotal == 0) {
-                    // DO NOTHING
-                    rs.close();
-                    stmt.close();
-                } else if(ticketTotal > 0) {
-                    rs.close();
-                    rs = stmt.executeQuery("SELECT * FROM SHT_Tickets WHERE uuid='"+player.getUniqueId().toString()+"'" );
-                    int openNumber = 0;
+    public boolean saveTicket(Ticket ticket, String table) {
+        List<Ticket> t = new ArrayList<>();
+        t.add(ticket);
+        return saveTickets(t, table);
+    }
 
-                    openNumber = findOpenNumber(player, rs, openNumber);
-                    if (openNumber > 0) {
-                        player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", openNumber + ""));
+    public boolean saveTickets(List<Ticket> tickets, String table) {
+        Connection con = plugin.databaseService.getConnection();
+        PreparedStatement updateSQL;
+        PreparedStatement insertSQL;
+        try {
+            updateSQL = con.prepareStatement("Update " + table + " SET(description = ?,adminreply = ?,admin=?,userreply=?,status=?,owner=?)  WHERE id = ?");
+            insertSQL = con.prepareStatement("INSERT INTO " + table + "(description,date,uuid,owner,world,x,y,z,p,f,adminreply,userreply,status,admin,expiration) VALUES ('?','?','?','?','?','?','?','?','?','?','?','?','?','?','?')");
+            for (Ticket ticket : tickets) {
+                if (ticket.getId() == null) {
+                    insertSQL.setString(1, ticket.getDetails());
+                    insertSQL.setDate(2, new Date(ticket.getCreated().getTime()));
+                    insertSQL.setString(3, ticket.getOwnerUUID().toString());
+                    Location loc = ticket.getLocation();
+                    if (loc != null) {
+                        insertSQL.setString(4, loc.getWorld().getName());
+                        insertSQL.setDouble(5, loc.getX());
+                        insertSQL.setDouble(6, loc.getY());
+                        insertSQL.setDouble(7, loc.getZ());
+                        insertSQL.setFloat(8, loc.getPitch());
+                        insertSQL.setFloat(9, loc.getYaw());
+                    } else {
+                        insertSQL.setString(4, null);
+                        insertSQL.setDouble(5, 0);
+                        insertSQL.setDouble(6, 0);
+                        insertSQL.setDouble(7, 0);
+                        insertSQL.setFloat(8, 0);
+                        insertSQL.setFloat(9, 0);
                     }
-                    rs.close();
-                    stmt.close();
+                    insertSQL.setString(10, ticket.getAdminReply());
+                    insertSQL.setString(11, ticket.getUserReply());
+                    insertSQL.setString(12, ticket.getStatus().name());
+                    insertSQL.setString(13, ticket.getAdminName());
+                    insertSQL.setTimestamp(14, new Timestamp(ticket.getExpirationDate().getTime()));
+                    int r = insertSQL.executeUpdate();
+                    if (r == 1) {
+                        tickets.remove(ticket);
+
+                    }
+                } else {
+                    updateSQL.setString(1, ticket.getDetails());
+                    updateSQL.setString(2, ticket.getAdminReply());
+                    updateSQL.setString(3, ticket.getAdminName());
+                    updateSQL.setString(4, ticket.getUserReply());
+                    updateSQL.setString(5, ticket.getStatus().name());
+                    updateSQL.setString(6, ticket.getOwnerName());
+                    int r = updateSQL.executeUpdate();
+                    if (r == 1) {
+                        tickets.remove(ticket);
+                    }
                 }
-            } catch (Exception e) {
-                plugin.log.info(plugin.getMessage("Error").replace("&arg", e.toString()));
+
             }
+            if (tickets.size() != 0) {
+                return false;
+            }
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
-    private int findOpenNumber(Player player, ResultSet rs, int openNumber) throws SQLException {
-        while (rs.next()) {
-            String adminreply = rs.getString("adminreply");
-            String status = rs.getString("status");
-            if (status.equalsIgnoreCase("OPEN")) {
-                openNumber++;
-            }
-            if (!adminreply.equalsIgnoreCase("NONE") && status.equalsIgnoreCase("OPEN")) {
-                player.sendMessage(plugin.getMessage("UserJoin-TicketReplied"));
-            }
+    private Ticket getFromResultRow(ResultSet result) throws SQLException {
+        int id = result.getInt("id");
+        UUID uuid = UUID.fromString(result.getString("uuid"));
+        World world = Bukkit.getWorld(result.getString("world"));
+        Location location = new Location(world, result.getDouble("x"), result.getDouble("y"), result.getDouble("z"), result.getFloat("p"), result.getFloat("f"));
+        String details = result.getString("description");
+        Date date = result.getDate("date");
+        Ticket ticket = new Ticket(id, uuid, location, details, date, null);
+        String ownerName = result.getString("owner");
+        ticket.setOwnerName(ownerName);
+        ticket.setAdminReply(result.getString("adminreply"));
+        ticket.setUserReply(result.getString("userreply"));
+        Ticket.Status s;
+        try {
+            s = Ticket.Status.valueOf(result.getString("status"));
+        } catch (IllegalArgumentException e) {
+            s = Ticket.Status.OPEN;
         }
-        return openNumber;
+        ticket.setStatus(s);
+        return ticket;
     }
 
-    private int CountOpenItems(java.sql.Statement stmt, String targetTable) throws SQLException {
-
-        ResultSet rs = stmt.executeQuery("SELECT COUNT(id) AS ticketTotal FROM " + targetTable + " WHERE status='"+"OPEN"+"'");
-
-        if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-            rs.next(); //sets pointer to first record in result set
+    private void showPlayerOpenTickets(Player player) {
+        int ticket = getTickets(Utilities.TICKET_TABLE_NAME, player, Ticket.Status.OPEN).size();
+        if (ticket > 0) {
+            player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", ticket + ""));
         }
-
-        return rs.getInt("ticketTotal");
-
     }
 
     public void runOnJoin(Player player){
-        if (player.hasPermission("sht.admin")) {
-            boolean DisplayTicketAdmin = plugin.getConfig().getBoolean("OnJoin.DisplayTicketAdmin");
-            if (DisplayTicketAdmin) {
-                ShowAdminTickets(player);
-            }
-            // IF PLAYER IS USER
-        } else {
-            boolean DisplayTicketUser = plugin.getConfig().getBoolean("OnJoin.DisplayTicketUser");
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            if (player.hasPermission("sht.admin")) {
+                boolean DisplayTicketAdmin = plugin.getConfig().getBoolean("OnJoin.DisplayTicketAdmin");
+                if (DisplayTicketAdmin) {
+                    ShowAdminTickets(player);
+                }
+                // IF PLAYER IS USER
+            } else {
+                boolean DisplayTicketUser = plugin.getConfig().getBoolean("OnJoin.DisplayTicketUser");
 
-            if (DisplayTicketUser) {
-                ShowPlayerOpenTickets(player);
+                if (DisplayTicketUser) {
+                    showPlayerOpenTickets(player);
+                }
             }
-        }
+        });
+
     }
 
+    public List<Ticket> getTickets(String targetTable, String where, int maxRecords) {
+        Connection con = plugin.databaseService.getConnection();
+        List<Ticket> results = new ArrayList<>();
+        try {
+            PreparedStatement s = con.prepareStatement(GetItemSelectQuery(targetTable, where, maxRecords));
+            ResultSet rs = s.executeQuery();
+            while (rs.next()) {
+                results.add(getFromResultRow(rs));
+            }
+            s.close();
+            con.close();
+        } catch (SQLException e) {
+            plugin.log.warning(plugin.getMessage("Error").replace("&arg", e.getMessage()));
+            e.printStackTrace();
+            return results;
+        }
+        return results;
+    }
+
+    private String GetItemSelectQuery(String targetTable, String whereClause, int maxRecordsToReturn) {
+        String innerQuery = "SELECT * FROM " + targetTable;
+        if (!whereClause.isEmpty())
+            innerQuery += " WHERE " + whereClause;
+
+        innerQuery += " ORDER BY id DESC LIMIT " + maxRecordsToReturn;
+
+        return "SELECT * FROM (" + innerQuery + ") AS SelectQ ORDER BY id ASC";
+    }
+
+    public int expireItems(String targetTable) {
+        ResultSet rs = null;
+        PreparedStatement stmt = null;
+        PreparedStatement stmt2 = null;
+        Connection con;
+        int expirations = 0;
+        Date dateNEW;
+        Date expirationNEW;
+        try {
+            con = plugin.databaseService.getConnection();
+            stmt = con.prepareStatement("SELECT * FROM " + targetTable);
+            rs = stmt.executeQuery();
+            stmt2 = con.prepareStatement("DELETE FROM " + targetTable + " WHERE id=?");
+            while (rs.next()) {
+                Ticket ticket = getFromResultRow(rs);
+                Date exp = null;
+                if (ticket.getExpirationDate() != null) {
+                    exp = new Date(ticket.getExpirationDate().getTime());
+                }
+                Integer id = ticket.getId();
+                // IF AN EXPIRATION HAS BEEN APPLIED
+                if (exp != null) {
+                    // CONVERT DATE-STRINGS FROM DB TO DATES
+                    Date date = new Date(ticket.getCreated().getTime());
+                    Date expiration = new Date(ticket.getExpirationDate().getTime());
+                    dateNEW = date;
+                    expirationNEW = expiration;
+
+                    // COMPARE STRINGS
+                    int HasExpired = dateNEW.compareTo(expirationNEW);
+                    if (HasExpired >= 0) {
+                        expirations++;
+                        stmt2.setInt(1, id);
+                        stmt2.executeUpdate();
+                    }
+                }
+            }
+            // return expirations;
+        } catch (Exception e) {
+            plugin.getLogger().info("[SimpleHelpTickets] " + "Error: " + e);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (stmt2 != null) {
+                    stmt2.close();
+                }
+            } catch (SQLException e) {
+                System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
+                e.printStackTrace();
+            }
+        }
+        return expirations;
+    }
 }

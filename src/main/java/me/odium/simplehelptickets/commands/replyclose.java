@@ -62,7 +62,7 @@ public class replyclose implements CommandExecutor {
 
 			// OPEN CONNECTION
 			try {
-				Connection con = plugin.service.getConnection();
+                Connection con = plugin.databaseService.getConnection();
 				stmt = con.createStatement();
 
 				// CHECK IF TICKET EXISTS

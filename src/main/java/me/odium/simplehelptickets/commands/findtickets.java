@@ -304,7 +304,7 @@ public class findtickets implements CommandExecutor {
 				sender.sendMessage(plugin.AQUA + "Note: Maximum record count set to " + ticketsToShow);
 			}
 
-			Connection con = plugin.service.getConnection();
+            Connection con = plugin.databaseService.getConnection();
 			stmt = con.createStatement();
 
 			String sqlStatement =
