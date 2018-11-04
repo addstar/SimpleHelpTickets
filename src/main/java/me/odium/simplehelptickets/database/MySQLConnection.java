@@ -1,12 +1,14 @@
 package me.odium.simplehelptickets.database;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -16,13 +18,23 @@ public class MySQLConnection extends Database {
     private final Properties properties;
 	private String database = "";
 
-    public MySQLConnection(String host, String port, String database, Properties props, SimpleHelpTickets plugin) {
+    public MySQLConnection(ConfigurationSection section, SimpleHelpTickets plugin) {
         super(plugin);
-        this.hostname = host;
-        this.port = port;
-		this.database = database;
-        properties = props;
-	}
+        hostname = section.getString("hostname");
+        port = section.getString("hostport");
+        database = section.getString("database");
+        properties = new Properties();
+        properties.put("user", section.getString("user", "user"));
+        properties.put("password", section.getString("pass", "password"));
+        ConfigurationSection dbprops = section.getConfigurationSection("properties");
+        if (dbprops != null) {
+            for (Map.Entry<String, Object> entry : dbprops.getValues(false).entrySet()) {
+                properties.put(entry.getKey(), entry.getValue());
+            }
+        }
+        open();
+    }
+
 
 	/**
 	 * open database connection
@@ -136,7 +148,6 @@ public class MySQLConnection extends Database {
                 if (plugin.log.getLevel() == Level.FINE) {
                     e.printStackTrace();
                 }
-                ;
             }
 
         }
@@ -151,15 +162,9 @@ public class MySQLConnection extends Database {
 	 * 
 	 * */
 	public boolean clearTable(String table) {
-		Statement statement = null;
-		String query = null;
 		try {
-			statement = this.connection.createStatement();
-			ResultSet result = statement.executeQuery("SELECT * FROM " + table);
-			if (result == null)
-				return false;
-			query = "DELETE FROM " + table;
-			statement.executeUpdate(query);
+            Statement statement = this.connection.createStatement();
+            int result = statement.executeUpdate("TRUNCATE " + table);
 			return true;
 		} catch (SQLException e) {
 			return false;

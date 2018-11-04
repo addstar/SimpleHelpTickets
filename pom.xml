@@ -11,8 +11,9 @@
     <build.number />
     <plugin.version>${project.version}-${build.number}</plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spigot.version>1.12-R0.1-SNAPSHOT</spigot.version>
-    <bungeechat-bukkit.version>1.2.0-SNAPSHOT</bungeechat-bukkit.version>
+      <spigot.api.version>1.13</spigot.api.version>
+      <spigot.version>1.13-R0.1-SNAPSHOT</spigot.version>
+      <bungeechat-bukkit.version>1.3.0-SNAPSHOT</bungeechat-bukkit.version>
     <simplemail.version>1.3.9-SNAPSHOT</simplemail.version>
   </properties>
   <scm>

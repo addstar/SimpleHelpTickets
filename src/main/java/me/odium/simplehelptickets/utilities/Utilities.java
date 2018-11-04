@@ -1,10 +1,12 @@
 package me.odium.simplehelptickets.utilities;
 
 
+import me.odium.simplehelptickets.SimpleHelpTickets;
+import me.odium.simplehelptickets.objects.Ticket;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import java.sql.ResultSet;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -22,6 +24,9 @@ public class Utilities {
 		mShortDateFormater = new SimpleDateFormat("yyyy-MM-dd");
 	}
 
+    public static String dateToString(java.sql.Date date) {
+        return mShortDateFormater.format(date);
+    }
 	public static String DateToString(long milliSecondTime, SimpleDateFormat dateFormatter) {
 		return dateFormatter.format(milliSecondTime);
 	}
@@ -70,24 +75,24 @@ public class Utilities {
 	}
 
 	public static void ShowTicketInfo(
-			CommandSender sender,
-			ResultSet rs,
-			int maxDescriptionLength,
-			int maxReplyLength,
-			boolean showDates,
-			boolean showReplies) throws Exception {
+            CommandSender sender,
+            Ticket ticket,
+            int maxDescriptionLength,
+            int maxReplyLength,
+            boolean showDates,
+            boolean showReplies) {
 
-		String desc = TruncateLongText(rs.getString("description"), maxDescriptionLength);
-		String adminReply = TruncateLongText(rs.getString("adminreply"), maxReplyLength);
-		String userReply = TruncateLongText(rs.getString("userreply"), maxReplyLength);
+        String desc = TruncateLongText(ticket.getDescription(), maxDescriptionLength);
+        String adminReply = TruncateLongText(ticket.getAdminReply(), maxReplyLength);
+        String userReply = TruncateLongText(ticket.getUserReply(), maxReplyLength);
 
-		String ticketID = Utilities.NumToString(rs.getInt("id"));
-		String ownerName = rs.getString("owner");
+        String ticketID = Utilities.NumToString(ticket.getId());
+        String ownerName = ticket.getOwnerName();
 
 		String formattedTicketID = ChatColor.GOLD + "(";
 		String formattedOwnerName;
 
-		if (rs.getString("status").equalsIgnoreCase("OPEN")) {
+        if (ticket.isOpen()) {
 			// Open Ticket
 			formattedTicketID += ChatColor.WHITE + ticketID;
 			formattedOwnerName = ChatColor.DARK_GREEN + ownerName + ": ";
@@ -98,26 +103,22 @@ public class Utilities {
 		}
 
 		if (showDates) {
-			Date ticketDate = rs.getDate("date");
+            Date ticketDate = ticket.getCreatedDate();
 			formattedTicketID += ", " + ChatColor.DARK_AQUA + DateToString(ticketDate, mShortDateFormater);
 		}
 		formattedTicketID += ChatColor.GOLD + ") ";
 
-		if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) {
+        if (ticket.hasAdminReply() || ticket.hasUserReply()) {
 			// ONLY ADMIN HAS REPLIED
 			sender.sendMessage(formattedTicketID + formattedOwnerName + ChatColor.YELLOW + desc);
 
-		} else if (!rs.getString("userreply").equalsIgnoreCase("NONE") && rs.getString("adminreply").equalsIgnoreCase("NONE")) {
-			// ONLY USER HAS REPLIED
-			sender.sendMessage(formattedTicketID + formattedOwnerName + ChatColor.YELLOW + desc);
-
-		} else if (!rs.getString("adminreply").equalsIgnoreCase("NONE") && !rs.getString("userreply").equalsIgnoreCase("NONE")) {
+        } else if (ticket.hasAdminReply() && ticket.hasUserReply()) {
 			// BOTH ADMIN AND USER HAVE REPLIED
 			sender.sendMessage(formattedTicketID + formattedOwnerName + ChatColor.GOLD + desc);
 
-		} else if (rs.getString("adminreply").equalsIgnoreCase("NONE") && rs.getString("userreply").equalsIgnoreCase("NONE")) {
+        } else if (!ticket.hasAdminReply() && !ticket.hasUserReply()) {
 			// NEITHER HAVE REPLIED
-			if (rs.getString("status").equalsIgnoreCase("OPEN")) {
+            if (ticket.getStatus() == Ticket.Status.OPEN) {
 				// TICKET IS OPEN AND NEITHER HAVE REPLIED
 				sender.sendMessage(formattedTicketID + formattedOwnerName + ChatColor.WHITE + desc);
 			} else {
@@ -136,7 +137,38 @@ public class Utilities {
 
 	}
 
-	public static void ShowTicketInfo(CommandSender sender, ResultSet rs, boolean verboseMode) throws Exception {
+    public static void displayTicket(CommandSender sender, String type, Ticket ticket) {
+        sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + type + " " + ticket.getId() + ChatColor.RESET + ChatColor.GOLD + " ]");
+        sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + ticket.getOwnerName());
+        sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateToString(ticket.getCreatedDate()));
+        if (SimpleHelpTickets.instance.getConfig().getBoolean("MultiWorld", false)) {
+            String strloc = "(" + ticket.getLocation().getX() + ", " + ticket.getLocation().getY() + ", " + ticket.getLocation().getZ() + ")";
+			sender.sendMessage(ChatColor.BLUE + " Location: " + ChatColor.WHITE + ticket.getLocation().getWorld() + " " + ChatColor.GRAY + strloc);
+        }
+        if (ticket.isOpen()) {
+            sender.sendMessage(ChatColor.BLUE + " Status: " + ChatColor.GREEN + ticket.getStatus().name());
+        } else {
+            sender.sendMessage(ChatColor.BLUE + " Status: " + ChatColor.RED + ticket.getStatus().name());
+        }
+        sender.sendMessage(ChatColor.BLUE + " Assigned: " + ChatColor.WHITE + ticket.getAdmin());
+        sender.sendMessage(ChatColor.BLUE + " " + type + ": " + ChatColor.GOLD + ticket.getDescription());
+        if (ticket.hasAdminReply()) {
+            sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.WHITE + "(none)");
+        } else {
+            sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.YELLOW + ticket.getAdminReply());
+        }
+        if (ticket.hasUserReply()) {
+            sender.sendMessage(ChatColor.BLUE + " User Reply: " + ChatColor.WHITE + "(none)");
+        } else {
+            sender.sendMessage(ChatColor.BLUE + " User Reply: " + ChatColor.YELLOW + ticket.getUserReply());
+        }
+        if (ticket.getExpirationDate() != null) {
+            String expiration = Utilities.dateToString(new java.sql.Date(ticket.getExpirationDate().getTime()));
+            sender.sendMessage(ChatColor.BLUE + " Expiration: " + ChatColor.WHITE + expiration);
+        }
+    }
+
+    public static void ShowTicketInfo(CommandSender sender, Ticket rs, boolean verboseMode) {
 
 		int maxDescriptionLength = 70;
 		int maxReplyLength = 70;
@@ -162,4 +194,50 @@ public class Utilities {
 
 	}
 
+    public static java.sql.Date getCurrentDTG() {
+        return new java.sql.Date(Calendar.getInstance().getTime().getTime());
+    }
+
+	public static java.util.Date parseDate(String dateValue, String dateFormat) {
+
+		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+
+		try {
+			return sdf.parse(dateValue);
+
+		} catch (ParseException ex) {
+			return null;
+		}
+
+	}
+
+	public static java.util.Date parseDate(String dateValue) {
+
+		java.util.Date parsedDate = parseDate(dateValue, "yyyy-MM-dd'T'HH:mm:ss");
+		if (parsedDate != null) {
+			return parsedDate;
+		}
+
+		parsedDate = parseDate(dateValue, "yyyy-MM-dd'T'HH:mm");
+		if (parsedDate != null) {
+			return parsedDate;
+		}
+
+		parsedDate = parseDate(dateValue, "yyyy-MM-dd HH:mm:ss");
+		if (parsedDate != null) {
+			return parsedDate;
+		}
+
+		parsedDate = parseDate(dateValue, "yyyy-MM-dd HH:mm");
+		if (parsedDate != null) {
+			return parsedDate;
+		}
+
+		parsedDate = parseDate(dateValue, "yyyy-MM-dd");
+		if (parsedDate != null) {
+			return parsedDate;
+		}
+
+		return null;
+	}
 }

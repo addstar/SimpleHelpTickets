@@ -67,6 +67,17 @@ public class DBConnection extends Database {
 		}
 	}
 
+	@Override
+	public boolean clearTable(String tableName) {
+		try {
+			this.getConnection().createStatement().executeQuery("DELETE * FROM" + tableName);
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 	public void setStatement() throws Exception {
         if (connection == null) {
             open();

@@ -28,6 +28,8 @@ public abstract class Database {
 
 	public abstract void createTable();
 
+	public abstract boolean clearTable(String tableName);
+
 	public abstract void executeStatement(String query) throws SQLException;
 
 	public abstract void open() throws SQLException, ClassNotFoundException;

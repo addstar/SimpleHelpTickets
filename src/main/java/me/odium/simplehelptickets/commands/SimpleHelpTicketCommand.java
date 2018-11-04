@@ -12,11 +12,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.FileConfigurationOptions;
 import org.bukkit.entity.Player;
 
-public class sht implements CommandExecutor {
+public class SimpleHelpTicketCommand implements CommandExecutor {
 
 	private final SimpleHelpTickets plugin;
 
-	public sht(SimpleHelpTickets plugin) {
+	public SimpleHelpTicketCommand(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 

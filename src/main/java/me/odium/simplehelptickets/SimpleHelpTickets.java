@@ -4,26 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import me.odium.simplehelptickets.commands.checkticket;
-import me.odium.simplehelptickets.commands.closeticket;
-import me.odium.simplehelptickets.commands.delticket;
-import me.odium.simplehelptickets.commands.purgetickets;
-import me.odium.simplehelptickets.commands.replyticket;
-import me.odium.simplehelptickets.commands.replyclose;
-import me.odium.simplehelptickets.commands.sht;
-import me.odium.simplehelptickets.commands.taketicket;
-import me.odium.simplehelptickets.commands.CreateTicket;
-import me.odium.simplehelptickets.commands.TicketsCommand;
-import me.odium.simplehelptickets.commands.findtickets;
+import me.odium.simplehelptickets.commands.*;
 import me.odium.simplehelptickets.database.DBConnection;
 import me.odium.simplehelptickets.database.Database;
 import me.odium.simplehelptickets.database.MySQLConnection;
@@ -53,7 +38,7 @@ import org.bukkit.scheduler.BukkitTask;
 public class SimpleHelpTickets extends JavaPlugin {
 
 	public Logger log;
-
+    public static SimpleHelpTickets instance;
     public final ChatColor GREEN = ChatColor.GREEN;
     public final ChatColor RED = ChatColor.RED;
     public final ChatColor GOLD = ChatColor.GOLD;
@@ -156,17 +141,17 @@ public class SimpleHelpTickets extends JavaPlugin {
 		Bukkit.getServer().getPluginManager().registerEvents(listener,this);
 
 		// declare executors
-		this.getCommand("sht").setExecutor(new sht(this));
-        this.getCommand("ticket").setExecutor(new CreateTicket(this));
-        this.getCommand("tickets").setExecutor(new TicketsCommand(this));
-		this.getCommand("checkticket").setExecutor(new checkticket(this));
-		this.getCommand("replyticket").setExecutor(new replyticket(this));
-		this.getCommand("replyclose").setExecutor(new replyclose(this));
-		this.getCommand("taketicket").setExecutor(new taketicket(this));
-		this.getCommand("delticket").setExecutor(new delticket(this));
-		this.getCommand("closeticket").setExecutor(new closeticket(this));
-		this.getCommand("purgetickets").setExecutor(new purgetickets(this));
-		this.getCommand("findtickets").setExecutor(new findtickets(this));
+		this.getCommand("sht").setExecutor(new SimpleHelpTicketCommand(this));
+        this.getCommand("ticket").setExecutor(new CreateTicketCommand(this));
+        this.getCommand("tickets").setExecutor(new ListTicketCommand(this));
+        this.getCommand("checkticket").setExecutor(new CheckTicketCommand(this));
+		this.getCommand("replyticket").setExecutor(new ReplyTicketCommand(this));
+		this.getCommand("replyclose").setExecutor(new ReplyCloseCommand(this));
+		this.getCommand("taketicket").setExecutor(new TakeTicketCommand(this));
+        this.getCommand("delticket").setExecutor(new DeleteTicketCommand(this));
+		this.getCommand("closeticket").setExecutor(new CloseTicketCommand(this));
+		this.getCommand("purgetickets").setExecutor(new PurgeTicketsCommand(this));
+		this.getCommand("findtickets").setExecutor(new FindTicketsCommand(this));
 
 		// If MySQL
 		if (this.getConfig().getBoolean("MySQL.USE_MYSQL")) {
@@ -205,6 +190,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		if(this.getConfig().getBoolean("TicketReminder.SetReminder",true)) {
 			enableReminder();
 		}
+        instance = this;
 	}
 
 	public void onDisable() {
@@ -244,36 +230,13 @@ public class SimpleHelpTickets extends JavaPlugin {
 		return pName;
 	}
 
-	public String getCurrentDTG(String string) {
-		Calendar currentDate = Calendar.getInstance();
-		SimpleDateFormat dtgFormat = null;
-		if (getConfig().getBoolean("MySQL.USE_MYSQL")) {
-			dtgFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		} else {
-			dtgFormat = new SimpleDateFormat("dd/MMM/yy HH:mm");
-		}
-		return dtgFormat.format(currentDate.getTime());
-	}
 
-	public String getExpiration(String date) {
+    public Date getExpiration() {
 		int expire = getConfig().getInt("TicketExpiration");
-		// for (char c : ticketExpiration.toCharArray()) {
-		// if (!Character.isDigit(c)) {
-		// ticketExpiration = "7";
-		// }
-		// }
-		SimpleDateFormat dtgFormat = null;
-		// int expire = Integer.parseInt(ticketExpiration);
 		Calendar cal = Calendar.getInstance();
 		cal.getTime();
 		cal.add(Calendar.DAY_OF_WEEK, expire);
-		java.util.Date expirationDate = cal.getTime();
-		if (getConfig().getBoolean("MySQL.USE_MYSQL")) {
-			dtgFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		} else {
-			dtgFormat = new SimpleDateFormat("dd/MMM/yy HH:mm");
-		}
-		return dtgFormat.format(expirationDate);
+        return cal.getTime();
 	}
 
 	public int expireTickets() {

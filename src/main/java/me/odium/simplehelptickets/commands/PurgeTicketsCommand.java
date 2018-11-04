@@ -1,10 +1,10 @@
 package me.odium.simplehelptickets.commands;
 
-import java.sql.ResultSet;
 import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -12,11 +12,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class purgetickets implements CommandExecutor {
+public class PurgeTicketsCommand implements CommandExecutor {
 
 	private final SimpleHelpTickets plugin;
 
-	public purgetickets(SimpleHelpTickets plugin) {
+	public PurgeTicketsCommand(SimpleHelpTickets plugin) {
 		this.plugin = plugin;
 	}
 
@@ -56,10 +56,7 @@ public class purgetickets implements CommandExecutor {
 			return true;
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-c") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE CLOSED TICKETS OR IDEAS
-			try {
-				con = plugin.databaseService.getConnection();
-				stmt = con.createStatement();
-				stmt.executeUpdate("DELETE FROM " + targetTable + " WHERE status='" + "CLOSED" + "'");
+            plugin.getManager().deleteTickets(targetTable, Ticket.Status.CLOSE);
 
 				String messageName;
 				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
@@ -68,36 +65,21 @@ public class purgetickets implements CommandExecutor {
 					messageName = "AllClosedTicketsPurged";
 				sender.sendMessage(plugin.getMessage(messageName));
 
-			} catch (Exception e) {
-				sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
-			} finally {
-				closeticket.closeResources(rs, stmt);
-			}
+
 			return true;
 
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-a") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE ALL TICKETS OR IDEAS
-			try {
-				con = plugin.databaseService.getConnection();
-				stmt = con.createStatement();
-				if (plugin.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-					stmt.executeUpdate("TRUNCATE " + targetTable);
-				} else {
-					stmt.executeUpdate("DELETE FROM " + targetTable);
-				}
-
-				String messageName;
-				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-					messageName = "AllIdeasPurged";
-				else
-					messageName = "AllTicketsPurged";
-				sender.sendMessage(plugin.getMessage(messageName));
-
-			} catch (Exception e) {
-				plugin.log.info("[Tickets] " + "Error: " + e);
-			} finally {
-				closeticket.closeResources(rs, stmt);
-			}
+            if (plugin.databaseService.clearTable(targetTable)) {
+                String messageName;
+                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                    messageName = "AllIdeasPurged";
+                else
+                    messageName = "AllTicketsPurged";
+                sender.sendMessage(plugin.getMessage(messageName));
+            } else {
+                return false;
+            }
 			return true;
 		} else {
 			sender.sendMessage(ChatColor.WHITE + "/purge" + itemNamePlural + " [-c|-a]");

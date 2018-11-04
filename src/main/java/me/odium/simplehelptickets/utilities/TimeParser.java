@@ -55,4 +55,6 @@ public class TimeParser
         long total = parseStringToSecs(string);
         return total * 1000;
     }
+
+
 }
