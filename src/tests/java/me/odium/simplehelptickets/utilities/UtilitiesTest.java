@@ -44,4 +44,11 @@ public class UtilitiesTest {
             assert (false);
         }
     }
+
+    @Test
+    public void sanitizeTest() {
+        String[] args = {"1", "test", "this", "string"};
+        String details = Utilities.santitizeTicketDetails(args);
+
+    }
 }

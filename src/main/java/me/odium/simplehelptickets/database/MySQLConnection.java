@@ -1,6 +1,7 @@
 package me.odium.simplehelptickets.database;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.sql.Connection;
@@ -21,17 +22,13 @@ public class MySQLConnection extends Database {
     public MySQLConnection(ConfigurationSection section, SimpleHelpTickets plugin) {
         super(plugin);
         hostname = section.getString("hostname");
-        port = section.getString("hostport");
-        database = section.getString("database");
+		port = section.getString("hostport", "3306");
+		database = section.getString("database", "simpletickets");
         properties = new Properties();
-        properties.put("user", section.getString("user", "user"));
-        properties.put("password", section.getString("pass", "password"));
+		properties.put("user", section.getString("user", "simpletickets"));
+		properties.put("password", section.getString("password", "simpletickets"));
         ConfigurationSection dbprops = section.getConfigurationSection("properties");
-        if (dbprops != null) {
-            for (Map.Entry<String, Object> entry : dbprops.getValues(false).entrySet()) {
-                properties.put(entry.getKey(), entry.getValue());
-            }
-        }
+		properties.put("useSSL", dbprops.getString("useSSL", "false"));
         open();
     }
 
@@ -47,9 +44,9 @@ public class MySQLConnection extends Database {
             url = "jdbc:mysql://" + this.hostname + ":" + this.port + "/" + this.database;
             this.connection = DriverManager.getConnection(url, properties);
         } catch (SQLException e) {
-			System.out.print("Could not connect to MySQL server!");
+			Bukkit.getLogger().warning("Could not connect to MySQL server!");
 		} catch (ClassNotFoundException e) {
-			System.out.print("JDBC Driver not found!");
+			Bukkit.getLogger().warning("JDBC Driver not found!");
 		}
     }
 

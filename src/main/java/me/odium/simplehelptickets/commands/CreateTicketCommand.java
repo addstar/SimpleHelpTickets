@@ -44,20 +44,7 @@ public class CreateTicketCommand implements CommandExecutor {
 
 			// Use the command name to determine if we are working with a ticket or an idea
 			String targetTable = Utilities.GetTargetTableName(label);
-
-			// Build the command string
-			StringBuilder sb = new StringBuilder();
-			for (String arg : args)
-				sb.append(arg).append(" ");
-			String[] temp = sb.toString().split(" ");
-			String[] temp2 = Arrays.copyOfRange(temp, 0, temp.length);
-			sb.delete(0, sb.length());
-			for (String details : temp2) {
-				sb.append(details);
-				sb.append(" ");
-			}
-			String details = sb.toString().trim();
-
+            String details = Utilities.santitizeTicketDetails(args);
 			// Check for incomplete ticket / idea descriptions
 			if (details.length() < 10 || !details.contains(" ")) {
 				sender.sendMessage(plugin.getMessage("NotEnoughInformation"));
@@ -140,11 +127,14 @@ public class CreateTicketCommand implements CommandExecutor {
         ticket.setOwnerName(owner);
         List<Ticket> tickets = new ArrayList<>();
         tickets.add(ticket);
-        if (plugin.getManager().saveTickets(tickets, targetTable)) {
-            NotifyItemOpened(sender, targetTable);
-            return true;
-        }
-        return false;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            if (plugin.getManager().saveTickets(tickets, targetTable)) {
+                NotifyItemOpened(sender, targetTable);
+            } else {
+                plugin.getLogger().warning("Failed to save Tickets....");
+            }
+        });
+        return true;
 	}
 
 	private boolean ItemLimitReached(int itemTotal, String targetTable, int maxTickets, int maxIdeas, CommandSender sender) {

@@ -1,7 +1,7 @@
 name: SimpleHelpTickets
 main: me.odium.simplehelptickets.SimpleHelpTickets
 version: ${plugin.version}
-api-version:${spigot.api.version}
+api: ${spigot.api.version}
 description: ${project.description}
 commands:
    sht:

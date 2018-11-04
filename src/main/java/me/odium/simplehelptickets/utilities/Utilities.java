@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public class Utilities {
 		return dateFormatter.format(date.getTime());
 	}
 
-	public static String Capitalize(String text) {
+	public static String capitalize(String text) {
 		return text.substring(0, 1).toUpperCase() + text.substring(1);
 	}
 
@@ -151,7 +152,7 @@ public class Utilities {
             sender.sendMessage(ChatColor.BLUE + " Status: " + ChatColor.RED + ticket.getStatus().name());
         }
         sender.sendMessage(ChatColor.BLUE + " Assigned: " + ChatColor.WHITE + ticket.getAdmin());
-        sender.sendMessage(ChatColor.BLUE + " " + type + ": " + ChatColor.GOLD + ticket.getDescription());
+		sender.sendMessage(ChatColor.BLUE + " " + capitalize(type) + ": " + ChatColor.GOLD + ticket.getDescription());
         if (ticket.hasAdminReply()) {
             sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.WHITE + "(none)");
         } else {
@@ -240,4 +241,21 @@ public class Utilities {
 
 		return null;
 	}
+
+	public static String santitizeTicketDetails(String[] args) {
+		StringBuilder sb = new StringBuilder();
+		for (String arg : args)
+			sb.append(arg).append(" ");
+		String[] temp = sb.toString().split(" ");
+		String[] temp2 = Arrays.copyOfRange(temp, 0, temp.length);
+		sb.delete(0, sb.length());
+		for (String details : temp2) {
+			sb.append(details);
+			sb.append(" ");
+		}
+		String details = sb.toString().trim();
+		details = details.replace("'", "''");
+		return details;
+	}
+
 }

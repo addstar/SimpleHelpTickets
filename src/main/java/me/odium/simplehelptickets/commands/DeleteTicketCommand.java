@@ -55,7 +55,7 @@ public class DeleteTicketCommand implements CommandExecutor {
 				}
 			}
 
-			itemName = Utilities.Capitalize(itemName);
+			itemName = Utilities.capitalize(itemName);
 			if (player == null) {
                 Integer id;
 				try {

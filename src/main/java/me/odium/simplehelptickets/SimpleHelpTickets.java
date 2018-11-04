@@ -123,7 +123,6 @@ public class SimpleHelpTickets extends JavaPlugin {
 
 	public void onEnable() {
 	    log = Bukkit.getLogger();
-		log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " enabled.");
 		FileConfiguration cfg = getConfig();
 		FileConfigurationOptions cfgOptions = cfg.options();
 		cfgOptions.copyDefaults(true);
@@ -153,9 +152,7 @@ public class SimpleHelpTickets extends JavaPlugin {
 		this.getCommand("purgetickets").setExecutor(new PurgeTicketsCommand(this));
 		this.getCommand("findtickets").setExecutor(new FindTicketsCommand(this));
 
-		// If MySQL
-		if (this.getConfig().getBoolean("MySQL.USE_MYSQL")) {
-			// Get Database Details
+        if (this.getConfig().getBoolean("MySQL.USE_MYSQL", true)) {
             ConfigurationSection section = this.getConfig().getConfigurationSection("MySQL");
             try {
                 databaseService = new MySQLConnection(section, this);
@@ -163,6 +160,7 @@ public class SimpleHelpTickets extends JavaPlugin {
                 databaseService.createTable();
 			} catch (Exception e) {
 				log.info(e.getMessage());
+                e.printStackTrace();
 			}
 		} else {
 			// Create connection & table
@@ -172,6 +170,7 @@ public class SimpleHelpTickets extends JavaPlugin {
                 databaseService.createTable();
 			} catch (Exception e) {
 				log.info("[SimpleHelpTickets] " + "Error: " + e);
+                e.printStackTrace();
 			}
 		}
 		if(this.getConfig().getBoolean("useSimpleMail", false)){
@@ -191,6 +190,8 @@ public class SimpleHelpTickets extends JavaPlugin {
 			enableReminder();
 		}
         instance = this;
+        log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " enabled.");
+
 	}
 
 	public void onDisable() {
@@ -207,10 +208,7 @@ public class SimpleHelpTickets extends JavaPlugin {
         if(this.getConfig().getBoolean("TicketReminder.SetReminder",true)) {
             disableReminder(null);
         }
-        databaseService.close();
-
-		// mysql.close();
-
+        if (databaseService != null) databaseService.close();
 		log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " disabled.");
 	}
 

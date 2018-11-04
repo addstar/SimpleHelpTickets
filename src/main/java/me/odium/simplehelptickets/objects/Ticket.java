@@ -18,11 +18,11 @@ public class Ticket {
     private final Date createdDate;
     private final TicketLocation location;
     private Integer id;
-    private String ownerName;
+    private String ownerName = "";
     private String adminReply = "NONE";
     private String userReply = "NONE";
-    private Status status;
-    private String admin;
+    private Status status = Status.OPEN;
+    private String admin = "";
     private Timestamp expirationDate;
 
     public Ticket(int id, UUID owner, String description, Date createdDate, Location location) {
@@ -131,11 +131,10 @@ public class Ticket {
     }
 
     public boolean hasAdminReply() {
-        return (!adminReply.equals("NONE"));
+        return !adminReply.equals("NONE");
     }
-
     public boolean hasUserReply() {
-        return (!userReply.equals("NONE"));
+        return !userReply.equals("NONE");
     }
 
     public enum Status {
