@@ -63,7 +63,7 @@ public class CheckTicketCommand implements CommandExecutor {
 			int ticketNumber = Integer.parseInt(args[0]);
             List<Ticket> tickets = plugin.getManager().getTickets(targetTable, "id = " + ticketNumber, 1);
             if (player == null || player.hasPermission("sht.admin") || tickets.get(0).getOwner() == player.getUniqueId()) {
-                Utilities.displayTicket(sender, itemName, tickets.get(0));
+                Utilities.displayTicket(sender, itemName, tickets.get(0), SimpleHelpTickets.instance.getConfig().getBoolean("MultiWorld", false));
             }
             if (tickets.size() == 0) {
                 if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))

@@ -1,5 +1,7 @@
 package me.odium.simplehelptickets.utilities;
 
+import me.odium.simplehelptickets.objects.Ticket;
+import me.odium.simplehelptickets.objects.TicketLocation;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.block.data.BlockData;
@@ -30,6 +32,7 @@ import org.bukkit.util.CachedServerIcon;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
+import java.sql.Date;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -759,6 +762,11 @@ public class TestHelper {
 
             }
         });
+    }
+
+    public static Ticket createTestTicket() {
+        Ticket ticket = new Ticket(1, UUID.randomUUID(), "This is a Test ticket", new Date(System.currentTimeMillis()), new TicketLocation(0D, 0D, 0D, "TEST", 0F, 0F, "TEST_SERVER"));
+        return ticket;
     }
 
 }

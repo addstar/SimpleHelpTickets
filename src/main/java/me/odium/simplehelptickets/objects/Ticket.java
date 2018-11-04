@@ -131,10 +131,10 @@ public class Ticket {
     }
 
     public boolean hasAdminReply() {
-        return !adminReply.equals("NONE");
+        return !adminReply.equalsIgnoreCase("NONE");
     }
     public boolean hasUserReply() {
-        return !userReply.equals("NONE");
+        return !userReply.equalsIgnoreCase("NONE");
     }
 
     public enum Status {

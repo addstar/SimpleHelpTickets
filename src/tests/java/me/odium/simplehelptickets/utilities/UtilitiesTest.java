@@ -1,5 +1,7 @@
 package me.odium.simplehelptickets.utilities;
 
+import me.odium.simplehelptickets.objects.Ticket;
+import org.bukkit.command.CommandSender;
 import org.junit.Test;
 
 import java.util.Calendar;
@@ -49,6 +51,24 @@ public class UtilitiesTest {
     public void sanitizeTest() {
         String[] args = {"1", "test", "this", "string"};
         String details = Utilities.santitizeTicketDetails(args);
+
+    }
+
+    @Test
+    public void displayTest() {
+        CommandSender sender = new TestCommandSender();
+        Ticket ticket = TestHelper.createTestTicket();
+        Utilities.displayTicket(sender, "ticket", ticket, false);
+        sender.sendMessage(" -------------------------");
+        Utilities.ShowTicketInfo(sender, ticket, true);
+        ticket.setAdmin("TESTADMIN");
+        ticket.setAdminReply("A silly test response");
+        ticket.setUserReply("Yes its a very silly response");
+        sender.sendMessage(" -------------------------");
+        Utilities.displayTicket(sender, "ticket", ticket, false);
+        sender.sendMessage(" -------------------------");
+        Utilities.ShowTicketInfo(sender, ticket, true);
+
 
     }
 }

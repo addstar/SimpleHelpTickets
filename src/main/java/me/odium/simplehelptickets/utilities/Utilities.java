@@ -129,20 +129,20 @@ public class Utilities {
 		}
 
 		if (showReplies) {
-			if (!adminReply.equalsIgnoreCase("none"))
+			if (ticket.hasAdminReply())
 				sender.sendMessage(ChatColor.BLUE + "Staff: " + ChatColor.GRAY + adminReply);
 
-			if (!userReply.equalsIgnoreCase("none"))
+			if (ticket.hasUserReply())
 				sender.sendMessage(ChatColor.RED + "User: " + ChatColor.GRAY + userReply);
 		}
 
 	}
 
-    public static void displayTicket(CommandSender sender, String type, Ticket ticket) {
+	public static void displayTicket(CommandSender sender, String type, Ticket ticket, boolean multiworld) {
         sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + type + " " + ticket.getId() + ChatColor.RESET + ChatColor.GOLD + " ]");
         sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + ticket.getOwnerName());
         sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateToString(ticket.getCreatedDate()));
-        if (SimpleHelpTickets.instance.getConfig().getBoolean("MultiWorld", false)) {
+		if (multiworld) {
             String strloc = "(" + ticket.getLocation().getX() + ", " + ticket.getLocation().getY() + ", " + ticket.getLocation().getZ() + ")";
 			sender.sendMessage(ChatColor.BLUE + " Location: " + ChatColor.WHITE + ticket.getLocation().getWorld() + " " + ChatColor.GRAY + strloc);
         }
@@ -153,12 +153,12 @@ public class Utilities {
         }
         sender.sendMessage(ChatColor.BLUE + " Assigned: " + ChatColor.WHITE + ticket.getAdmin());
 		sender.sendMessage(ChatColor.BLUE + " " + capitalize(type) + ": " + ChatColor.GOLD + ticket.getDescription());
-        if (ticket.hasAdminReply()) {
+		if (!ticket.hasAdminReply()) {
             sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.WHITE + "(none)");
         } else {
             sender.sendMessage(ChatColor.BLUE + " Staff Reply: " + ChatColor.YELLOW + ticket.getAdminReply());
         }
-        if (ticket.hasUserReply()) {
+		if (!ticket.hasUserReply()) {
             sender.sendMessage(ChatColor.BLUE + " User Reply: " + ChatColor.WHITE + "(none)");
         } else {
             sender.sendMessage(ChatColor.BLUE + " User Reply: " + ChatColor.YELLOW + ticket.getUserReply());

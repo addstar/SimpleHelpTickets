@@ -85,7 +85,7 @@ public class TakeTicketCommand implements CommandExecutor {
             return true;
         }
         Location location = ticket.getLocation().getLocation();
-        Utilities.displayTicket(sender, itemName, ticket);
+        Utilities.displayTicket(sender, itemName, ticket, SimpleHelpTickets.instance.getConfig().getBoolean("MultiWorld", false));
         int id = ticket.getId();
         String owner = ticket.getOwnerName();
         Ticket.Status status = ticket.getStatus();
