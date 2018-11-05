@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -57,10 +58,10 @@ public class TicketManagerTest {
     @Test
     public void saveTicket() {
         Ticket ticket = TestHelper.createTestTicket(false);
-        manager.saveTicket(ticket, Table.TICKET);
-        Ticket result = manager.getTickets(Table.TICKET, "owner = '" + ticket.getOwner().toString() + "'", 1).get(0);
-        assertEquals(result, ticket);
-
+        assertTrue(manager.saveTicket(ticket, Table.TICKET));
+        List<Ticket> result = manager.getTickets(Table.TICKET, "owner = '" + ticket.getOwner().toString() + "'", 1);
+        assert (result.size() == 1);
+        assertEquals(result.get(0), ticket);
     }
 
     @Test

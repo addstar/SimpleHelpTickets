@@ -26,18 +26,18 @@ import static java.sql.Types.TIMESTAMP;
  * Created by benjamincharlton on 18/07/2017.
  */
 public class TicketManager {
-    
+
     public static Map<String, String> tableNames = new HashMap<>();
-    
+
     static {
         tableNames.put("idea", "SHT_Ideas");
         tableNames.put("ticket", "SHT_Tickets");
     }
-    
+
     public static Table getTargetItemName(String targetTable) {
         return Table.matchTableName(targetTable);
     }
-    
+
     public static Table getTableFromCommandString(String commandString) {
         if (commandString.toLowerCase().contains("idea"))
             return Table.matchIdentifier("idea");
@@ -72,17 +72,27 @@ public class TicketManager {
     }
 
     private List<Ticket> getTickets(Table table, Player player, Ticket.Status status) {
-        String sql;
+        String where;
+        int param;
         if (player != null) {
-            sql = "SELECT * FROM " + table.tableName + " WHERE uuid='" + player.getUniqueId().toString() + "' and status = '" + status.name() + "'";
+            where = "uuid = ? AND status = ?";
+            param = 2;
         } else {
-            sql = "SELECT * FROM " + table.tableName + " WHERE status = '" + status.name() + "'";
+            where = " status = ?";
+            param = 1;
         }
+        String sql = "SELECT * FROM " + table.tableName + " WHERE " + where;
         List<Ticket> tickets = new ArrayList<>();
         Connection con = database.getConnection();
         if (con != null) {
-            try (Statement statement = con.createStatement();
-                 ResultSet result = statement.executeQuery(sql)) {
+            try {
+                PreparedStatement statement = con.prepareStatement(sql);
+                if (param == 1) statement.setString(2, status.name());
+                if (param > 1) {
+                    statement.setString(1, player.getUniqueId().toString());
+                    statement.setString(2, status.name());
+                }
+                ResultSet result = statement.executeQuery(sql);
                 while (result.next()) {
                     tickets.add(getFromResultRow(result));
                 }
@@ -130,7 +140,7 @@ public class TicketManager {
         }
         return 0;
     }
-    
+
     /**
      * This will always return true but will log an error to the log if saving was unsuccessful.
      *
@@ -147,7 +157,7 @@ public class TicketManager {
         );
         return true;
     }
-    
+
     /**
      * Best to run this async - as if there is any delay or a lot of tickets to save then it could
      * lock up the main thread too long.
@@ -166,7 +176,7 @@ public class TicketManager {
             String sql = "INSERT INTO " + table.tableName + "(description,date,uuid,owner,world,x,y,z,p,f,adminreply,userreply,status,admin,expiration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             insertSQL = con.prepareStatement(sql);
             int done = 0;
-            
+
             for (Ticket ticket : tickets) {
                 if (ticket.getId() == null) {
                     insertSQL.setString(1, ticket.getDescription());
@@ -186,7 +196,7 @@ public class TicketManager {
                         insertSQL.setDouble(6, 0D);
                         insertSQL.setDouble(7, 0D);
                         insertSQL.setDouble(8, 0D);
-                        
+
                         insertSQL.setFloat(9, 0F);
                         insertSQL.setFloat(10, 0F);
                     }
@@ -217,7 +227,7 @@ public class TicketManager {
                         done++;
                     }
                 }
-                
+
             }
             if (tickets.size() != done) {
                 return false;
