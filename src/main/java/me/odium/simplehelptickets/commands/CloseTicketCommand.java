@@ -5,8 +5,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import javafx.scene.control.Tab;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Pair;
 import me.odium.simplehelptickets.objects.Ticket;
@@ -26,14 +28,14 @@ public class CloseTicketCommand implements CommandExecutor {
         this.plugin = plugin;
     }
 
-    public static boolean CloseItem(SimpleHelpTickets plugin, CommandSender sender, String targetTable, int id) {
+    public static boolean CloseItem(SimpleHelpTickets plugin, CommandSender sender, Table table, int id) {
 
         String idText = String.valueOf(id);
 
         String messageName;
         String mailmessageName;
         String notExistMessageName;
-        if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+        if (Objects.equals(table, Table.IDEA)) {
             notExistMessageName = "IdeaNotExist";
         } else {
             notExistMessageName = "TicketNotExist";
@@ -44,15 +46,15 @@ public class CloseTicketCommand implements CommandExecutor {
         if (sender instanceof Player) {
             player = (Player) sender;
         }
-        Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(player, targetTable, Ticket.Status.OPEN, id);
+        Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(player, table, Ticket.Status.OPEN, id);
         if (result.object1 == 0) {
             sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", idText));
             return true;
         }
-        List<Ticket> tickets = plugin.getManager().getTickets(targetTable, "id = " + id, 1);
+        List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + id, 1);
         Ticket ticket = tickets.get(0);
         if (!ticket.isOpen()) {
-            if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+            if (Objects.equals(table, Table.IDEA))
                 messageName = "IdeaAlreadyClosed";
             else
                 messageName = "TicketAlreadyClosed";
@@ -71,8 +73,8 @@ public class CloseTicketCommand implements CommandExecutor {
             }
             ticket.setStatus(Ticket.Status.CLOSE);
             ticket.setAdmin(admin);
-            if (plugin.getManager().saveTicket(ticket, targetTable)) {
-                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+            if (plugin.getManager().saveTicket(ticket, table)) {
+                if (Objects.equals(table, Table.IDEA)) {
                     messageName = "IdeaClosed";
                     mailmessageName = "IdeaClosedMail";
                 } else {
@@ -82,7 +84,7 @@ public class CloseTicketCommand implements CommandExecutor {
                 sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id));
                 plugin.sendMailOnClose(sender, ticket.getOwnerName(), plugin.getMessage(mailmessageName).replace("&arg", "" + id));
 
-                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+                if (Objects.equals(table, Table.IDEA)) {
                     messageName = "IdeaClosedADMIN";
                 } else {
                     messageName = "TicketClosedADMIN";
@@ -98,18 +100,6 @@ public class CloseTicketCommand implements CommandExecutor {
         return true;
     }
 
-    private static Pair<String, String> getMessages(String targetTable, String type) {
-        String messageName;
-        String mailMessageName;
-        if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
-            messageName = "Idea" + type;
-            mailMessageName = "Idea" + type + "Mail";
-        } else {
-            messageName = "Ticket" + type;
-            mailMessageName = "Ticket" + type + "Mail";
-        }
-        return new Pair<>(messageName, mailMessageName);
-    }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         Player player = null;
@@ -118,8 +108,8 @@ public class CloseTicketCommand implements CommandExecutor {
         }
 
         // Use the command name to determine if we are working with a ticket or an idea
-        String targetTable = TicketManager.getTableNamefromCommandString(label);
-        String itemName = Utilities.GetTargetItemName(targetTable);
+        Table table = TicketManager.getTableFromCommandString(label);
+        String itemName = table.type;
         String messageName;
 
         if (args.length == 0) {
@@ -130,11 +120,11 @@ public class CloseTicketCommand implements CommandExecutor {
         } else if (args.length == 1) {
             // CLOSING TICKET
             // CHECK TICKETNUMBER IS A DIGIT
-            if (CheckTicketCommand.checkInvalidNumber(sender, args, targetTable, plugin)) return true;
+            if (CheckTicketCommand.checkInvalidNumber(sender, args, table, plugin)) return true;
 
             int id = Integer.parseInt(args[0]);
 
-            boolean success = CloseItem(plugin, sender, targetTable, id);
+            boolean success = CloseItem(plugin, sender, table, id);
             if (success) plugin.reminder.addResponse(sender);
             return success;
 
@@ -144,7 +134,7 @@ public class CloseTicketCommand implements CommandExecutor {
             // CHECK TICKETNUMBER IS A DIGIT
             for (char c : args[1].toCharArray()) {
                 if (!Character.isDigit(c)) {
-                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                    if (Objects.equals(table, Table.IDEA))
                         messageName = "InvalidIdeaNumber";
                     else
                         messageName = "InvalidTicketNumber";
@@ -155,7 +145,7 @@ public class CloseTicketCommand implements CommandExecutor {
             }
 
             int id = Integer.parseInt(args[1]);
-            List<Ticket> tickets = plugin.getManager().getTickets(targetTable, "id = " + id, 1);
+            List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + id, 1);
             if (!(tickets.size() == 1)) {
                 sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[1]));
                 return false;
@@ -174,21 +164,21 @@ public class CloseTicketCommand implements CommandExecutor {
                     ticket.setStatus(Ticket.Status.OPEN);
                     ticket.setExpirationDate(null);
                 }
-                plugin.getManager().saveTicket(ticket, targetTable);
-                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                plugin.getManager().saveTicket(ticket, table);
+                if (Objects.equals(table, Table.IDEA))
                     messageName = "IdeaReopened";
                 else
                     messageName = "TicketReopened";
                 sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
                 if (target != null && target != player) {
 
-                    if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                    if (Objects.equals(table, Table.IDEA))
                         messageName = "IdeaReopenedOWNER";
                     else
                         messageName = "TicketReopenedOWNER";
                     target.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
                 }
-                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+                if (Objects.equals(table, Table.IDEA))
                     messageName = "IdeaReopenedADMIN";
                 else
                     messageName = "TicketReopenedADMIN";

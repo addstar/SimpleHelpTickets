@@ -9,7 +9,6 @@ import me.odium.simplehelptickets.objects.TicketLocation;
 import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -18,6 +17,7 @@ import java.util.*;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.logging.Logger;
 
 import static java.sql.Types.TIMESTAMP;
 
@@ -44,38 +44,42 @@ public class TicketManager {
         else
             return Table.matchIdentifier("ticket");
     }
-    
-    public void ShowAdminTickets(Player player) {
-        int total = getTickets(getTableName("ticket").tableName, null, Ticket.Status.OPEN).size();
-        if (total > 0) {
-            player.sendMessage(plugin.getMessage("AdminJoin").replace("&arg", total + ""));
-        }
-        int ideas = getTickets(getTableName("idea").tableName, null, Ticket.Status.OPEN).size();
-        if (ideas > 0) {
-            player.sendMessage(plugin.getMessage("AdminJoinIdeas").replace("&arg", ideas + ""));
-        }
-    }
-    
-    private final SimpleHelpTickets plugin;
-    
+
+    private final Database database;
+    private final Logger log;
     public TicketManager(SimpleHelpTickets plugin) {
-        this.plugin = plugin;
+        this(plugin.databaseService, plugin.getLogger());
     }
-    
+
+    public TicketManager(Database database, Logger log) {
+        this.database = database;
+        this.log = log;
+    }
+
+    public void ShowAdminTickets(Player player) {
+        int total = getTickets(Table.TICKET, null, Ticket.Status.OPEN).size();
+        if (total > 0) {
+            player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoin").replace("&arg", total + ""));
+        }
+        int ideas = getTickets(Table.IDEA, null, Ticket.Status.OPEN).size();
+        if (ideas > 0) {
+            player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoinIdeas").replace("&arg", ideas + ""));
+        }
+    }
+
     public static Table getTableName(String identifier) {
         return Table.matchIdentifier(identifier);
     }
 
-    private List<Ticket> getTickets(String table, Player player, Ticket.Status status) {
+    private List<Ticket> getTickets(Table table, Player player, Ticket.Status status) {
         String sql;
         if (player != null) {
-            sql = "SELECT * FROM " + table + " WHERE uuid='" + player.getUniqueId().toString() + "' and status = '" + status.name() + "'";
+            sql = "SELECT * FROM " + table.tableName + " WHERE uuid='" + player.getUniqueId().toString() + "' and status = '" + status.name() + "'";
         } else {
-            sql = "SELECT * FROM " + table + " WHERE status = '" + status.name() + "'";
+            sql = "SELECT * FROM " + table.tableName + " WHERE status = '" + status.name() + "'";
         }
         List<Ticket> tickets = new ArrayList<>();
-        Database db = plugin.databaseService;
-        Connection con = db.getConnection();
+        Connection con = database.getConnection();
         if (con != null) {
             try (Statement statement = con.createStatement();
                  ResultSet result = statement.executeQuery(sql)) {
@@ -87,12 +91,12 @@ public class TicketManager {
                 e.printStackTrace();
             }
         } else {
-            plugin.log.warning("Unable to get Database Connection");
+            log.warning("Unable to get Database Connection");
         }
         return tickets;
     }
-    
-    public boolean saveTicket(Ticket ticket, String table) {
+
+    public boolean saveTicket(Ticket ticket, Table table) {
         List<Ticket> t = new ArrayList<>();
         t.add(ticket);
         return saveTickets(t, table);
@@ -103,26 +107,26 @@ public class TicketManager {
      * @param status
      * @return num rows deleted
      */
-    public int deleteTickets(String table, Ticket.Status status) {
-        String sql = "DELETE FROM " + table + " WHERE status=?";
-        try (PreparedStatement statement = plugin.databaseService.getConnection().prepareStatement(sql)) {
+    public int deleteTickets(Table table, Ticket.Status status) {
+        String sql = "DELETE FROM " + table.tableName + " WHERE status=?";
+        try (PreparedStatement statement = database.getConnection().prepareStatement(sql)) {
             statement.setString(1, status.name());
             int integer = statement.executeUpdate();
             return integer;
         } catch (SQLException e) {
-            plugin.log.warning("[DELETE TICKETS ERROR]:" + e.getMessage());
+            log.warning("[DELETE TICKETS ERROR]:" + e.getMessage());
         }
         return 0;
     }
 
-    public int deleteTicketbyId(String table, Integer id) {
-        String sql = "DELETE FROM " + table + " WHERE id=?";
-        try (PreparedStatement statement = plugin.databaseService.getConnection().prepareStatement(sql)) {
+    public int deleteTicketbyId(Table table, Integer id) {
+        String sql = "DELETE FROM " + table.tableName + " WHERE id=?";
+        try (PreparedStatement statement = database.getConnection().prepareStatement(sql)) {
             statement.setInt(1, id);
             int integer = statement.executeUpdate();
             return integer;
         } catch (SQLException e) {
-            plugin.log.warning("[DELETE TICKETS ERROR]:" + e.getMessage());
+            log.warning("[DELETE TICKETS ERROR]:" + e.getMessage());
         }
         return 0;
     }
@@ -135,10 +139,10 @@ public class TicketManager {
      *
      * @return
      */
-    public boolean saveTicketsAsync(List<Ticket> tickets, String table) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+    public boolean saveTicketsAsync(List<Ticket> tickets, Table table) {
+        Bukkit.getScheduler().runTaskAsynchronously(SimpleHelpTickets.instance, () -> {
                     if (!saveTickets(tickets, table))
-                        plugin.log.warning("[SHT] Error Saving Tickets");
+                        log.warning("[SHT] Error Saving Tickets");
                 }
         );
         return true;
@@ -153,15 +157,14 @@ public class TicketManager {
      *
      * @return true if saved.
      */
-    public boolean saveTickets(List<Ticket> tickets, String table) {
-        Connection con = plugin.databaseService.getConnection();
+    public boolean saveTickets(List<Ticket> tickets, Table table) {
+        Connection con = database.getConnection();
         PreparedStatement updateSQL;
         PreparedStatement insertSQL;
         try {
-            updateSQL = con.prepareStatement("UPDATE " + table + " SET description = ?,adminreply = ?,admin=?,userreply=?,status=?,owner=?  WHERE id = ?");
-            String sql = "INSERT INTO " + table + "(description,date,uuid,owner,world,x,y,z,p,f,adminreply,userreply,status,admin,expiration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            updateSQL = con.prepareStatement("UPDATE " + table.tableName + " SET description = ?,adminreply = ?,admin=?,userreply=?,status=?,owner=?  WHERE id = ?");
+            String sql = "INSERT INTO " + table.tableName + "(description,date,uuid,owner,world,x,y,z,p,f,adminreply,userreply,status,admin,expiration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             insertSQL = con.prepareStatement(sql);
-            insertSQL.getParameterMetaData().getParameterCount();
             int done = 0;
             
             for (Ticket ticket : tickets) {
@@ -227,7 +230,7 @@ public class TicketManager {
         return true;
     }
 
-    public Pair<Integer, Timestamp> getTicketCount(Player player, String targetTable, Ticket.Status status, Integer ticketId) {
+    public Pair<Integer, Timestamp> getTicketCount(Player player, Table table, Ticket.Status status, Integer ticketId) {
         String where = "";
         int param = 1;
         int playerIndex = 0;
@@ -252,7 +255,7 @@ public class TicketManager {
             idIndex = param;
         }
 
-        String sql = "SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem FROM " + targetTable +
+        String sql = "SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem FROM " + table.tableName +
                 " WHERE " + where;
         String uuidString = null;
         String statusString = null;
@@ -260,7 +263,7 @@ public class TicketManager {
             uuidString = player.getUniqueId().toString();
         if (status != null)
             statusString = status.name();
-        try (PreparedStatement statement = plugin.databaseService.getConnection().prepareStatement(sql)) {
+        try (PreparedStatement statement = database.getConnection().prepareStatement(sql)) {
             if (playerIndex > 0) statement.setString(playerIndex, uuidString);
             if (statusIndex > 0) statement.setString(statusIndex, statusString);
             if (idIndex > 0) statement.setInt(idIndex, ticketId);
@@ -268,7 +271,7 @@ public class TicketManager {
             rs.next();
             return new Pair<>(rs.getInt(1), rs.getTimestamp(2));
         } catch (SQLException e) {
-            plugin.log.warning(e.getMessage());
+            log.warning(e.getMessage());
             e.printStackTrace();
             return null;
         }
@@ -277,7 +280,11 @@ public class TicketManager {
     private Ticket getFromResultRow(ResultSet result) throws SQLException {
         int id = result.getInt("id");
         UUID uuid = UUID.fromString(result.getString("uuid"));
-        World world = Bukkit.getWorld(result.getString("world"));
+        World world = null;
+        try {
+            world = Bukkit.getWorld(result.getString("world"));
+        } catch (NullPointerException ignored) {
+        }
         String server;
         try {
             server = result.getString("server");
@@ -316,22 +323,22 @@ public class TicketManager {
     }
 
     private void showPlayerOpenTickets(Player player) {
-        int ticket = getTickets(TicketManager.getTableName("ticket"), player, Ticket.Status.OPEN).size();
+        int ticket = getTickets(Table.TICKET, player, Ticket.Status.OPEN).size();
         if (ticket > 0) {
-            player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", ticket + ""));
+            player.sendMessage(SimpleHelpTickets.instance.getMessage("UserJoin").replace("&arg", ticket + ""));
         }
     }
 
     public void runOnJoin(Player player){
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(SimpleHelpTickets.instance, () -> {
             if (player.hasPermission("sht.admin")) {
-                boolean DisplayTicketAdmin = plugin.getConfig().getBoolean("OnJoin.DisplayTicketAdmin");
+                boolean DisplayTicketAdmin = SimpleHelpTickets.instance.getConfig().getBoolean("OnJoin.DisplayTicketAdmin");
                 if (DisplayTicketAdmin) {
                     ShowAdminTickets(player);
                 }
                 // IF PLAYER IS USER
             } else {
-                boolean DisplayTicketUser = plugin.getConfig().getBoolean("OnJoin.DisplayTicketUser");
+                boolean DisplayTicketUser = SimpleHelpTickets.instance.getConfig().getBoolean("OnJoin.DisplayTicketUser");
 
                 if (DisplayTicketUser) {
                     showPlayerOpenTickets(player);
@@ -341,8 +348,8 @@ public class TicketManager {
 
     }
 
-    public List<Ticket> getTickets(String targetTable, String where, int maxRecords) {
-        Connection con = plugin.databaseService.getConnection();
+    public List<Ticket> getTickets(Table targetTable, String where, int maxRecords) {
+        Connection con = database.getConnection();
         List<Ticket> results = new ArrayList<>();
         try {
             PreparedStatement s = con.prepareStatement(GetItemSelectQuery(targetTable, where, maxRecords));
@@ -353,15 +360,15 @@ public class TicketManager {
             s.close();
             con.close();
         } catch (SQLException e) {
-            plugin.log.warning(plugin.getMessage("Error").replace("&arg", e.getMessage()));
+            log.warning(SimpleHelpTickets.instance.getMessage("Error").replace("&arg", e.getMessage()));
             e.printStackTrace();
             return results;
         }
         return results;
     }
 
-    private String GetItemSelectQuery(String targetTable, String whereClause, int maxRecordsToReturn) {
-        String innerQuery = "SELECT * FROM " + targetTable;
+    private String GetItemSelectQuery(Table table, String whereClause, int maxRecordsToReturn) {
+        String innerQuery = "SELECT * FROM " + table.tableName;
         if (!whereClause.isEmpty())
             innerQuery += " WHERE " + whereClause;
 
@@ -370,7 +377,7 @@ public class TicketManager {
         return "SELECT * FROM (" + innerQuery + ") AS SelectQ ORDER BY id ASC";
     }
 
-    public int expireItems(String targetTable) {
+    public int expireItems(Table table) {
         ResultSet rs = null;
         PreparedStatement stmt = null;
         PreparedStatement stmt2 = null;
@@ -379,10 +386,10 @@ public class TicketManager {
         Date dateNEW;
         Date expirationNEW;
         try {
-            con = plugin.databaseService.getConnection();
-            stmt = con.prepareStatement("SELECT * FROM " + targetTable);
+            con = database.getConnection();
+            stmt = con.prepareStatement("SELECT * FROM " + table.tableName);
             rs = stmt.executeQuery();
-            stmt2 = con.prepareStatement("DELETE FROM " + targetTable + " WHERE id=?");
+            stmt2 = con.prepareStatement("DELETE FROM " + table.tableName + " WHERE id=?");
             while (rs.next()) {
                 Ticket ticket = getFromResultRow(rs);
                 Date exp = null;
@@ -409,7 +416,7 @@ public class TicketManager {
             }
             // return expirations;
         } catch (Exception e) {
-            plugin.getLogger().info("[SimpleHelpTickets] " + "Error: " + e);
+            log.info("[SimpleHelpTickets] " + "Error: " + e);
         } finally {
             try {
                 if (rs != null) {
@@ -429,7 +436,7 @@ public class TicketManager {
         return expirations;
     }
 
-    public List<Ticket> findTickets(String targetTable,
+    public List<Ticket> findTickets(Table table,
                                     String ticketOwner,
                                     String staffName,
                                     boolean mostRecentTimeDefined,
@@ -447,7 +454,7 @@ public class TicketManager {
     ) {
         List<Ticket> results = new ArrayList<>();
         long recentTimeStartMillisec = System.currentTimeMillis() - 86400 * 1000;
-        String sqlStatement = "SELECT * FROM " + targetTable +
+        String sqlStatement = "SELECT * FROM " + table.tableName +
                 " WHERE id >= ? AND id <= ? AND owner LIKE ? AND admin LIKE ? AND " +
                 " (description LIKE ? OR userreply LIKE ? OR adminreply LIKE ?) AND ";
         String recentTimeStartDate = Utilities.DateToString(recentTimeStartMillisec, dateFormatter);
@@ -478,7 +485,7 @@ public class TicketManager {
 
         sqlStatement += "ORDER BY id " + sortDirection + " LIMIT " + ticketsToShow + ";";
         try {
-            PreparedStatement statement = plugin.databaseService.getConnection().prepareStatement(sqlStatement);
+            PreparedStatement statement = database.getConnection().prepareStatement(sqlStatement);
             statement.setString(1, Utilities.NumToString(ticketIDStart));
             statement.setString(2, Utilities.NumToString(ticketIDEnd));
             statement.setString(3, ticketOwner);

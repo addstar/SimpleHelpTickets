@@ -1,5 +1,6 @@
 package me.odium.simplehelptickets.utilities;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.helpers.TestCommandSender;
 import me.odium.simplehelptickets.helpers.TestHelper;
 import me.odium.simplehelptickets.manager.TicketManager;
@@ -27,8 +28,7 @@ public class UtilitiesTest {
 
     @Test
     public void getTargetTableName() {
-        assertEquals(TicketManager.getTableNamefromCommandString("someRandomIdeaCommand"), Utilities.IDEA_TABLE_NAME);
-        assertEquals(Utilities.GetTargetItemName(Utilities.IDEA_TABLE_NAME), "idea");
+        assertEquals(TicketManager.getTableFromCommandString("someRandomIdeaCommand"), Table.IDEA);
     }
 
     @Test
@@ -54,13 +54,12 @@ public class UtilitiesTest {
     public void sanitizeTest() {
         String[] args = {"1", "test", "this", "string"};
         String details = Utilities.santitizeTicketDetails(args);
-
     }
 
     @Test
     public void displayTest() {
         CommandSender sender = new TestCommandSender();
-        Ticket ticket = TestHelper.createTestTicket();
+        Ticket ticket = TestHelper.createTestTicket(true);
         Utilities.displayTicket(sender, "ticket", ticket, false);
         sender.sendMessage(" -------------------------");
         Utilities.ShowTicketInfo(sender, ticket, true);

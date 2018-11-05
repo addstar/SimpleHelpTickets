@@ -7,8 +7,8 @@ import java.util.Map;
  * Created for the AddstarMC Project. Created by Narimm on 5/11/2018.
  */
 public enum Table {
-    IDEA("SHT_Idea", "idea"),
-    TICKET("SHT_Ticket", "ticket");
+    IDEA("sht_ideas", "idea"),
+    TICKET("sht_tickets", "ticket");
     
     private static final Map<String, Table> BY_TYPE = new HashMap<>();
     private static final Map<String, Table> BY_TABLENAME = new HashMap<>();
@@ -17,7 +17,7 @@ public enum Table {
         Table[] var3;
         var3 = values();
         for (Table table : var3) {
-            BY_TYPE.put(table.name(), table);
+            BY_TYPE.put(table.type, table);
             BY_TABLENAME.put(table.tableName, table);
         }
         

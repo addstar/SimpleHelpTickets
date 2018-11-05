@@ -6,9 +6,9 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
-import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,46 +22,11 @@ public class ReplyTicketCommand implements CommandExecutor {
 		this.plugin = plugin;
 	}
 
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-
-		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = TicketManager.getTableNamefromCommandString(label);
-		String itemName = Utilities.GetTargetItemName(targetTable);
-
-		if (args.length <= 1) {
-			// Show syntax: /replyticket or /replyidea
-			sender.sendMessage("/reply" + itemName + " <#> <reply>");
-			return true;
-		} else {
-
-			String messageName;
-			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
-				messageName = "InvalidIdeaNumber";
-			} else {
-				messageName = "InvalidTicketNumber";
-			}
-
-			for (char c : args[0].toCharArray()) {
-				if (!Character.isDigit(c)) {
-					sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
-					return true;
-				}
-			}
-
-			int id = Integer.parseInt(args[0]);
-
-			boolean success = ReplyItem(plugin, sender, targetTable, id, args);
-			if(success)plugin.reminder.addResponse(sender);
-			return success;
-		}
-
-	}
-
-	public static boolean ReplyItem(SimpleHelpTickets plugin, CommandSender sender, String targetTable, int id, String[] args) {
+	public static boolean ReplyItem(SimpleHelpTickets plugin, CommandSender sender, Table table, int id, String[] args) {
         String idText = String.valueOf(id);
 
 		String notExistMessageName;
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+		if (Objects.equals(table, Table.IDEA)) {
 			notExistMessageName = "IdeaNotExist";
 		} else {
 			notExistMessageName = "TicketNotExist";
@@ -83,7 +48,7 @@ public class ReplyTicketCommand implements CommandExecutor {
 				sb.append(" ");
 			}
 			String details = sb.toString().replace("'", "''");
-        List<Ticket> found = plugin.getManager().getTickets(targetTable, "id=" + id, 1);
+		List<Ticket> found = plugin.getManager().getTickets(table, "id=" + id, 1);
         if (found.size() == 0) {
             sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
             return true;
@@ -93,9 +58,9 @@ public class ReplyTicketCommand implements CommandExecutor {
 				String admin = sender.getName();
                 ticket.setAdmin(admin);
                 ticket.setAdminReply(admin + ": " + details);
-                if (plugin.getManager().saveTicket(ticket, targetTable)) {
-                    NotifyReplied(plugin, sender, id, targetTable);
-                    NotifyOwnerOfReply(plugin, targetTable, id, admin, ticket.getOwnerName());
+				if (plugin.getManager().saveTicket(ticket, table)) {
+					NotifyReplied(plugin, sender, id, table);
+					NotifyOwnerOfReply(plugin, table, id, admin, ticket.getOwnerName());
                     return true;
                 }
             } else {
@@ -110,10 +75,10 @@ public class ReplyTicketCommand implements CommandExecutor {
 				}
                 if (ticket.getOwner().equals(player.getUniqueId())) {
                     ticket.setUserReply(details);
-                    if (plugin.getManager().saveTicket(ticket, targetTable)) {
-                        NotifyReplied(plugin, sender, id, targetTable);
+					if (plugin.getManager().saveTicket(ticket, table)) {
+						NotifyReplied(plugin, sender, id, table);
 						String messageName;
-						if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+						if (Objects.equals(table, Table.IDEA))
 							messageName = "UserRepliedToIdea";
 						else
 							messageName = "UserRepliedToTicket";
@@ -129,9 +94,9 @@ public class ReplyTicketCommand implements CommandExecutor {
 					}
                     ticket.setAdmin(admin);
                     ticket.setAdminReply(admin + ": " + details);
-                    if (plugin.getManager().saveTicket(ticket, targetTable)) {
+					if (plugin.getManager().saveTicket(ticket, table)) {
                         String messageName;
-                        if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+						if (Objects.equals(table, Table.IDEA))
                             messageName = "AdminRepliedToIdea";
                         else
                             messageName = "AdminRepliedToTicket";
@@ -146,9 +111,9 @@ public class ReplyTicketCommand implements CommandExecutor {
 			return false;
 	}
 
-	private static void NotifyOwnerOfReply(SimpleHelpTickets plugin, String targetTable, int id, String admin, String owner) {
+	private static void NotifyOwnerOfReply(SimpleHelpTickets plugin, Table table, int id, String admin, String owner) {
 		String messageName;
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+		if (Objects.equals(table, Table.IDEA))
 			messageName = "AdminRepliedToIdeaOWNER";
 		else
 			messageName = "AdminRepliedToTicketOWNER";
@@ -157,15 +122,50 @@ public class ReplyTicketCommand implements CommandExecutor {
 
 	}
 
-	private static void NotifyReplied(SimpleHelpTickets plugin, CommandSender sender, int id, String targetTable) {
+	private static void NotifyReplied(SimpleHelpTickets plugin, CommandSender sender, int id, Table table) {
 
 		String messageName;
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+		if (Objects.equals(table, Table.IDEA))
 			messageName = "AdminRepliedToIdea";
 		else
 			messageName = "AdminRepliedToTicket";
 
 		sender.sendMessage(plugin.getMessage(messageName).replace("&arg", String.valueOf(id)));
+
+	}
+
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+
+		// Use the command name to determine if we are working with a ticket or an idea
+		Table table = TicketManager.getTableFromCommandString(label);
+		String itemName = table.type;
+
+		if (args.length <= 1) {
+			// Show syntax: /replyticket or /replyidea
+			sender.sendMessage("/reply" + itemName + " <#> <reply>");
+			return true;
+		} else {
+
+			String messageName;
+			if (Objects.equals(table, Table.IDEA)) {
+				messageName = "InvalidIdeaNumber";
+			} else {
+				messageName = "InvalidTicketNumber";
+			}
+
+			for (char c : args[0].toCharArray()) {
+				if (!Character.isDigit(c)) {
+					sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+					return true;
+				}
+			}
+
+			int id = Integer.parseInt(args[0]);
+
+			boolean success = ReplyItem(plugin, sender, table, id, args);
+			if (success) plugin.reminder.addResponse(sender);
+			return success;
+		}
 
 	}
 }

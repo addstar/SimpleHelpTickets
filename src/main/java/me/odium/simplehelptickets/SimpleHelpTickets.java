@@ -155,7 +155,7 @@ public class SimpleHelpTickets extends JavaPlugin {
         if (this.getConfig().getBoolean("MySQL.USE_MYSQL", true)) {
             ConfigurationSection section = this.getConfig().getConfigurationSection("MySQL");
             try {
-                databaseService = new MySQLConnection(section, this);
+				databaseService = new MySQLConnection(section, this.getLogger());
 				log.info("[SimpleHelpTickets] Connected to MySQL Database");
                 databaseService.createTable();
 			} catch (Exception e) {

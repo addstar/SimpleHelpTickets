@@ -7,6 +7,7 @@ import java.util.List;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.TimeParser;
@@ -283,8 +284,8 @@ public class FindTicketsCommand implements CommandExecutor {
 
 
         // Use the command name to determine if we are working with a ticket or an idea
-        String targetTable = TicketManager.getTableNamefromCommandString(label);
-        String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
+        Table table = TicketManager.getTableFromCommandString(label);
+        String itemNamePlural = table.tableName + "s";
         sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Matching " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
         if (ticketsToShow > maxRecordsToReturn) {
@@ -293,7 +294,7 @@ public class FindTicketsCommand implements CommandExecutor {
         }
         // Query the database
         List<Ticket> found = plugin.getManager().findTickets(
-                targetTable,
+                table,
                 ticketOwner,
                 staffName,
                 mostRecentTimeDefined,

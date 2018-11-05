@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Pair;
 import me.odium.simplehelptickets.objects.Ticket;
@@ -30,12 +31,12 @@ public class DeleteTicketCommand implements CommandExecutor {
 			player = (Player) sender;
 		}
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = TicketManager.getTableNamefromCommandString(label);
-		String itemName = Utilities.GetTargetItemName(targetTable);
+		Table table = TicketManager.getTableFromCommandString(label);
+		String itemName = table.type;
 
 		String messageName;
 		String notExistMessageName;
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+		if (Objects.equals(table, Table.IDEA)) {
 			messageName = "InvalidIdeaNumber";
 			notExistMessageName = "IdeaNotExist";
 		} else {
@@ -65,12 +66,12 @@ public class DeleteTicketCommand implements CommandExecutor {
                     sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
                     return true;
                 }
-                Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(null, targetTable, null, id);
+				Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(null, table, null, id);
 				if (result.object1 == 0) {
                     sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
                     return true;
                 }
-                Integer deleted = plugin.getManager().deleteTicketbyId(targetTable, id);
+				Integer deleted = plugin.getManager().deleteTicketbyId(table, id);
                 if (deleted > 0) {
                     sender.sendMessage(plugin.GRAY + "[Tickets] " + plugin.WHITE + itemName + " " + ChatColor.GOLD + args[0] + ChatColor.WHITE + "" +
                             " Deleted");
@@ -87,18 +88,18 @@ public class DeleteTicketCommand implements CommandExecutor {
                     sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
                     return true;
 					}
-                Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(null, targetTable, null, id);
+				Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(null, table, null, id);
 				if (result.object1 == 0) {
 						sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 						return true;
 					}
-                List<Ticket> tickets = plugin.getManager().getTickets(targetTable, "id = " + id, 1);
+				List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + id, 1);
                 if (!player.hasPermission("sht.purgetickets") && !(tickets.get(0).getOwner() == player.getUniqueId())) {
                     sender.sendMessage(plugin.GRAY + "[SimpleHelpTickets] " + plugin.RED + itemName + " " + tickets.get(0).getId() + " is not your ticket to delete.");
 						return true;
                 }
 
-                if (plugin.getManager().deleteTicketbyId(targetTable, id) > 0) {
+				if (plugin.getManager().deleteTicketbyId(table, id) > 0) {
 						sender.sendMessage(plugin.GRAY + "[Tickets] " + plugin.WHITE + itemName + " " + ChatColor.GOLD + args[0] + ChatColor.WHITE + " Deleted");
 						return true;
                 }

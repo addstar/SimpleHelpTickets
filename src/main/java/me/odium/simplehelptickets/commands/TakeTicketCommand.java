@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
@@ -32,11 +33,11 @@ public class TakeTicketCommand implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-        String targetTable = TicketManager.getTableNamefromCommandString(label);
-		String itemName = Utilities.GetTargetItemName(targetTable);
+        Table table = TicketManager.getTableFromCommandString(label);
+        String itemName = table.type;
         String messageName;
         String notExistMessageName;
-        if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+        if (Objects.equals(table, Table.IDEA)) {
             notExistMessageName = "IdeaNotExist";
         } else {
             notExistMessageName = "TicketNotExist";
@@ -60,7 +61,7 @@ public class TakeTicketCommand implements CommandExecutor {
 		}
 
 		int ticketNumber = Integer.parseInt(args[0]);
-        List<Ticket> found = plugin.getManager().getTickets(targetTable, "id = " + ticketNumber, 1);
+        List<Ticket> found = plugin.getManager().getTickets(table, "id = " + ticketNumber, 1);
         if (found.size() == 0) {
             sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
             return true;
@@ -104,8 +105,8 @@ public class TakeTicketCommand implements CommandExecutor {
 			String admin = player.getName();
 			// ASSIGN ADMIN
         ticket.setAdmin(player.getDisplayName());
-        if (plugin.getManager().saveTicket(ticket, targetTable)) {
-            if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+        if (plugin.getManager().saveTicket(ticket, table)) {
+            if (Objects.equals(table, Table.IDEA))
                 messageName = "TakeIdeaADMIN";
             else
                 messageName = "TakeTicketADMIN";
@@ -114,7 +115,7 @@ public class TakeTicketCommand implements CommandExecutor {
             plugin.notifyAdmins(msg, player);
 
             // NOTIFY USER
-            if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+            if (Objects.equals(table, Table.IDEA))
                 messageName = "TakeIdeaOWNER";
             else
                 messageName = "TakeTicketOWNER";

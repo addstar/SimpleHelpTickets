@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
@@ -43,8 +44,8 @@ public class ListTicketCommand implements CommandExecutor {
 			maxRecordsToReturn = 100;
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = TicketManager.getTableNamefromCommandString(label);
-		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
+		Table table = TicketManager.getTableFromCommandString(label);
+		String itemNamePlural = table.type + "s";
         List<Ticket> tickets;
 		Connection con = null;
 		if (player == null || player.hasPermission("sht.admin")) {
@@ -75,7 +76,7 @@ public class ListTicketCommand implements CommandExecutor {
 
 				if (args.length == 0 || args.length == 1 && verboseMode) {
 					// DISPLAY OPEN TICKETS OR IDEAS
-                    tickets = plugin.getManager().getTickets(targetTable, "status='OPEN'", maxRecordsToReturn);
+					tickets = plugin.getManager().getTickets(table, "status='OPEN'", maxRecordsToReturn);
                     int itemsFound = tickets.size();
 
 					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Open " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
@@ -85,7 +86,7 @@ public class ListTicketCommand implements CommandExecutor {
 					}
 
 					if (itemsFound == 0) {
-						ReportNoItems(sender, targetTable);
+						ReportNoItems(sender, table);
 					} else {
 						if (itemsFound < maxRecordsToReturn)
 							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " open " + Utilities.CheckPlural(itemNamePlural, itemsFound));
@@ -96,7 +97,7 @@ public class ListTicketCommand implements CommandExecutor {
 					if (itemNamePlural.contentEquals("tickets")) {
 						// Also report the number of open ideas
 
-                        tickets = plugin.getManager().getTickets(Utilities.IDEA_TABLE_NAME, "status='OPEN'", maxRecordsToReturn);
+						tickets = plugin.getManager().getTickets(Table.IDEA, "status='OPEN'", maxRecordsToReturn);
                         int ideasFound = tickets.size();
 						if (ideasFound > 0) {
 							sender.sendMessage(plugin.BLUE + Utilities.NumToString(ideasFound) + " open " + Utilities.CheckPlural("ideas", ideasFound));
@@ -107,7 +108,7 @@ public class ListTicketCommand implements CommandExecutor {
 
 				} else if (allTickets) {
 					// DISPLAY ALL TICKETS OR IDEAS
-                    tickets = plugin.getManager().getTickets(targetTable, "", maxRecordsToReturn);
+					tickets = plugin.getManager().getTickets(table, "", maxRecordsToReturn);
                     int itemsFound = tickets.size();
 					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "All " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
@@ -116,7 +117,7 @@ public class ListTicketCommand implements CommandExecutor {
 					}
 
 					if (itemsFound == 0) {
-						ReportNoItems(sender, targetTable);
+						ReportNoItems(sender, table);
 					} else {
 						if (itemsFound < maxRecordsToReturn)
 							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
@@ -128,7 +129,7 @@ public class ListTicketCommand implements CommandExecutor {
 
 				} else if (allClosed) {
 					// DISPLAY CLOSED TICKETS OR IDEAS
-                    tickets = plugin.getManager().getTickets(targetTable, "status='CLOSED'", maxRecordsToReturn);
+					tickets = plugin.getManager().getTickets(table, "status='CLOSED'", maxRecordsToReturn);
                     int itemsFound = tickets.size();
 					sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Closed " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
@@ -137,7 +138,7 @@ public class ListTicketCommand implements CommandExecutor {
 					}
 
 					if (itemsFound == 0) {
-						ReportNoItems(sender, targetTable);
+						ReportNoItems(sender, table);
 						return true;
 					} else {
 						if (itemsFound < maxRecordsToReturn)
@@ -153,7 +154,7 @@ public class ListTicketCommand implements CommandExecutor {
 
 		} else {
 			// DISPLAY USER TICKETS OR IDEAS
-            tickets = plugin.getManager().getTickets(targetTable, "uuid='" + player.getUniqueId().toString() + "'", maxRecordsToReturn);
+			tickets = plugin.getManager().getTickets(table, "uuid='" + player.getUniqueId().toString() + "'", maxRecordsToReturn);
             int itemsFound = tickets.size();
 				sender.sendMessage(plugin.GOLD + "[ " + plugin.WHITE + ChatColor.BOLD + "Your " + itemNamePlural + ChatColor.RESET + plugin.GOLD + " ]");
 
@@ -161,7 +162,7 @@ public class ListTicketCommand implements CommandExecutor {
                 Utilities.ShowTicketInfo(sender, ticket, false);
             }
 				if (itemsFound == 0) {
-					ReportNoItems(sender, targetTable);
+					ReportNoItems(sender, table);
 				} else {
 					sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
 				}
@@ -170,8 +171,8 @@ public class ListTicketCommand implements CommandExecutor {
 
 	}
 
-	private void ReportNoItems(CommandSender sender, String targetTable) {
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+	private void ReportNoItems(CommandSender sender, Table table) {
+		if (Objects.equals(table, Table.IDEA))
 			sender.sendMessage(plugin.getMessage("NoIdeas"));
 		else
 			sender.sendMessage(plugin.getMessage("NoTickets"));

@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
@@ -33,8 +34,8 @@ public class ReplyCloseCommand implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = TicketManager.getTableNamefromCommandString(label);
-		String itemName = Utilities.GetTargetItemName(targetTable);
+		Table table = TicketManager.getTableFromCommandString(label);
+		String itemName = table.type;
 
 		if (args.length <= 1) {
 			// Show syntax: /replycloseticket or /replycloseidea
@@ -44,7 +45,7 @@ public class ReplyCloseCommand implements CommandExecutor {
 
 			String messageName;
 			String notExistMessageName;
-			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+			if (Objects.equals(table, Table.IDEA)) {
 				messageName = "InvalidIdeaNumber";
 				notExistMessageName = "IdeaNotExist";
 			} else {
@@ -61,14 +62,14 @@ public class ReplyCloseCommand implements CommandExecutor {
 
 			// Make sure the ticket or idea is not already closed
 			int id = Integer.parseInt(args[0]);
-            List<Ticket> found = plugin.getManager().getTickets(targetTable, "id = " + id, 1);
+			List<Ticket> found = plugin.getManager().getTickets(table, "id = " + id, 1);
             if (found.size() == 0) {
                 sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
                 return true;
             }
             Ticket ticket = found.get(0);
             if (!ticket.isOpen()) {
-                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+				if (Objects.equals(table, Table.IDEA))
                     messageName = "IdeaAlreadyClosed";
                 else
                     messageName = "TicketAlreadyClosed";
@@ -76,10 +77,10 @@ public class ReplyCloseCommand implements CommandExecutor {
                 sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
                 return true;
             }
-            boolean success = ReplyTicketCommand.ReplyItem(plugin, sender, targetTable, id, args);
+			boolean success = ReplyTicketCommand.ReplyItem(plugin, sender, table, id, args);
             if (success) plugin.reminder.addResponse(sender);
             if (!success) return false;
-            success = CloseTicketCommand.CloseItem(plugin, sender, targetTable, id);
+			success = CloseTicketCommand.CloseItem(plugin, sender, table, id);
             return success;
 		}
 

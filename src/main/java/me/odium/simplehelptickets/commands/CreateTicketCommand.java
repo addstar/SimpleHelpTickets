@@ -6,6 +6,7 @@ import java.util.*;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Pair;
 import me.odium.simplehelptickets.objects.Ticket;
@@ -44,7 +45,7 @@ public class CreateTicketCommand implements CommandExecutor {
 		} else if (args.length > 0) {
 
 			// Use the command name to determine if we are working with a ticket or an idea
-			String targetTable = TicketManager.getTableNamefromCommandString(label);
+			Table table = TicketManager.getTableFromCommandString(label);
             String details = Utilities.santitizeTicketDetails(args);
 			// Check for incomplete ticket / idea descriptions
 			if (details.length() < 10 || !details.contains(" ")) {
@@ -100,25 +101,25 @@ public class CreateTicketCommand implements CommandExecutor {
 				if (!atConsole && !player.hasPermission("sht.admin")) {
 					// CHECK MAX TICKETS OR IDEAS
 					// ALSO CHECK COOLDOWN
-					Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(player, targetTable, Ticket.Status.OPEN, null);
+					Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(player, table, Ticket.Status.OPEN, null);
 					int itemTotal = result.object1;
-						if (ItemLimitReached(itemTotal, targetTable, maxTickets, maxIdeas, sender)) {
+					if (ItemLimitReached(itemTotal, table, maxTickets, maxIdeas, sender)) {
 							return true;
 						}
 						// Get Unix time (in seconds) of the newest ticket or idea
 					long newestItem = result.object2.getTime();
-						if (WaitingForCooldown(newestItem, targetTable, ticketCooldownSeconds, ideaCooldownSeconds, sender)) {
+					if (WaitingForCooldown(newestItem, table, ticketCooldownSeconds, ideaCooldownSeconds, sender)) {
 							return true;
 						}
 
 
                 }
-            return insertRecord(sender, targetTable, details, userreply, expire, adminreply, admin, status, location, owner, uuid, date);
+			return insertRecord(sender, table, details, userreply, expire, adminreply, admin, status, location, owner, uuid, date);
         }
         return true;
     }
 
-    private boolean insertRecord(CommandSender sender, String targetTable, String details, String userreply, String expire, String adminreply, String admin, Ticket.Status status, Location loc, String owner, UUID uuid, Date date) {
+	private boolean insertRecord(CommandSender sender, Table table, String details, String userreply, String expire, String adminreply, String admin, Ticket.Status status, Location loc, String owner, UUID uuid, Date date) {
 		TicketLocation location = new TicketLocation(loc, Bukkit.getServer().getServerId());
 		Ticket ticket = new Ticket(uuid, details, date, location);
         ticket.setStatus(status);
@@ -129,8 +130,8 @@ public class CreateTicketCommand implements CommandExecutor {
         List<Ticket> tickets = new ArrayList<>();
         tickets.add(ticket);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            if (plugin.getManager().saveTickets(tickets, targetTable)) {
-                NotifyItemOpened(sender, targetTable);
+			if (plugin.getManager().saveTickets(tickets, table)) {
+				NotifyItemOpened(sender, table);
             } else {
                 plugin.getLogger().warning("Failed to save Tickets....");
             }
@@ -138,9 +139,9 @@ public class CreateTicketCommand implements CommandExecutor {
         return true;
 	}
 
-	private boolean ItemLimitReached(int itemTotal, String targetTable, int maxTickets, int maxIdeas, CommandSender sender) {
+	private boolean ItemLimitReached(int itemTotal, Table table, int maxTickets, int maxIdeas, CommandSender sender) {
 
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+		if (Objects.equals(table, Table.IDEA)) {
 			if (itemTotal >= maxIdeas) {
 				sender.sendMessage(plugin.getMessage("IdeaMax").replace("&arg", Integer.toString(maxIdeas)));
 				return true;
@@ -154,12 +155,12 @@ public class CreateTicketCommand implements CommandExecutor {
 		return false;
 	}
 
-	private void NotifyItemOpened(CommandSender sender, String targetTable) {
+	private void NotifyItemOpened(CommandSender sender, Table table) {
 
 		String messageName;
 
 		// Message player
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+		if (Objects.equals(table, Table.IDEA))
 			messageName = "IdeaOpen";
 		else
 			messageName = "TicketOpen";
@@ -167,7 +168,7 @@ public class CreateTicketCommand implements CommandExecutor {
 		sender.sendMessage(plugin.getMessage(messageName));
 
 		// Notify admins of new ticket
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+		if (Objects.equals(table, Table.IDEA))
 			messageName = "IdeaOpenADMIN";
 		else
 			messageName = "TicketOpenADMIN";
@@ -178,7 +179,7 @@ public class CreateTicketCommand implements CommandExecutor {
 	}
 
 	private boolean WaitingForCooldown(
-			long lastItemTime, String targetTable,
+			long lastItemTime, Table table,
 			int ticketCooldownSeconds, int ideaCooldownSeconds,
 			CommandSender sender) {
 
@@ -186,7 +187,7 @@ public class CreateTicketCommand implements CommandExecutor {
 		long itemTimeThreshold;
 		String messageName;
 
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME)) {
+		if (Objects.equals(table, Table.IDEA)) {
 			itemTimeThreshold = lastItemTime + ideaCooldownSeconds;
 			messageName = "IdeaTooSoon";
 		}

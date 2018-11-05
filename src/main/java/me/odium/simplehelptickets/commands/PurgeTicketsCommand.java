@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
@@ -34,14 +35,14 @@ public class PurgeTicketsCommand implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = TicketManager.getTableNamefromCommandString(label);
-		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
+		Table table = TicketManager.getTableFromCommandString(label);
+		String itemNamePlural = table.type + "s";
 
 		if (args.length == 0) {
 			// PURGE EXPIRED TICKETS OR IDEAS
 
 			int expiredItems;
-			if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+			if (Objects.equals(table, Table.IDEA))
 				expiredItems= plugin.expireIdeas();
 			else
 				expiredItems= plugin.expireTickets();
@@ -57,10 +58,10 @@ public class PurgeTicketsCommand implements CommandExecutor {
 			return true;
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-c") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE CLOSED TICKETS OR IDEAS
-            plugin.getManager().deleteTickets(targetTable, Ticket.Status.CLOSE);
+			plugin.getManager().deleteTickets(table, Ticket.Status.CLOSE);
 
 				String messageName;
-				if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+			if (Objects.equals(table, Table.IDEA))
 					messageName = "AllClosedIdeasPurged";
 				else
 					messageName = "AllClosedTicketsPurged";
@@ -71,9 +72,9 @@ public class PurgeTicketsCommand implements CommandExecutor {
 
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("-a") && args[1].equalsIgnoreCase("confirm")) {
 			// PURGE ALL TICKETS OR IDEAS
-            if (plugin.databaseService.clearTable(targetTable)) {
+			if (plugin.databaseService.clearTable(table)) {
                 String messageName;
-                if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
+				if (Objects.equals(table, Table.IDEA))
                     messageName = "AllIdeasPurged";
                 else
                     messageName = "AllTicketsPurged";

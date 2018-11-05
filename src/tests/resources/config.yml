@@ -1,0 +1,35 @@
+# Simple Help Tickets
+# &0 = Black  |  &1 = DarkGray
+# &2 = GRAY   |  &w = White
+# &r = Red    |  &R = DarkRed
+# &y = YELLOW |  &Y = Gold
+# &g = Green  |  &G = DarkGreen
+# &c = Cyan   |  &C = DarkCyan
+# &b = Blue   |  &B = DarkBlue
+# &p = Purple |  &P = DarkPurple
+MaxTickets: 5
+MaxIdeas: 5
+TicketExpiration: 14
+TicketCooldownSeconds: 300
+IdeaCooldownSeconds: 3600
+NotifyAdminOnTicketClose: true
+MultiWorld: false
+BungeeChatIntegration: false
+UseSimpleMail: false
+OnJoin:
+  DisplayTicketAdmin: true
+  DisplayTicketUser: true
+TicketReminder:
+  SetReminder: true
+  PeriodInMinutes: 60
+MySQL:
+  USE_MYSQL: true
+  hostname: localhost
+  hostport: 3306
+  database: simpletickets
+  user: simpletickets
+  password: simpletickets
+  properties:
+    useSSL: false
+BungeeChatStaffChannel: StaffNotice
+useSimpleMail: true

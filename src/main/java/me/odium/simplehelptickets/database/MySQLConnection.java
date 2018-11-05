@@ -1,6 +1,5 @@
 package me.odium.simplehelptickets.database;
 
-import me.odium.simplehelptickets.SimpleHelpTickets;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -9,26 +8,32 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MySQLConnection extends Database {
-	private String hostname = "";
-    private String port = "";
+    private String hostname = "localhost";
+    private String port = "3306";
     private final Properties properties;
-	private String database = "";
+    private String database = "simpletickets";
 
-    public MySQLConnection(ConfigurationSection section, SimpleHelpTickets plugin) {
-        super(plugin);
-        hostname = section.getString("hostname");
-		port = section.getString("hostport", "3306");
-		database = section.getString("database", "simpletickets");
+    public MySQLConnection(ConfigurationSection section, Logger log) {
+        super(log);
         properties = new Properties();
-		properties.put("user", section.getString("user", "simpletickets"));
-		properties.put("password", section.getString("password", "simpletickets"));
-        ConfigurationSection dbprops = section.getConfigurationSection("properties");
-		properties.put("useSSL", dbprops.getString("useSSL", "false"));
+        if (section == null) {
+            properties.put("user", "simpletickets");
+            properties.put("password", "simpletickets");
+            properties.put("useSSL", "false");
+        } else {
+            hostname = section.getString("hostname");
+            port = section.getString("hostport", "3306");
+            database = section.getString("database", "simpletickets");
+            properties.put("user", section.getString("user", "simpletickets"));
+            properties.put("password", section.getString("password", "simpletickets"));
+            ConfigurationSection dbprops = section.getConfigurationSection("properties");
+            properties.put("useSSL", dbprops.getString("useSSL", "false"));
+        }
         open();
     }
 
@@ -44,9 +49,9 @@ public class MySQLConnection extends Database {
             url = "jdbc:mysql://" + this.hostname + ":" + this.port + "/" + this.database;
             this.connection = DriverManager.getConnection(url, properties);
         } catch (SQLException e) {
-			Bukkit.getLogger().warning("Could not connect to MySQL server!");
+            log.warning("Could not connect to MySQL server!");
 		} catch (ClassNotFoundException e) {
-			Bukkit.getLogger().warning("JDBC Driver not found!");
+            log.warning("JDBC Driver not found!");
 		}
     }
 
@@ -62,30 +67,17 @@ public class MySQLConnection extends Database {
 		}
 	}
 	
-	@Override
-	public void update(int current) {
-		if (current < version) {
-			switch (current) {
-				case 0:
-					String sql = "ALTER TABLE
-			}
-		}
-		
-	}
-	
+
 	public void createTable() {
 		try {
             if (!checkConnection()) open();
 			String queryFields = " (id INTEGER AUTO_INCREMENT PRIMARY KEY, description varchar(128), date timestamp, uuid varchar(36), owner varchar(20), world varchar(30), x double(30,20), y double(30,20), z double(30,20), p double(30,20), f double(30,20), adminreply varchar(128), userreply varchar(128), status varchar(16), admin varchar(30) collate latin1_swedish_ci, expiration timestamp NULL DEFAULT NULL)";
-
-			String queryTickets = "CREATE TABLE IF NOT EXISTS SHT_Tickets" + queryFields;
-            this.executeStatement(queryTickets);
-
-			String queryIdeas = "CREATE TABLE IF NOT EXISTS SHT_Ideas" + queryFields;
-            this.executeStatement(queryIdeas);
-
+            for (Table table : Table.values()) {
+                String queryTickets = "CREATE TABLE IF NOT EXISTS " + table.tableName + " " + queryFields;
+                this.executeStatement(queryTickets);
+            }
 		} catch (Exception e) {
-			plugin.log.info("[Tickets] MySQL createTable Error: " + e);
+            log.info("[Tickets] MySQL createTable Error: " + e);
 		}
 	}
 
@@ -105,7 +97,7 @@ public class MySQLConnection extends Database {
 				this.close();
 				this.open();
 			} catch (Exception e) {
-				plugin.log.info("[Tickets] " + "Error: " + e);
+                log.info("[Tickets] " + "Error: " + e);
 			}
 		}
 		return connection;
@@ -147,13 +139,13 @@ public class MySQLConnection extends Database {
 				try {
 					statement.executeUpdate(query);
 				} catch (SQLException ex) {
-                    plugin.log.warning(ex.getMessage());
-                    plugin.log.warning("Preceded by" + e.getMessage());
+                    log.warning(ex.getMessage());
+                    log.warning("Preceded by" + e.getMessage());
                     ex.printStackTrace();
                 }
             } else {
-                plugin.log.warning(e.getMessage());
-                if (plugin.log.getLevel() == Level.FINE) {
+                log.warning(e.getMessage());
+                if (log.getLevel() == Level.FINE) {
                     e.printStackTrace();
                 }
             }
@@ -169,10 +161,10 @@ public class MySQLConnection extends Database {
 	 * @return true if data-removal was successful.
 	 * 
 	 * */
-	public boolean clearTable(String table) {
+    public boolean clearTable(Table table) {
 		try {
             Statement statement = this.connection.createStatement();
-            int result = statement.executeUpdate("TRUNCATE " + table);
+            int result = statement.executeUpdate("TRUNCATE " + table.tableName);
 			return true;
 		} catch (SQLException e) {
 			return false;

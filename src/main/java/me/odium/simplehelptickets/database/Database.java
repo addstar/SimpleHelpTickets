@@ -9,18 +9,16 @@ import java.util.logging.Logger;
 public abstract class Database {
 
 	Connection connection;
-	protected SimpleHelpTickets plugin;
     protected static int version = 1;
 	public int lastUpdate;
-    private Logger log;
+    protected Logger log;
 
 	Database(SimpleHelpTickets plugin) {
-        
-        this(plugin, plugin.getLogger());
+
+        this(plugin.getLogger());
     }
-    
-    Database(SimpleHelpTickets plugin, Logger log) {
-        this.plugin = plugin;
+
+    Database(Logger log) {
         this.log = log;
     }
 
@@ -28,7 +26,7 @@ public abstract class Database {
 
 	public abstract void createTable();
 
-	public abstract boolean clearTable(String tableName);
+    public abstract boolean clearTable(Table tableName);
 
 	public abstract void executeStatement(String query) throws SQLException;
 
@@ -54,7 +52,32 @@ public abstract class Database {
             
         }
     }
-    
-    public abstract void update(int current);
-	
+
+    public void update(int current) {
+        if (current < version) {
+            try {
+                int updated = 0;
+                switch (current) {
+                    case 0:
+                        for (Table table : Table.values()) {
+                            String sql = "ALTER TABLE " + table.tableName + " ADD server varchar(30) DEFAULT null  NULL; ";
+                            this.getConnection().createStatement().executeUpdate(sql);
+                        }
+                        String sql = "CREATE TABLE version (version int DEFAULT 0)";
+                        this.getConnection().createStatement().executeUpdate(sql);
+                        sql = "INSERT INTO VERSION (version) VALUES (1)";
+                        this.getConnection().createStatement().executeUpdate(sql);
+                        updated = 1;
+                    case 1:
+                    default:
+                        break;
+                }
+                log.info("[SHT] Database Updated from " + current + " to Version " + updated);
+            } catch (SQLException e) {
+
+            }
+        } else if (current > version) {
+            log.warning("[SHT] Database is possibly from a newer version ...please check plugin");
+        }
+    }
 }

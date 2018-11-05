@@ -15,9 +15,6 @@ import java.util.Objects;
 
 public class Utilities {
 
-	public static final String IDEA_TABLE_NAME = "SHT_Ideas";
-	public static final String TICKET_TABLE_NAME = "SHT_Tickets";
-
 	private static final SimpleDateFormat mShortDateFormater;
 
 	static {
@@ -55,20 +52,6 @@ public class Utilities {
 		}
 
 		return pluralName;
-	}
-
-	public static String GetTargetItemName(String targetTable) {
-		if (Objects.equals(targetTable, Utilities.IDEA_TABLE_NAME))
-			return "idea";
-		else
-			return "ticket";
-	}
-
-	public static String GetTargetTableName(String commandName) {
-		if (commandName.toLowerCase().contains("idea"))
-			return IDEA_TABLE_NAME;
-		else
-			return TICKET_TABLE_NAME;
 	}
 
 	public static String NumToString(int value) {
