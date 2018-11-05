@@ -1,24 +1,23 @@
 package me.odium.simplehelptickets.manager;
 
-import javafx.util.converter.TimeStringConverter;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 import me.odium.simplehelptickets.database.Database;
+import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.objects.Pair;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.objects.TicketLocation;
 import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.Calendar;
+import java.sql.Date;
+import java.util.*;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import static java.sql.Types.TIMESTAMP;
 
@@ -27,22 +26,44 @@ import static java.sql.Types.TIMESTAMP;
  * Created by benjamincharlton on 18/07/2017.
  */
 public class TicketManager {
-
-    private final SimpleHelpTickets plugin;
-
-    public TicketManager(SimpleHelpTickets plugin) {
-        this.plugin = plugin;
+    
+    public static Map<String, String> tableNames = new HashMap<>();
+    
+    static {
+        tableNames.put("idea", "SHT_Ideas");
+        tableNames.put("ticket", "SHT_Tickets");
     }
-
+    
+    public static Table getTargetItemName(String targetTable) {
+        return Table.matchTableName(targetTable);
+    }
+    
+    public static Table getTableFromCommandString(String commandString) {
+        if (commandString.toLowerCase().contains("idea"))
+            return Table.matchIdentifier("idea");
+        else
+            return Table.matchIdentifier("ticket");
+    }
+    
     public void ShowAdminTickets(Player player) {
-        int total = getTickets(Utilities.TICKET_TABLE_NAME, null, Ticket.Status.OPEN).size();
+        int total = getTickets(getTableName("ticket").tableName, null, Ticket.Status.OPEN).size();
         if (total > 0) {
             player.sendMessage(plugin.getMessage("AdminJoin").replace("&arg", total + ""));
         }
-        int ideas = getTickets(Utilities.IDEA_TABLE_NAME, null, Ticket.Status.OPEN).size();
+        int ideas = getTickets(getTableName("idea").tableName, null, Ticket.Status.OPEN).size();
         if (ideas > 0) {
             player.sendMessage(plugin.getMessage("AdminJoinIdeas").replace("&arg", ideas + ""));
         }
+    }
+    
+    private final SimpleHelpTickets plugin;
+    
+    public TicketManager(SimpleHelpTickets plugin) {
+        this.plugin = plugin;
+    }
+    
+    public static Table getTableName(String identifier) {
+        return Table.matchIdentifier(identifier);
     }
 
     private List<Ticket> getTickets(String table, Player player, Ticket.Status status) {
@@ -70,23 +91,7 @@ public class TicketManager {
         }
         return tickets;
     }
-
-    public static void closeResources(ResultSet rs, Statement stmt) {
-        try {
-            if (rs != null) {
-                rs.close();
-                rs = null;
-            }
-            if (stmt != null) {
-                stmt.close();
-                stmt = null;
-            }
-        } catch (SQLException e) {
-            System.out.println("ERROR: Failed to close PreparedStatement or ResultSet!");
-            e.printStackTrace();
-        }
-    }
-
+    
     public boolean saveTicket(Ticket ticket, String table) {
         List<Ticket> t = new ArrayList<>();
         t.add(ticket);
@@ -121,6 +126,33 @@ public class TicketManager {
         }
         return 0;
     }
+    
+    /**
+     * This will always return true but will log an error to the log if saving was unsuccessful.
+     *
+     * @param tickets
+     * @param table
+     *
+     * @return
+     */
+    public boolean saveTicketsAsync(List<Ticket> tickets, String table) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    if (!saveTickets(tickets, table))
+                        plugin.log.warning("[SHT] Error Saving Tickets");
+                }
+        );
+        return true;
+    }
+    
+    /**
+     * Best to run this async - as if there is any delay or a lot of tickets to save then it could
+     * lock up the main thread too long.
+     *
+     * @param tickets
+     * @param table
+     *
+     * @return true if saved.
+     */
     public boolean saveTickets(List<Ticket> tickets, String table) {
         Connection con = plugin.databaseService.getConnection();
         PreparedStatement updateSQL;
@@ -131,7 +163,7 @@ public class TicketManager {
             insertSQL = con.prepareStatement(sql);
             insertSQL.getParameterMetaData().getParameterCount();
             int done = 0;
-
+            
             for (Ticket ticket : tickets) {
                 if (ticket.getId() == null) {
                     insertSQL.setString(1, ticket.getDescription());
@@ -151,7 +183,7 @@ public class TicketManager {
                         insertSQL.setDouble(6, 0D);
                         insertSQL.setDouble(7, 0D);
                         insertSQL.setDouble(8, 0D);
-
+                        
                         insertSQL.setFloat(9, 0F);
                         insertSQL.setFloat(10, 0F);
                     }
@@ -182,7 +214,7 @@ public class TicketManager {
                         done++;
                     }
                 }
-
+                
             }
             if (tickets.size() != done) {
                 return false;
@@ -284,7 +316,7 @@ public class TicketManager {
     }
 
     private void showPlayerOpenTickets(Player player) {
-        int ticket = getTickets(Utilities.TICKET_TABLE_NAME, player, Ticket.Status.OPEN).size();
+        int ticket = getTickets(TicketManager.getTableName("ticket"), player, Ticket.Status.OPEN).size();
         if (ticket > 0) {
             player.sendMessage(plugin.getMessage("UserJoin").replace("&arg", ticket + ""));
         }

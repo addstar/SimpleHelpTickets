@@ -1,6 +1,7 @@
 package me.odium.simplehelptickets.database;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
+import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.utilities.Utilities;
 
 import java.io.File;
@@ -54,11 +55,13 @@ public class DBConnection extends Database {
 					+ "uuid varchar(36), owner varchar(20), world varchar(30), x double(30,20), y double(30,20), z double(30,20), "
 					+ "p double(30,20), f double(30,20), adminreply text, userreply text, status varchar(16), "
 					+ "admin varchar(30), expiration timestamp)";
-
-			String queryTickets = "CREATE TABLE IF NOT EXISTS " + Utilities.TICKET_TABLE_NAME + " " + columnList;
+			
+			String queryTickets =
+					"CREATE TABLE IF NOT EXISTS " + TicketManager.getTableName("ticket") + " " + columnList;
 			stmt.executeUpdate(queryTickets);
-
-			String queryIdeas = "CREATE TABLE IF NOT EXISTS " + Utilities.IDEA_TABLE_NAME + " " + columnList;
+			
+			String queryIdeas =
+					"CREATE TABLE IF NOT EXISTS " + TicketManager.getTableName("idea") + " " + columnList;
 			stmt.executeUpdate(queryIdeas);
 
 			stmt.close();

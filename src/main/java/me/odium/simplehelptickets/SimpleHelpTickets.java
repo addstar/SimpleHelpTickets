@@ -238,11 +238,11 @@ public class SimpleHelpTickets extends JavaPlugin {
 	}
 
 	public int expireTickets() {
-        return manager.expireItems(Utilities.TICKET_TABLE_NAME);
+		return manager.expireItems(TicketManager.getTableName("ticket"));
 	}
 
 	public int expireIdeas() {
-        return manager.expireItems(Utilities.IDEA_TABLE_NAME);
+		return manager.expireItems(TicketManager.getTableName("idea"));
 	}
 
 

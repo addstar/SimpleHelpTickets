@@ -61,7 +61,18 @@ public class MySQLConnection extends Database {
 			e.printStackTrace();
 		}
 	}
-
+	
+	@Override
+	public void update(int current) {
+		if (current < version) {
+			switch (current) {
+				case 0:
+					String sql = "ALTER TABLE
+			}
+		}
+		
+	}
+	
 	public void createTable() {
 		try {
             if (!checkConnection()) open();

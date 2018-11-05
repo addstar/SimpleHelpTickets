@@ -1,4 +1,4 @@
-package me.odium.simplehelptickets.utilities;
+package me.odium.simplehelptickets.helpers;
 
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.objects.TicketLocation;

@@ -1,5 +1,6 @@
-package me.odium.simplehelptickets.utilities;
+package me.odium.simplehelptickets.helpers;
 
+import me.odium.simplehelptickets.helpers.TestHelper;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;

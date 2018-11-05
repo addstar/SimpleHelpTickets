@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.ChatColor;
@@ -33,7 +34,7 @@ public class PurgeTicketsCommand implements CommandExecutor {
 		}
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label);
+		String targetTable = TicketManager.getTableNamefromCommandString(label);
 		String itemNamePlural = Utilities.GetTargetItemName(targetTable) + "s";
 
 		if (args.length == 0) {

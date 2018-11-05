@@ -1,5 +1,8 @@
 package me.odium.simplehelptickets.utilities;
 
+import me.odium.simplehelptickets.helpers.TestCommandSender;
+import me.odium.simplehelptickets.helpers.TestHelper;
+import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import org.bukkit.command.CommandSender;
 import org.junit.Test;
@@ -24,7 +27,7 @@ public class UtilitiesTest {
 
     @Test
     public void getTargetTableName() {
-        assertEquals(Utilities.GetTargetTableName("someRandomIdeaCommand"), Utilities.IDEA_TABLE_NAME);
+        assertEquals(TicketManager.getTableNamefromCommandString("someRandomIdeaCommand"), Utilities.IDEA_TABLE_NAME);
         assertEquals(Utilities.GetTargetItemName(Utilities.IDEA_TABLE_NAME), "idea");
     }
 

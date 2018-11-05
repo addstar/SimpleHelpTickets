@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
+import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.command.Command;
@@ -24,7 +25,7 @@ public class ReplyTicketCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
 		// Use the command name to determine if we are working with a ticket or an idea
-		String targetTable = Utilities.GetTargetTableName(label);
+		String targetTable = TicketManager.getTableNamefromCommandString(label);
 		String itemName = Utilities.GetTargetItemName(targetTable);
 
 		if (args.length <= 1) {
