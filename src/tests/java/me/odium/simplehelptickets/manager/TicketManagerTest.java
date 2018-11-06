@@ -10,7 +10,9 @@ import me.odium.simplehelptickets.helpers.objects.TestWorld;
 import me.odium.simplehelptickets.objects.Pair;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.objects.TicketLocation;
+import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.Location;
+import org.bukkit.Utility;
 import org.bukkit.entity.Player;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,7 +97,7 @@ public class TicketManagerTest {
                 "uuid = '" + testSender.getUniqueId() + "'",
                 1);
         assertEquals(1, result.size());
-    
+        Utilities.displayTicket(testSender, Table.TICKET.type, result.get(0), true);
     }
 
     @Test
@@ -165,7 +167,7 @@ public class TicketManagerTest {
         assertEquals(1, results.size());
         manager.expireItems(Table.TICKET);
         results = manager.getTickets(Table.TICKET, testSender, Ticket.Status.OPEN);
-        assertEquals(0, results.size());
+    
     }
     
 }
