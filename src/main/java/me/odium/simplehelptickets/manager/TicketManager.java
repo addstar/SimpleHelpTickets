@@ -325,7 +325,16 @@ public class TicketManager {
 
     private Ticket getFromResultRow(ResultSet result) throws SQLException {
         int id = result.getInt("id");
-        UUID uuid = UUID.fromString(result.getString("uuid"));
+        String owner = result.getString("uuid");
+        UUID uuid = null;
+        try {
+            uuid = UUID.fromString(owner);
+        } catch (IllegalArgumentException e) {
+            if (!owner.equalsIgnoreCase("CONSOLE")) {
+                log.info(e.getMessage());
+                e.printStackTrace();
+            }
+        }
         World world = null;
         try {
             world = Bukkit.getWorld(result.getString("world"));
