@@ -126,10 +126,14 @@ public class TicketManager {
             int done = 0;
         
             for (Ticket ticket : tickets) {
+                String owner = "CONSOLE";
+                if (ticket.getOwner() != null) {
+                    owner = ticket.getOwner().toString();
+                }
                 if (ticket.getId() == null) {
                     insertSQL.setString(1, ticket.getDescription());
                     insertSQL.setDate(2, ticket.getCreatedDate());
-                    insertSQL.setString(3, ticket.getOwner().toString());
+                    insertSQL.setString(3, owner);
                     insertSQL.setString(4, ticket.getOwnerName());
                     TicketLocation loc = ticket.getLocation();
                     if (loc != null) {

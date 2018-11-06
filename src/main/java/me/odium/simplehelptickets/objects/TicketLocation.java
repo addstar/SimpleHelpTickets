@@ -1,6 +1,7 @@
 package me.odium.simplehelptickets.objects;
 
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 /**
@@ -18,16 +19,27 @@ public class TicketLocation {
     private String server;
 
     public TicketLocation(Location location, String server) {
-        this.location = location;
-        x = location.getX();
-        y = location.getY();
-        z = location.getZ();
-        pitch = location.getPitch();
-        yaw = location.getYaw();
-        try {
-            world = location.getWorld().getName();
-        } catch (NullPointerException e) {
-            world = null;
+        if (location != null) {
+            this.location = location;
+            x = location.getX();
+            y = location.getY();
+            z = location.getZ();
+            pitch = location.getPitch();
+            yaw = location.getYaw();
+            try {
+                world = location.getWorld().getName();
+            } catch (NullPointerException e) {
+                world = null;
+            }
+        } else {
+            this.location = null;
+            x = 0D;
+            y = 0D;
+            z = 0D;
+            world = "NONE";
+            yaw = 0F;
+            pitch = 0F;
+
         }
         this.server = server;
     }
