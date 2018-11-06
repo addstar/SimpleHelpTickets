@@ -46,7 +46,7 @@ public class CloseTicketCommand implements CommandExecutor {
         if (sender instanceof Player) {
             player = (Player) sender;
         }
-        Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(player, table, Ticket.Status.OPEN, id);
+        Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(null, table, Ticket.Status.OPEN, id);
         if (result.object1 == 0) {
             sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", idText));
             return true;
@@ -73,6 +73,7 @@ public class CloseTicketCommand implements CommandExecutor {
             }
             ticket.setStatus(Ticket.Status.CLOSE);
             ticket.setAdmin(admin);
+            ticket.setExpirationDate(new Timestamp(plugin.getExpiration().getTime()));
             if (plugin.getManager().saveTicket(ticket, table)) {
                 if (Objects.equals(table, Table.IDEA)) {
                     messageName = "IdeaClosed";
