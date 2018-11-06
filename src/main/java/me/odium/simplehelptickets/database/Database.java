@@ -23,8 +23,8 @@ public abstract class Database {
     }
 
 	public abstract Connection getConnection();
-
-	public abstract void createTable();
+    
+    public abstract void createTable() throws SQLException;
 
     public abstract boolean clearTable(Table tableName);
 
@@ -37,7 +37,7 @@ public abstract class Database {
     protected void checkVersion() {
         try {
             Statement s = connection.createStatement();
-            ResultSet rs = s.executeQuery("SELECT * FROM VERSION");
+            ResultSet rs = s.executeQuery("SELECT * FROM version");
             rs.next();
             int dbVersion = rs.getInt(1);
             if (dbVersion == version) {
@@ -48,8 +48,6 @@ public abstract class Database {
         } catch (SQLException e) {
             //assume no version hence current is 0
             update(0);
-            e.printStackTrace();
-            
         }
     }
 

@@ -1,4 +1,4 @@
-package me.odium.simplehelptickets.helpers;
+package me.odium.simplehelptickets.helpers.objects;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 import org.bukkit.configuration.file.FileConfiguration;

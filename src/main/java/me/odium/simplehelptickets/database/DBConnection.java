@@ -45,10 +45,9 @@ public class DBConnection extends Database {
 		} catch (Exception ignore) {
 		}
 	}
-
-	public void createTable() {
+	
+	public void createTable() throws SQLException {
 		Statement stmt;
-		try {
             stmt = connection.createStatement();
 
 			String columnList = " (id INTEGER PRIMARY KEY, description text, date datetime, "
@@ -65,9 +64,6 @@ public class DBConnection extends Database {
 			stmt.executeUpdate(queryIdeas);
 
 			stmt.close();
-		} catch (Exception e) {
-			plugin.log.info("[Tickets] SQLite createTable Error: " + e);
-		}
 	}
 
 	@Override

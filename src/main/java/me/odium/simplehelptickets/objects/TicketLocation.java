@@ -24,14 +24,19 @@ public class TicketLocation {
         z = location.getZ();
         pitch = location.getPitch();
         yaw = location.getYaw();
-        world = location.getWorld().getName();
-        server = null;
+        try {
+            world = location.getWorld().getName();
+        } catch (NullPointerException e) {
+            world = null;
+        }
+        this.server = server;
     }
 
     public TicketLocation(Double x, Double y, Double z, String world, Float pitch, Float yaw, String server) {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.world = world;
         this.pitch = pitch;
         this.yaw = yaw;
         this.server = server;

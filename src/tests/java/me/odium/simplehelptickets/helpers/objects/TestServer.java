@@ -1,4 +1,4 @@
-package me.odium.simplehelptickets.helpers;
+package me.odium.simplehelptickets.helpers.objects;
 
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;

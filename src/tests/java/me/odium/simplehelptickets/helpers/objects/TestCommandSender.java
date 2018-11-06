@@ -1,4 +1,4 @@
-package me.odium.simplehelptickets.helpers;
+package me.odium.simplehelptickets.helpers.objects;
 
 import me.odium.simplehelptickets.helpers.TestHelper;
 import org.bukkit.*;
@@ -9,7 +9,6 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.PistonMoveReaction;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.entity.*;
@@ -35,6 +34,8 @@ import java.util.*;
  * Created by benjamincharlton on 4/11/2018.
  */
 public class TestCommandSender implements Player {
+    private UUID uuid = UUID.randomUUID();
+    private Location location = new Location(null, 0, 0, 0, 0F, 0F);
     @Override
     public void sendMessage(String s) {
         System.out.println(s);
@@ -49,12 +50,12 @@ public class TestCommandSender implements Player {
 
     @Override
     public Location getLocation() {
-        return null;
+        return location;
     }
 
     @Override
     public Location getLocation(Location location) {
-        return null;
+        return location;
     }
 
     @Override
@@ -89,7 +90,8 @@ public class TestCommandSender implements Player {
 
     @Override
     public boolean teleport(Location location) {
-        return false;
+        this.location = location;
+        return true;
     }
 
     @Override
@@ -219,7 +221,7 @@ public class TestCommandSender implements Player {
 
     @Override
     public UUID getUniqueId() {
-        return null;
+        return uuid;
     }
 
     @Override
@@ -344,7 +346,7 @@ public class TestCommandSender implements Player {
 
     @Override
     public String getName() {
-        return "TEST_LOG";
+        return "TEST_PLAYER";
     }
 
     @Override
@@ -534,7 +536,7 @@ public class TestCommandSender implements Player {
 
     @Override
     public String getDisplayName() {
-        return null;
+        return "TEST_DISPLAY_NAME";
     }
 
     @Override
@@ -544,7 +546,7 @@ public class TestCommandSender implements Player {
 
     @Override
     public String getPlayerListName() {
-        return null;
+        return "TEST_DISPLAY_NAME";
     }
 
     @Override
@@ -634,7 +636,7 @@ public class TestCommandSender implements Player {
 
     @Override
     public boolean performCommand(String s) {
-        return false;
+        return true;
     }
 
     @Override

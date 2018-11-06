@@ -1,15 +1,20 @@
 package me.odium.simplehelptickets.utilities;
 
+import me.odium.simplehelptickets.database.Database;
+import me.odium.simplehelptickets.database.MySQLConnection;
 import me.odium.simplehelptickets.database.Table;
-import me.odium.simplehelptickets.helpers.TestCommandSender;
+import me.odium.simplehelptickets.helpers.objects.TestCommandSender;
 import me.odium.simplehelptickets.helpers.TestHelper;
+import me.odium.simplehelptickets.helpers.objects.TestWorld;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Ticket;
-import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Calendar;
 import java.sql.Date;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
@@ -18,7 +23,20 @@ import static org.junit.Assert.*;
  * Created by benjamincharlton on 4/11/2018.
  */
 public class UtilitiesTest {
-
+    
+    private TicketManager manager;
+    private Player testSender;
+    
+    @Before
+    public void setup() {
+        Logger log = Logger.getLogger("Test");
+        Database database = new MySQLConnection(null, log);
+        manager = new TicketManager(database, log);
+        testSender = new TestCommandSender();
+        TestWorld world = new TestWorld();
+        testSender.teleport(world.getSpawnLocation());
+        world.addPlayer(testSender);
+    }
     @Test
     public void dateToString() {
         Date date = new Date(1541332471807L);
@@ -58,18 +76,17 @@ public class UtilitiesTest {
 
     @Test
     public void displayTest() {
-        CommandSender sender = new TestCommandSender();
-        Ticket ticket = TestHelper.createTestTicket(true);
-        Utilities.displayTicket(sender, "ticket", ticket, false);
-        sender.sendMessage(" -------------------------");
-        Utilities.ShowTicketInfo(sender, ticket, true);
+        Ticket ticket = TestHelper.createTestTicket(true, testSender);
+        Utilities.displayTicket(testSender, "ticket", ticket, false);
+        testSender.sendMessage(" -------------------------");
+        Utilities.ShowTicketInfo(testSender, ticket, true);
         ticket.setAdmin("TESTADMIN");
         ticket.setAdminReply("A silly test response");
         ticket.setUserReply("Yes its a very silly response");
-        sender.sendMessage(" -------------------------");
-        Utilities.displayTicket(sender, "ticket", ticket, false);
-        sender.sendMessage(" -------------------------");
-        Utilities.ShowTicketInfo(sender, ticket, true);
+        testSender.sendMessage(" -------------------------");
+        Utilities.displayTicket(testSender, "ticket", ticket, true);
+        testSender.sendMessage(" -------------------------");
+        Utilities.ShowTicketInfo(testSender, ticket, true);
 
 
     }

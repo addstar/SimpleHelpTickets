@@ -1,24 +1,24 @@
 package me.odium.simplehelptickets.manager;
 
+import javafx.util.converter.TimeStringConverter;
 import me.odium.simplehelptickets.database.Database;
 import me.odium.simplehelptickets.database.MySQLConnection;
 import me.odium.simplehelptickets.database.Table;
+import me.odium.simplehelptickets.helpers.objects.TestCommandSender;
 import me.odium.simplehelptickets.helpers.TestHelper;
+import me.odium.simplehelptickets.helpers.objects.TestWorld;
+import me.odium.simplehelptickets.objects.Pair;
 import me.odium.simplehelptickets.objects.Ticket;
-import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.junit.Before;
 import org.junit.Test;
-import sun.rmi.runtime.Log;
 
-import javax.xml.crypto.Data;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -29,14 +29,25 @@ import static org.junit.Assert.*;
  */
 public class TicketManagerTest {
     TicketManager manager;
+    Player testSender;
 
     @Before
     public void Setup() throws FileNotFoundException {
         Logger log = Logger.getLogger("Test");
         Database database = new MySQLConnection(null, log);
         manager = new TicketManager(database, log);
+        testSender = new TestCommandSender();
+        TestWorld world = new TestWorld();
+        testSender.teleport(world.getSpawnLocation());
+        world.addPlayer(testSender);
+        
     }
-
+    
+    @Test
+    public void createTableTest() {
+        assertTrue(manager.createTables());
+    }
+    
     @Test
     public void getTargetItemName() {
         Table table = TicketManager.getTargetItemName(Table.IDEA.tableName);
@@ -57,38 +68,96 @@ public class TicketManagerTest {
 
     @Test
     public void saveTicket() {
-        Ticket ticket = TestHelper.createTestTicket(false);
+        Ticket ticket = TestHelper.createTestTicket(false, testSender);
         assertTrue(manager.saveTicket(ticket, Table.TICKET));
-        List<Ticket> result = manager.getTickets(Table.TICKET, "owner = '" + ticket.getOwner().toString() + "'", 1);
-        assert (result.size() == 1);
-        assertEquals(result.get(0), ticket);
+        List<Ticket> result = manager.getTickets(Table.TICKET,
+                "uuid = '" + testSender.getUniqueId() + "'",
+                1);
+        assertEquals(1, result.size());
+        assertEquals(result.get(0).getOwnerName(), ticket.getOwnerName());
+        assertEquals(result.get(0).getLocation().getWorld(), ticket.getLocation().getWorld());
+        Ticket updated = result.get(0);
+        String adminReply = "A random Response";
+        updated.setAdminReply(adminReply);
+        manager.saveTicket(updated, Table.TICKET);
+        Pair<Integer, Timestamp> out = manager.getTicketCount(testSender, Table.TICKET,
+                Ticket.Status.OPEN,
+                null);
+        assertEquals((Integer) 1, out.object1);
+        result = manager.getTickets(Table.TICKET, "id =" + updated.getId(), 1);
+        assertEquals(adminReply, result.get(0).getAdminReply());
     }
 
     @Test
     public void deleteTickets() {
+        Ticket ticket = TestHelper.createTestTicket(false, testSender);
+        ticket.setStatus(Ticket.Status.CLOSE);
+        manager.saveTicket(ticket, Table.TICKET);
+        Pair<Integer, Timestamp> closed = manager.getTicketCount(null, Table.TICKET, Ticket.Status.CLOSE, null);
+        assertNotSame((Integer) 0, closed.object1);
+        manager.deleteTickets(Table.TICKET, Ticket.Status.CLOSE);
+        Pair<Integer, Timestamp> update = manager.getTicketCount(null, Table.TICKET,
+                Ticket.Status.CLOSE, null);
+        assertEquals((Integer) 0, update.object1);
+    
     }
 
     @Test
     public void deleteTicketbyId() {
+        Ticket ticket = TestHelper.createTestTicket(false, testSender);
+        manager.saveTicket(ticket, Table.TICKET);
+        Pair<Integer, Timestamp> update = manager.getTicketCount(testSender, Table.TICKET,
+                null, null);
+        assertEquals((Integer) 1, update.object1);
+        List<Ticket> result = manager.getTickets(Table.TICKET,
+                "uuid='" + testSender.getUniqueId().toString() + "'", 1);
+        Ticket updated = result.get(0);
+        manager.deleteTicketbyId(Table.TICKET, updated.getId());
+        update = manager.getTicketCount(testSender, Table.TICKET,
+                null, null);
+        assertEquals((Integer) 0, update.object1);
     }
 
     @Test
     public void saveTickets() {
+        Ticket ticket = TestHelper.createTestTicket(false, testSender);
+        List<Ticket> tickets = new ArrayList<>();
+        tickets.add(ticket);
+        manager.saveTickets(tickets, Table.TICKET);
+        Pair<Integer, Timestamp> update = manager.getTicketCount(testSender, Table.TICKET,
+                null, null);
+        assertEquals((Integer) 1, update.object1);
+    
     }
-
+    
     @Test
-    public void getTicketCount() {
+    public void getTicketsTest() {
+        Ticket ticket = TestHelper.createTestTicket(false, testSender);
+        Ticket ticket2 = TestHelper.createTestTicket(false, testSender);
+        List<Ticket> tickets = new ArrayList<>();
+        tickets.add(ticket);
+        tickets.add(ticket2);
+        manager.saveTickets(tickets, Table.TICKET);
+        List<Ticket> results = manager.getTickets(Table.TICKET, testSender, Ticket.Status.OPEN);
+        assertEquals(2, results.size());
+        manager.deleteTicketbyId(Table.TICKET, results.get(0).getId());
+        results = manager.getTickets(Table.TICKET, testSender, Ticket.Status.OPEN);
+        assertEquals(1, results.size());
+    
     }
-
     @Test
-    public void getTickets() {
+    public void expireTicketsTest() {
+        Ticket ticket = TestHelper.createTestTicket(false, testSender);
+        Timestamp time = new Timestamp(System.currentTimeMillis() - 100000000);
+        ticket.setExpirationDate(time);
+        manager.saveTicket(ticket, Table.TICKET);
+        List<Ticket> results = manager.getTickets(Table.TICKET, testSender, Ticket.Status.OPEN);
+        assertEquals(1, results.size());
+        manager.expireItems(Table.TICKET);
+        results = manager.getTickets(Table.TICKET, testSender, Ticket.Status.OPEN);
+        assertEquals(0, results.size());
+    
+    
     }
-
-    @Test
-    public void expireItems() {
-    }
-
-    @Test
-    public void findTickets() {
-    }
+    
 }

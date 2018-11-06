@@ -3,6 +3,7 @@ package me.odium.simplehelptickets.utilities;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 import me.odium.simplehelptickets.objects.Ticket;
+import me.odium.simplehelptickets.objects.TicketLocation;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -126,8 +127,12 @@ public class Utilities {
         sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + ticket.getOwnerName());
         sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateToString(ticket.getCreatedDate()));
 		if (multiworld) {
-            String strloc = "(" + ticket.getLocation().getX() + ", " + ticket.getLocation().getY() + ", " + ticket.getLocation().getZ() + ")";
-			sender.sendMessage(ChatColor.BLUE + " Location: " + ChatColor.WHITE + ticket.getLocation().getWorld() + " " + ChatColor.GRAY + strloc);
+            TicketLocation tLocation = ticket.getLocation();
+            String strloc = "(" + tLocation.getX() + ", " + tLocation.getY() + ", " + tLocation.getZ() + ")";
+            sender.sendMessage(ChatColor.BLUE + " Location: " + ChatColor.WHITE + tLocation.getWorld() + " " + ChatColor.GRAY + strloc);
+            if (tLocation.getServer() != null) {
+                sender.sendMessage(ChatColor.BLUE + " Server: " + ChatColor.WHITE + tLocation.getServer());
+            }
         }
         if (ticket.isOpen()) {
             sender.sendMessage(ChatColor.BLUE + " Status: " + ChatColor.GREEN + ticket.getStatus().name());

@@ -134,10 +134,8 @@ public class SimpleHelpTickets extends JavaPlugin {
 		ccfgOptions.copyDefaults(true);
 		ccfgOptions.copyHeader(true);
 		saveOutputConfig();
-		manager =  new TicketManager(this);
 		// declare new listener
-		PListener listener = new PListener(manager);
-		Bukkit.getServer().getPluginManager().registerEvents(listener,this);
+
 
 		// declare executors
 		this.getCommand("sht").setExecutor(new SimpleHelpTicketCommand(this));
@@ -173,6 +171,7 @@ public class SimpleHelpTickets extends JavaPlugin {
                 e.printStackTrace();
 			}
 		}
+		manager = new TicketManager(this);
 		if(this.getConfig().getBoolean("useSimpleMail", false)){
             Plugin plugin = Bukkit.getPluginManager().getPlugin("SimpleMail");
             if (plugin instanceof SimpleMailPlugin) {
@@ -180,6 +179,8 @@ public class SimpleHelpTickets extends JavaPlugin {
                 useMail = true;
             }
         }
+		PListener listener = new PListener(manager);
+		Bukkit.getServer().getPluginManager().registerEvents(listener, this);
 		// Check for and delete any expired tickets, display progress.
 		log.info("[SimpleHelpTickets] " + expireTickets() + " Expired Tickets Deleted");
 
