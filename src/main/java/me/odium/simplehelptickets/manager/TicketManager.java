@@ -26,13 +26,6 @@ import static java.sql.Types.TIMESTAMP;
  * Created by benjamincharlton on 18/07/2017.
  */
 public class TicketManager {
-
-    public static Map<String, String> tableNames = new HashMap<>();
-
-    static {
-        tableNames.put("idea", "SHT_Ideas");
-        tableNames.put("ticket", "SHT_Tickets");
-    }
     
     private final Database database;
     private final Logger log;
