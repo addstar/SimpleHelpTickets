@@ -237,6 +237,7 @@ public class TicketManager {
             if (param > 1) where += " AND ";
             where += "id = ?";
             idIndex = param;
+            param++;
         }
         
         String sql = "SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem " +

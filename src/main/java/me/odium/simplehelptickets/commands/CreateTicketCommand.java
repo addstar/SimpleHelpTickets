@@ -107,12 +107,12 @@ public class CreateTicketCommand implements CommandExecutor {
 							return true;
 						}
 						// Get Unix time (in seconds) of the newest ticket or idea
-					long newestItem = result.object2.getTime();
-					if (WaitingForCooldown(newestItem, table, ticketCooldownSeconds, ideaCooldownSeconds, sender)) {
+                    if (result.object2 != null) {
+                        long newestItem = result.object2.getTime();
+                        if (WaitingForCooldown(newestItem, table, ticketCooldownSeconds, ideaCooldownSeconds, sender)) {
 							return true;
 						}
-
-
+                    }
                 }
 			return insertRecord(sender, table, details, userreply, expire, adminreply, admin, status, location, owner, uuid, date);
         }
