@@ -16,16 +16,23 @@ import java.util.Objects;
 
 public class Utilities {
 
-	private static final SimpleDateFormat mShortDateFormater;
+	private static final SimpleDateFormat mShortDateFormatter;
+	private static final SimpleDateFormat mShortDateTimeFormatter;
 
 	static {
 		// Static constructor
-		mShortDateFormater = new SimpleDateFormat("yyyy-MM-dd");
+		mShortDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		mShortDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd h:m a");
 	}
 
     public static String dateToString(java.sql.Date date) {
-        return mShortDateFormater.format(date);
+        return mShortDateFormatter.format(date);
     }
+
+	public static String dateTimeToString(java.sql.Date date) {
+		return mShortDateTimeFormatter.format(date);
+	}
+
 	public static String DateToString(long milliSecondTime, SimpleDateFormat dateFormatter) {
 		return dateFormatter.format(milliSecondTime);
 	}
@@ -89,7 +96,7 @@ public class Utilities {
 
 		if (showDates) {
             Date ticketDate = ticket.getCreatedDate();
-			formattedTicketID += ", " + ChatColor.DARK_AQUA + DateToString(ticketDate, mShortDateFormater);
+			formattedTicketID += ", " + ChatColor.DARK_AQUA + DateToString(ticketDate, mShortDateFormatter);
 		}
 		formattedTicketID += ChatColor.GOLD + ") ";
 
@@ -125,7 +132,7 @@ public class Utilities {
 	public static void displayTicket(CommandSender sender, String type, Ticket ticket, boolean multiworld) {
         sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + type + " " + ticket.getId() + ChatColor.RESET + ChatColor.GOLD + " ]");
         sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + ticket.getOwnerName());
-        sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateToString(ticket.getCreatedDate()));
+        sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateTimeToString(ticket.getCreatedDate()));
 		if (multiworld) {
             TicketLocation tLocation = ticket.getLocation();
             String strloc = "(" + tLocation.getX() + ", " + tLocation.getY() + ", " + tLocation.getZ() + ")";
