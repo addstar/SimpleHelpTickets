@@ -7,6 +7,7 @@ import me.odium.simplehelptickets.objects.TicketLocation;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -135,7 +136,8 @@ public class Utilities {
         sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateTimeToString(ticket.getCreatedDate()));
 		if (multiworld) {
             TicketLocation tLocation = ticket.getLocation();
-            String strloc = "(" + tLocation.getX() + ", " + tLocation.getY() + ", " + tLocation.getZ() + ")";
+			DecimalFormat df = new DecimalFormat("#.00");
+			String strloc = "(" + df.format(tLocation.getX()) + ", " + df.format(tLocation.getY()) + ", " + df.format(tLocation.getZ()) + ")";
             sender.sendMessage(ChatColor.BLUE + " Location: " + ChatColor.WHITE + tLocation.getWorld() + " " + ChatColor.GRAY + strloc);
             if (tLocation.getServer() != null) {
                 sender.sendMessage(ChatColor.BLUE + " Server: " + ChatColor.WHITE + tLocation.getServer());
