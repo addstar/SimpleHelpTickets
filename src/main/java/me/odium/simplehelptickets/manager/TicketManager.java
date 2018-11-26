@@ -483,7 +483,7 @@ public class TicketManager {
         String sqlStatement = "SELECT * FROM " + table.tableName +
                 " WHERE id >= ? AND id <= ? AND owner LIKE ? AND admin LIKE ? AND " +
                 " (description LIKE ? OR userreply LIKE ? OR adminreply LIKE ?) AND ";
-        String recentTimeStartDate = Utilities.DateToString(recentTimeStartMillisec, dateFormatter);
+        String recentTimeStartDate = Utilities.dateToString(recentTimeStartMillisec, dateFormatter);
 
         if (dateRangeDefined) {
 
@@ -497,7 +497,7 @@ public class TicketManager {
                 cal.setTime(parsedDate);
                 cal.add(Calendar.DATE, 1);
 
-                endDate = Utilities.DateToString(cal, dateFormatter);
+                endDate = Utilities.dateToString(cal, dateFormatter);
             }
 
             if (dateRangeDefined && mostRecentTimeDefined)

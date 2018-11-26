@@ -47,7 +47,7 @@ public class PurgeTicketsCommand implements CommandExecutor {
 			else
 				expiredItems= plugin.expireTickets();
 
-			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + expiredItems + ChatColor.WHITE + " expired " + Utilities.CheckPlural(itemNamePlural, expiredItems) + " purged");
+			sender.sendMessage(plugin.GRAY + "[Tickets] " + ChatColor.GOLD + expiredItems + ChatColor.WHITE + " expired " + Utilities.checkPlural(itemNamePlural, expiredItems) + " purged");
 
 			return true;
 		} else if (args.length == 1 && args[0].equalsIgnoreCase("-c")) {

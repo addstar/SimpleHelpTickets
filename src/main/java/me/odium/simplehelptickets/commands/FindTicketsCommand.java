@@ -70,7 +70,7 @@ public class FindTicketsCommand implements CommandExecutor {
         cal.add(Calendar.DATE, 1);
 
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String endDate = Utilities.DateToString(cal, dateFormatter);
+        String endDate = Utilities.dateToString(cal, dateFormatter);
 
         String sortDirection = "asc";
 
@@ -147,7 +147,7 @@ public class FindTicketsCommand implements CommandExecutor {
                         return true;
                     }
 
-                    startDate = Utilities.DateToString(parsedDate, dateFormatter);
+                    startDate = Utilities.dateToString(parsedDate, dateFormatter);
                     dateRangeDefined = true;
                 }
 
@@ -164,7 +164,7 @@ public class FindTicketsCommand implements CommandExecutor {
                         return true;
                     }
 
-                    endDate = Utilities.DateToString(parsedDate, dateFormatter);
+                    endDate = Utilities.dateToString(parsedDate, dateFormatter);
                     dateRangeDefined = true;
                 }
 
@@ -329,7 +329,7 @@ public class FindTicketsCommand implements CommandExecutor {
 
             } else if (ticketsFound > 2) {
                 if (ticketsFound < ticketsToShow || ticketsToShow >= maxRecordsToReturn)
-                    sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " " + Utilities.CheckPlural(itemNamePlural, ticketsFound) + " found");
+                    sender.sendMessage(plugin.GREEN + Utilities.NumToString(ticketsFound) + " " + Utilities.checkPlural(itemNamePlural, ticketsFound) + " found");
                 else {
                     int newMax = ticketsToShow * 2;
                     if (newMax > maxRecordsToReturn)

@@ -89,7 +89,7 @@ public class ListTicketCommand implements CommandExecutor {
 						ReportNoItems(sender, table);
 					} else {
 						if (itemsFound < maxRecordsToReturn)
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " open " + Utilities.CheckPlural(itemNamePlural, itemsFound));
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " open " + Utilities.checkPlural(itemNamePlural, itemsFound));
 						else
 							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " most recent open " + itemNamePlural + "; filter with /find" + itemNamePlural);
 					}
@@ -100,7 +100,7 @@ public class ListTicketCommand implements CommandExecutor {
 						tickets = plugin.getManager().getTickets(Table.IDEA, "status='OPEN'", maxRecordsToReturn);
                         int ideasFound = tickets.size();
 						if (ideasFound > 0) {
-							sender.sendMessage(plugin.BLUE + Utilities.NumToString(ideasFound) + " open " + Utilities.CheckPlural("ideas", ideasFound));
+							sender.sendMessage(plugin.BLUE + Utilities.NumToString(ideasFound) + " open " + Utilities.checkPlural("ideas", ideasFound));
 						}
 					}
 
@@ -120,7 +120,7 @@ public class ListTicketCommand implements CommandExecutor {
 						ReportNoItems(sender, table);
 					} else {
 						if (itemsFound < maxRecordsToReturn)
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.checkPlural(itemNamePlural, itemsFound));
 						else
 							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " most recent " + itemNamePlural + "; filter with /find" + itemNamePlural);
 					}
@@ -142,7 +142,7 @@ public class ListTicketCommand implements CommandExecutor {
 						return true;
 					} else {
 						if (itemsFound < maxRecordsToReturn)
-							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
+							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.checkPlural(itemNamePlural, itemsFound));
 						else
 							sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " most recent closed " + itemNamePlural + "; filter with /find" + itemNamePlural);
 					}
@@ -164,7 +164,7 @@ public class ListTicketCommand implements CommandExecutor {
 				if (itemsFound == 0) {
 					ReportNoItems(sender, table);
 				} else {
-					sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.CheckPlural(itemNamePlural, itemsFound));
+					sender.sendMessage(plugin.GREEN + Utilities.NumToString(itemsFound) + " " + Utilities.checkPlural(itemNamePlural, itemsFound));
 				}
 				return true;
 		}

@@ -34,15 +34,15 @@ public class Utilities {
 		return mShortDateTimeFormatter.format(date);
 	}
 
-	public static String DateToString(long milliSecondTime, SimpleDateFormat dateFormatter) {
+	public static String dateToString(long milliSecondTime, SimpleDateFormat dateFormatter) {
 		return dateFormatter.format(milliSecondTime);
 	}
 
-	public static String DateToString(Calendar cal, SimpleDateFormat dateFormatter) {
-		return DateToString(cal.getTime(), dateFormatter);
+	public static String dateToString(Calendar cal, SimpleDateFormat dateFormatter) {
+		return dateToString(cal.getTime(), dateFormatter);
 	}
 
-	public static String DateToString(Date date, SimpleDateFormat dateFormatter) {
+	public static String dateToString(Date date, SimpleDateFormat dateFormatter) {
 		return dateFormatter.format(date.getTime());
 	}
 
@@ -50,7 +50,7 @@ public class Utilities {
 		return text.substring(0, 1).toUpperCase() + text.substring(1);
 	}
 
-	public static String CheckPlural(String pluralName, int itemCount) {
+	public static String checkPlural(String pluralName, int itemCount) {
 
 		// pluralName is assumed to end in "s"
 		// If itemCount is 0 or > 1, return pluralName
