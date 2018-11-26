@@ -13,6 +13,10 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.sql.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 
 import java.sql.*;
@@ -125,7 +129,11 @@ public class TicketManager {
                 }
                 if (ticket.getId() == null) {
                     insertSQL.setString(1, ticket.getDescription());
-                    insertSQL.setDate(2, ticket.getCreatedDate());
+
+                    long epochMillis = ticket.getCreatedDate().atZone(ZoneOffset.systemDefault()).toInstant().toEpochMilli();
+                    java.sql.Timestamp sqlTimestamp = new java.sql.Timestamp(epochMillis);
+                    insertSQL.setTimestamp(2, sqlTimestamp);
+
                     insertSQL.setString(3, owner);
                     insertSQL.setString(4, ticket.getOwnerName());
                     TicketLocation loc = ticket.getLocation();
@@ -357,8 +365,10 @@ public class TicketManager {
             tL = new TicketLocation(location, server);
         }
         String details = result.getString("description");
-        Date date = result.getDate("date");
-        Ticket ticket = new Ticket(id, uuid, details, date, tL);
+
+        java.sql.Timestamp sqlTimestamp = result.getTimestamp("date");
+        Ticket ticket = new Ticket(id, uuid, details, sqlTimestamp.toLocalDateTime(), tL);
+
         String ownerName = result.getString("owner");
         ticket.setOwnerName(ownerName);
         ticket.setAdminReply(result.getString("adminreply"));
@@ -409,8 +419,8 @@ public class TicketManager {
         PreparedStatement stmt2 = null;
         Connection con;
         int expirations = 0;
-        Date dateNEW;
-        Date expirationNEW;
+        LocalDateTime dateNEW;
+        LocalDateTime expirationNEW;
         try {
             con = database.getConnection();
             stmt = con.prepareStatement("SELECT * FROM " + table.tableName);
@@ -426,8 +436,10 @@ public class TicketManager {
                 // IF AN EXPIRATION HAS BEEN APPLIED
                 if (exp != null) {
                     // CONVERT DATE-STRINGS FROM DB TO DATES
-                    Date date = ticket.getCreatedDate();
-                    Date expiration = new Date(ticket.getExpirationDate().getTime());
+                    LocalDateTime date = ticket.getCreatedDate();
+                    LocalDateTime expiration = LocalDateTime.ofInstant(
+                            Instant.ofEpochMilli(ticket.getExpirationDate().getTime()), ZoneId.systemDefault());
+
                     dateNEW = date;
                     expirationNEW = expiration;
 

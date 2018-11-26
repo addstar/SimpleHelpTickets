@@ -10,6 +10,8 @@ import org.bukkit.command.CommandSender;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -20,18 +22,21 @@ public class Utilities {
 	private static final SimpleDateFormat mShortDateFormatter;
 	private static final SimpleDateFormat mShortDateTimeFormatter;
 
+	private static final DateTimeFormatter mLocalDateFormatter;
+    private static final DateTimeFormatter mLocalDateTimeFormatter;
+
 	static {
 		// Static constructor
 		mShortDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-		mShortDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd h:m a");
+		mShortDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd h:mm a");
+
+		mLocalDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		mLocalDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd h:mm a");
 	}
 
-    public static String dateToString(java.sql.Date date) {
-        return mShortDateFormatter.format(date);
-    }
+	public static String dateTimeToString(LocalDateTime date, DateTimeFormatter dateFormatter) {
 
-	public static String dateTimeToString(java.sql.Date date) {
-		return mShortDateTimeFormatter.format(date);
+		return dateFormatter.format(date);
 	}
 
 	public static String dateToString(long milliSecondTime, SimpleDateFormat dateFormatter) {
@@ -96,8 +101,8 @@ public class Utilities {
 		}
 
 		if (showDates) {
-            Date ticketDate = ticket.getCreatedDate();
-			formattedTicketID += ", " + ChatColor.DARK_AQUA + DateToString(ticketDate, mShortDateFormatter);
+			LocalDateTime ticketDate = ticket.getCreatedDate();
+			formattedTicketID += ", " + ChatColor.DARK_AQUA + dateTimeToString(ticketDate, mLocalDateFormatter);
 		}
 		formattedTicketID += ChatColor.GOLD + ") ";
 
@@ -133,7 +138,7 @@ public class Utilities {
 	public static void displayTicket(CommandSender sender, String type, Ticket ticket, boolean multiworld) {
         sender.sendMessage(ChatColor.GOLD + "[ " + ChatColor.WHITE + ChatColor.BOLD + type + " " + ticket.getId() + ChatColor.RESET + ChatColor.GOLD + " ]");
         sender.sendMessage(ChatColor.BLUE + " Owner: " + ChatColor.WHITE + ticket.getOwnerName());
-        sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateTimeToString(ticket.getCreatedDate()));
+        sender.sendMessage(ChatColor.BLUE + " Date: " + ChatColor.WHITE + Utilities.dateTimeToString(ticket.getCreatedDate(), mLocalDateTimeFormatter));
 		if (multiworld) {
             TicketLocation tLocation = ticket.getLocation();
 			DecimalFormat df = new DecimalFormat("#.00");
@@ -161,7 +166,7 @@ public class Utilities {
             sender.sendMessage(ChatColor.BLUE + " User Reply: " + ChatColor.YELLOW + ticket.getUserReply());
         }
         if (ticket.getExpirationDate() != null) {
-            String expiration = Utilities.dateToString(new java.sql.Date(ticket.getExpirationDate().getTime()));
+            String expiration = Utilities.dateToString(new java.sql.Date(ticket.getExpirationDate().getTime()), mShortDateFormatter);
             sender.sendMessage(ChatColor.BLUE + " Expiration: " + ChatColor.WHITE + expiration);
         }
     }
@@ -193,8 +198,12 @@ public class Utilities {
 	}
 
     public static java.sql.Date getCurrentDTG() {
-        return new java.sql.Date(Calendar.getInstance().getTime().getTime());
+        return java.sql.Date.valueOf(LocalDateTime.now().toLocalDate());
     }
+
+	public static LocalDateTime getCurrentLocalTime() {
+		return LocalDateTime.now();
+	}
 
 	public static java.util.Date parseDate(String dateValue, String dateFormat) {
 

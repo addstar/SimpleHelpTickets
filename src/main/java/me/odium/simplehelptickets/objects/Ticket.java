@@ -5,6 +5,7 @@ import org.bukkit.Location;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -15,7 +16,7 @@ public class Ticket {
 
     private final UUID owner;
     private final String description;
-    private final Date createdDate;
+    private final LocalDateTime createdDate;
     private final TicketLocation location;
     private Integer id;
     private String ownerName = "";
@@ -25,7 +26,7 @@ public class Ticket {
     private String admin = "";
     private Timestamp expirationDate;
 
-    public Ticket(int id, UUID owner, String description, Date createdDate, Location location) {
+    public Ticket(int id, UUID owner, String description, LocalDateTime createdDate, Location location) {
         this.id = id;
         this.owner = owner;
         this.description = description;
@@ -33,7 +34,7 @@ public class Ticket {
         this.location = new TicketLocation(location, Bukkit.getServer().getServerId());
     }
 
-    public Ticket(int id, UUID owner, String description, Date createdDate, TicketLocation location) {
+    public Ticket(int id, UUID owner, String description, LocalDateTime createdDate, TicketLocation location) {
         this.id = id;
         this.owner = owner;
         this.description = description;
@@ -41,14 +42,14 @@ public class Ticket {
         this.location = location;
     }
 
-    public Ticket(UUID owner, String description, Date createdDate, Location location) {
+    public Ticket(UUID owner, String description, LocalDateTime createdDate, Location location) {
         this.owner = owner;
         this.description = description;
         this.createdDate = createdDate;
         this.location = new TicketLocation(location, Bukkit.getServer().getServerId());
     }
 
-    public Ticket(UUID owner, String description, Date createdDate, TicketLocation location) {
+    public Ticket(UUID owner, String description, LocalDateTime createdDate, TicketLocation location) {
         this.owner = owner;
         this.description = description;
         this.createdDate = createdDate;
@@ -70,7 +71,7 @@ public class Ticket {
         return description;
     }
 
-    public Date getCreatedDate() {
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 

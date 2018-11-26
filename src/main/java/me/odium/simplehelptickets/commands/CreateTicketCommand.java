@@ -2,6 +2,7 @@ package me.odium.simplehelptickets.commands;
 
 import java.sql.*;
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
@@ -62,10 +63,10 @@ public class CreateTicketCommand implements CommandExecutor {
             Location location;
 			String owner;
             UUID uuid;
-            Date date;
+			LocalDateTime date;
 			if (player == null) {
 				// SET VARIABLES FOR CONSOLE
-                date = Utilities.getCurrentDTG();
+                date = Utilities.getCurrentLocalTime();
                 uuid = null;
 				owner = sender.getName();
                 location = null;
@@ -77,7 +78,7 @@ public class CreateTicketCommand implements CommandExecutor {
 				atConsole = true;
 			} else {
 				// SET VARIABLES FOR PLAYER
-                date = Utilities.getCurrentDTG();
+                date = Utilities.getCurrentLocalTime();
                 uuid = player.getUniqueId();
 				owner = player.getName();
                 location = player.getLocation();
@@ -119,7 +120,7 @@ public class CreateTicketCommand implements CommandExecutor {
         return true;
     }
 
-	private boolean insertRecord(CommandSender sender, Table table, String details, String userreply, String expire, String adminreply, String admin, Ticket.Status status, Location loc, String owner, UUID uuid, Date date) {
+	private boolean insertRecord(CommandSender sender, Table table, String details, String userreply, String expire, String adminreply, String admin, Ticket.Status status, Location loc, String owner, UUID uuid, LocalDateTime date) {
 		TicketLocation location = new TicketLocation(loc, Bukkit.getServer().getServerId());
 		Ticket ticket = new Ticket(uuid, details, date, location);
         ticket.setStatus(status);
