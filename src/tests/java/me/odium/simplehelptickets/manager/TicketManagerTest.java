@@ -84,7 +84,7 @@ public class TicketManagerTest {
         String adminReply = "A random Response";
         updated.setAdminReply(adminReply);
         manager.saveTicket(updated, Table.TICKET);
-        Pair<Integer, Timestamp> out = manager.getTicketCount(testSender, Table.TICKET,
+        Pair<Integer, Long> out = manager.getTicketCount(testSender, Table.TICKET,
                 Ticket.Status.OPEN,
                 null);
         assertEquals((Integer) 1, out.object1);
@@ -105,10 +105,10 @@ public class TicketManagerTest {
         Ticket ticket = TestHelper.createTestTicket(false, testSender);
         ticket.setStatus(Ticket.Status.CLOSE);
         manager.saveTicket(ticket, Table.TICKET);
-        Pair<Integer, Timestamp> closed = manager.getTicketCount(null, Table.TICKET, Ticket.Status.CLOSE, null);
+        Pair<Integer, Long> closed = manager.getTicketCount(null, Table.TICKET, Ticket.Status.CLOSE, null);
         assertNotSame((Integer) 0, closed.object1);
         manager.deleteTickets(Table.TICKET, Ticket.Status.CLOSE);
-        Pair<Integer, Timestamp> update = manager.getTicketCount(null, Table.TICKET,
+        Pair<Integer, Long> update = manager.getTicketCount(null, Table.TICKET,
                 Ticket.Status.CLOSE, null);
         assertEquals((Integer) 0, update.object1);
     
@@ -118,7 +118,7 @@ public class TicketManagerTest {
     public void deleteTicketbyId() {
         Ticket ticket = TestHelper.createTestTicket(false, testSender);
         manager.saveTicket(ticket, Table.TICKET);
-        Pair<Integer, Timestamp> update = manager.getTicketCount(testSender, Table.TICKET,
+        Pair<Integer, Long> update = manager.getTicketCount(testSender, Table.TICKET,
                 null, null);
         assertEquals((Integer) 1, update.object1);
         List<Ticket> result = manager.getTickets(Table.TICKET,
@@ -136,7 +136,7 @@ public class TicketManagerTest {
         List<Ticket> tickets = new ArrayList<>();
         tickets.add(ticket);
         manager.saveTickets(tickets, Table.TICKET);
-        Pair<Integer, Timestamp> update = manager.getTicketCount(testSender, Table.TICKET,
+        Pair<Integer, Long> update = manager.getTicketCount(testSender, Table.TICKET,
                 null, null);
         assertEquals((Integer) 1, update.object1);
     

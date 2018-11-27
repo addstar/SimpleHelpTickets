@@ -66,7 +66,7 @@ public class DeleteTicketCommand implements CommandExecutor {
                     sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
                     return true;
                 }
-				Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(null, table, null, id);
+				Pair<Integer, Long> result = plugin.getManager().getTicketCount(null, table, null, id);
 				if (result.object1 == 0) {
                     sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
                     return true;
@@ -88,7 +88,7 @@ public class DeleteTicketCommand implements CommandExecutor {
                     sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
                     return true;
 					}
-				Pair<Integer, Timestamp> result = plugin.getManager().getTicketCount(null, table, null, id);
+				Pair<Integer, Long> result = plugin.getManager().getTicketCount(null, table, null, id);
 				if (result.object1 == 0) {
 						sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
 						return true;
