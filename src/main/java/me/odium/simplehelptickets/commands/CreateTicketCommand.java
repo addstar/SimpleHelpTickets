@@ -203,7 +203,15 @@ public class CreateTicketCommand implements CommandExecutor {
 			long minutesRemaining = (long)Math.floor(minutesUntilNewItem);
 			int secondsRemaining = (int)Math.round((minutesUntilNewItem - minutesRemaining) * 60.0);
 
-			String remainingTime = Long.toString(minutesRemaining) + "m " + Integer.toString(secondsRemaining) + "s";
+			String remainingTime;
+			if (minutesRemaining > 90) {
+                long hoursRemaining = (long) Math.round(minutesUntilNewItem / 60.0);
+                remainingTime = Long.toString(hoursRemaining) + " hours";
+            } else if (minutesRemaining > 10) {
+                remainingTime = Long.toString(Math.round(minutesUntilNewItem)) + " minutes";
+			} else {
+                remainingTime = Long.toString(minutesRemaining) + " minutes, " + Integer.toString(secondsRemaining) + " seconds";
+            }
 
 			sender.sendMessage(plugin.getMessage(messageName).replace("&arg", remainingTime));
 
