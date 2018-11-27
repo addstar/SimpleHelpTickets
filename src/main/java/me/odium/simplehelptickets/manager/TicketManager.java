@@ -222,7 +222,7 @@ public class TicketManager {
         return true;
     }
     
-    public Pair<Integer, Timestamp> getTicketCount(Player player, Table table, Ticket.Status status, Integer ticketId) {
+    public Pair<Integer, Long> getTicketCount(Player player, Table table, Ticket.Status status, Integer ticketId) {
         String where = "";
         int param = 1;
         int playerIndex = 0;
@@ -263,7 +263,7 @@ public class TicketManager {
             if (idIndex > 0) statement.setInt(idIndex, ticketId);
             ResultSet rs = statement.executeQuery();
             rs.next();
-            return new Pair<>(rs.getInt(1), rs.getTimestamp(2));
+            return new Pair<>(rs.getInt(1), rs.getLong(2));
         } catch (SQLException e) {
             log.warning(e.getMessage());
             e.printStackTrace();
