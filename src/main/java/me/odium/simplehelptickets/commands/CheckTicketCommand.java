@@ -73,7 +73,7 @@ public class CheckTicketCommand implements CommandExecutor {
                 sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
                 return true;
             }
-            if (player == null || player.hasPermission("sht.admin") || tickets.get(0).getOwner() == player.getUniqueId()) {
+            if (player == null || player.hasPermission("sht.admin") || tickets.get(0).getOwner().equals(player.getUniqueId())) {
                 Utilities.displayTicket(sender, itemName, tickets.get(0), SimpleHelpTickets.instance.getConfig().getBoolean("MultiWorld", false));
             }
 			return true;

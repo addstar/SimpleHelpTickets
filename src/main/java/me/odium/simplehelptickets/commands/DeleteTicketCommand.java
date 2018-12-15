@@ -94,7 +94,7 @@ public class DeleteTicketCommand implements CommandExecutor {
 						return true;
 					}
 				List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + id, 1);
-                if (!player.hasPermission("sht.purgetickets") && !(tickets.get(0).getOwner() == player.getUniqueId())) {
+                if (!player.hasPermission("sht.purgetickets") && !(tickets.get(0).getOwner().equals(player.getUniqueId()))) {
                     sender.sendMessage(plugin.GRAY + "[SimpleHelpTickets] " + plugin.RED + itemName + " " + tickets.get(0).getId() + " is not your ticket to delete.");
 						return true;
                 }
