@@ -63,7 +63,7 @@ public class CloseTicketCommand implements CommandExecutor {
             return true;
         }
 
-        if (player == null || (ticket.getOwner() == player.getUniqueId()) || player.hasPermission("sht.admin")) {
+        if (player == null || (ticket.getOwner().equals(player.getUniqueId())) || player.hasPermission("sht.admin")) {
             String admin = "ADMIN";
 
             if (player == null) {
