@@ -93,17 +93,18 @@ public class TakeTicketCommand implements CommandExecutor {
         Ticket.Status status = ticket.getStatus();
         if (status == Ticket.Status.CLOSE) {
             sender.sendMessage(plugin.getMessage("CannotTakeClosedTicket").replace("&arg", String.valueOf(id)));
-				return true;
+            return true;
         }
 
+        // TELEPORT ADMIN
+        if (!owner.equalsIgnoreCase("CONSOLE")) {
+            player.teleport(location);
+        }
 
-			// TELEPORT ADMIN
-			if (!owner.equalsIgnoreCase("CONSOLE")) {
-                player.teleport(location);
-			}
-			// NOTIFY ADMIN AND USERS
-			String admin = player.getName();
-			// ASSIGN ADMIN
+        // NOTIFY ADMIN AND USERS
+        String admin = player.getName();
+
+        // ASSIGN ADMIN
         ticket.setAdmin(player.getDisplayName());
         if (plugin.getManager().saveTicket(ticket, table)) {
             if (Objects.equals(table, Table.IDEA))
@@ -123,8 +124,8 @@ public class TakeTicketCommand implements CommandExecutor {
             msg = plugin.getMessage(messageName).replace("&arg", String.valueOf(id)).replace("&admin", admin);
             plugin.notifyUser(msg, owner);
 
-				return true;
-			}
+            return true;
+        }
         return false;
 
 	}
