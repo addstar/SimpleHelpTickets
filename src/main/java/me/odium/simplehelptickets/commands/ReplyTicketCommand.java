@@ -73,7 +73,7 @@ public class ReplyTicketCommand implements CommandExecutor {
                     sender.sendMessage(plugin.getMessage("NoPermission"));
 					return true;
 				}
-                if (ticket.getOwner().equals(player.getUniqueId())) {
+                if (ticket.getOwner() != null && ticket.getOwner().equals(player.getUniqueId())) {
                     ticket.setUserReply(details);
 					if (plugin.getManager().saveTicket(ticket, table)) {
 						NotifyReplied(plugin, sender, id, table);

@@ -63,12 +63,12 @@ public class CloseTicketCommand implements CommandExecutor {
             return true;
         }
 
-        if (player == null || (ticket.getOwner().equals(player.getUniqueId())) || player.hasPermission("sht.admin")) {
+        if (player == null || (ticket.getOwner() != null && ticket.getOwner().equals(player.getUniqueId())) || player.hasPermission("sht.admin")) {
             String admin = "ADMIN";
 
             if (player == null) {
                 admin = sender.getName();
-            } else if (ticket.getOwner().equals(player.getUniqueId()) || player.hasPermission("sht.admin")) {
+            } else if (ticket.getOwner() != null && ticket.getOwner().equals(player.getUniqueId()) || player.hasPermission("sht.admin")) {
                 admin = player.getName();
             }
             ticket.setStatus(Ticket.Status.CLOSE);
@@ -150,9 +150,16 @@ public class CloseTicketCommand implements CommandExecutor {
             if (!(tickets.size() == 1)) {
                 sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[1]));
                 return false;
-                }
+            }
             Ticket ticket = tickets.get(0);
-            Player target = Bukkit.getPlayer(ticket.getOwner());
+
+            Player target;
+            if (ticket.getOwner() == null) {
+                target = null;
+            } else {
+                target = Bukkit.getPlayer(ticket.getOwner());
+            }
+
             if (player == null || player.hasPermission("sht.admin")) {
                 // SET THE ADMIN VARIABLE TO REFLECT CONSOLE/ADMIN
                 String admin = "ADMIN";
@@ -160,7 +167,7 @@ public class CloseTicketCommand implements CommandExecutor {
                     admin = sender.getName();
                     ticket.setStatus(Ticket.Status.OPEN);
                     ticket.setExpirationDate(null);
-                } else if (ticket.getOwner().equals(player.getUniqueId()) || player.hasPermission("sht.admin")) {
+                } else if (ticket.getOwner() != null && ticket.getOwner().equals(player.getUniqueId()) || player.hasPermission("sht.admin")) {
                     admin = player.getName();
                     ticket.setStatus(Ticket.Status.OPEN);
                     ticket.setExpirationDate(null);
