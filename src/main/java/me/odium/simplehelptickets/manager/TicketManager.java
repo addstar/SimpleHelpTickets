@@ -313,7 +313,7 @@ public class TicketManager {
         if (con != null) {
             try {
                 PreparedStatement statement = con.prepareStatement(sql);
-                if (param == 1) statement.setString(2, status.name());
+                if (param == 1) statement.setString(1, status.name());
                 if (param > 1) {
                     statement.setString(1, player.getUniqueId().toString());
                     statement.setString(2, status.name());
