@@ -53,7 +53,7 @@ public class DBConnection extends Database {
 			String columnList = " (id INTEGER PRIMARY KEY, description text, date datetime, "
 					+ "uuid varchar(36), owner varchar(20), world varchar(30), x double(30,20), y double(30,20), z double(30,20), "
 					+ "p double(30,20), f double(30,20), adminreply text, userreply text, status varchar(16), "
-					+ "admin varchar(30), expiration timestamp)";
+					+ "admin varchar(30), expiration timestamp, server varchar(30))";
 			
 			String queryTickets =
 					"CREATE TABLE IF NOT EXISTS " + TicketManager.getTableName("ticket") + " " + columnList;
