@@ -40,7 +40,7 @@ public abstract class Database {
             ResultSet rs = s.executeQuery("SELECT * FROM version");
             rs.next();
             int dbVersion = rs.getInt(1);
-            if (dbVersion == version) {
+            if (dbVersion >= version) {
                 log.info("MYSQL database is up to date");
             } else {
                 update(dbVersion);
