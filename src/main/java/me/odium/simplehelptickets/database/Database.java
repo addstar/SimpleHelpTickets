@@ -58,12 +58,12 @@ public abstract class Database {
                 switch (current) {
                     case 0:
                         for (Table table : Table.values()) {
-                            String sql = "ALTER TABLE " + table.tableName + " ADD server varchar(30) DEFAULT null  NULL; ";
+                            String sql = "ALTER TABLE " + table.tableName + " ADD server varchar(30) DEFAULT NULL";
                             this.getConnection().createStatement().executeUpdate(sql);
                         }
                         String sql = "CREATE TABLE version (version int DEFAULT 0)";
                         this.getConnection().createStatement().executeUpdate(sql);
-                        sql = "INSERT INTO VERSION (version) VALUES (1)";
+                        sql = "INSERT INTO version (version) VALUES (1)";
                         this.getConnection().createStatement().executeUpdate(sql);
                         updated = 1;
                     case 1:
