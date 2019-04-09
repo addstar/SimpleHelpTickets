@@ -83,7 +83,7 @@ public class TakeTicketCommand implements CommandExecutor {
         if (world == null) {
             String server = ticket.getLocation().getServer();
             sender.sendMessage(plugin.getMessage("InvalidWorld").replace("%world%", ticket.getLocation().getWorld()));
-            sender.sendMessage("Ticket was made  on " + server);
+            sender.sendMessage("Ticket was made on server " + server);
             return true;
         }
         Location location = ticket.getLocation().getLocation();

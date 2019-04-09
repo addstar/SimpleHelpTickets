@@ -249,7 +249,8 @@ public class TicketManager {
             param++;
         }
         
-        String sql = "SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem " +
+        String sql =
+                "SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem " +
                 "FROM " + table.tableName;
         if (param > 1) sql += " WHERE " + where;
         String uuidString = null;
