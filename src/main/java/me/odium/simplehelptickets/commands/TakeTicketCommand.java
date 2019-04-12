@@ -20,19 +20,19 @@ import org.bukkit.entity.Player;
 
 public class TakeTicketCommand implements CommandExecutor {
 
-	private final SimpleHelpTickets plugin;
+    private final SimpleHelpTickets plugin;
 
     public TakeTicketCommand(SimpleHelpTickets plugin) {
-		this.plugin = plugin;
-	}
+        this.plugin = plugin;
+    }
 
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		Player player = null;
-		if (sender instanceof Player) {
-			player = (Player) sender;
-		}
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        Player player = null;
+        if (sender instanceof Player) {
+            player = (Player) sender;
+        }
 
-		// Use the command name to determine if we are working with a ticket or an idea
+        // Use the command name to determine if we are working with a ticket or an idea
         Table table = TicketManager.getTableFromCommandString(label);
         String itemName = table.type;
         String messageName;
@@ -42,25 +42,25 @@ public class TakeTicketCommand implements CommandExecutor {
         } else {
             notExistMessageName = "TicketNotExist";
         }
-		if (player == null) {
-			sender.sendMessage(plugin.RED + "This command can only be run by a player, use /check" + itemName + " instead.");
-			return true;
-		}
+        if (player == null) {
+            sender.sendMessage(plugin.RED + "This command can only be run by a player, use /check" + itemName + " instead.");
+            return true;
+        }
 
-		if (args.length == 0) {
-			// Show syntax: /taketicket or /takeidea
-			sender.sendMessage(ChatColor.WHITE + "/take" + itemName + " <#>");
-			return true;
-		}
+        if (args.length == 0) {
+            // Show syntax: /taketicket or /takeidea
+            sender.sendMessage(ChatColor.WHITE + "/take" + itemName + " <#>");
+            return true;
+        }
 
-		for (char c : args[0].toCharArray()) {
-			if (!Character.isDigit(c)) {
-				sender.sendMessage(plugin.getMessage("InvalidTicketNumber").replace("&arg", args[0]));
-				return true;
-			}
-		}
+        for (char c : args[0].toCharArray()) {
+            if (!Character.isDigit(c)) {
+                sender.sendMessage(plugin.getMessage("InvalidTicketNumber").replace("&arg", args[0]));
+                return true;
+            }
+        }
 
-		int ticketNumber = Integer.parseInt(args[0]);
+        int ticketNumber = Integer.parseInt(args[0]);
         List<Ticket> found = plugin.getManager().getTickets(table, "id = " + ticketNumber, 1);
         if (found.size() == 0) {
             sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
@@ -78,7 +78,7 @@ public class TakeTicketCommand implements CommandExecutor {
                 world = ticket.getLocation().getLocation().getWorld();
             } catch (NullPointerException e) {
                 plugin.log.warning("Location probably null: " + e.getMessage());
-			}
+            }
         }
         if (world == null) {
             String server = ticket.getLocation().getServer();
@@ -128,5 +128,5 @@ public class TakeTicketCommand implements CommandExecutor {
         }
         return false;
 
-	}
+    }
 }

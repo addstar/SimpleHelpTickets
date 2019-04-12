@@ -8,12 +8,12 @@ import java.util.logging.Logger;
 
 public abstract class Database {
 
-	Connection connection;
+    Connection connection;
     protected static int version = 1;
-	public int lastUpdate;
+    public int lastUpdate;
     protected Logger log;
 
-	Database(SimpleHelpTickets plugin) {
+    Database(SimpleHelpTickets plugin) {
 
         this(plugin.getLogger());
     }
@@ -22,17 +22,17 @@ public abstract class Database {
         this.log = log;
     }
 
-	public abstract Connection getConnection();
+    public abstract Connection getConnection();
     
     public abstract void createTable() throws SQLException;
 
     public abstract boolean clearTable(Table tableName);
 
-	public abstract void executeStatement(String query) throws SQLException;
+    public abstract void executeStatement(String query) throws SQLException;
 
-	public abstract void open() throws SQLException, ClassNotFoundException;
+    public abstract void open() throws SQLException, ClassNotFoundException;
 
-	public abstract void close();
+    public abstract void close();
     
     protected void checkVersion() {
         try {
