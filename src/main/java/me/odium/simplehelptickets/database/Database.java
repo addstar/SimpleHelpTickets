@@ -8,12 +8,12 @@ import java.util.logging.Logger;
 
 public abstract class Database {
 
-	Connection connection;
+    Connection connection;
     protected static int version = 1;
-	public int lastUpdate;
+    public int lastUpdate;
     protected Logger log;
 
-	Database(SimpleHelpTickets plugin) {
+    Database(SimpleHelpTickets plugin) {
 
         this(plugin.getLogger());
     }
@@ -22,17 +22,17 @@ public abstract class Database {
         this.log = log;
     }
 
-	public abstract Connection getConnection();
+    public abstract Connection getConnection();
     
     public abstract void createTable() throws SQLException;
 
     public abstract boolean clearTable(Table tableName);
 
-	public abstract void executeStatement(String query) throws SQLException;
+    public abstract void executeStatement(String query) throws SQLException;
 
-	public abstract void open() throws SQLException, ClassNotFoundException;
+    public abstract void open() throws SQLException, ClassNotFoundException;
 
-	public abstract void close();
+    public abstract void close();
     
     protected void checkVersion() {
         try {
@@ -40,7 +40,7 @@ public abstract class Database {
             ResultSet rs = s.executeQuery("SELECT * FROM version");
             rs.next();
             int dbVersion = rs.getInt(1);
-            if (dbVersion == version) {
+            if (dbVersion >= version) {
                 log.info("MYSQL database is up to date");
             } else {
                 update(dbVersion);
@@ -58,12 +58,12 @@ public abstract class Database {
                 switch (current) {
                     case 0:
                         for (Table table : Table.values()) {
-                            String sql = "ALTER TABLE " + table.tableName + " ADD server varchar(30) DEFAULT null  NULL; ";
+                            String sql = "ALTER TABLE " + table.tableName + " ADD server varchar(30) DEFAULT NULL";
                             this.getConnection().createStatement().executeUpdate(sql);
                         }
                         String sql = "CREATE TABLE version (version int DEFAULT 0)";
                         this.getConnection().createStatement().executeUpdate(sql);
-                        sql = "INSERT INTO VERSION (version) VALUES (1)";
+                        sql = "INSERT INTO version (version) VALUES (1)";
                         this.getConnection().createStatement().executeUpdate(sql);
                         updated = 1;
                     case 1:

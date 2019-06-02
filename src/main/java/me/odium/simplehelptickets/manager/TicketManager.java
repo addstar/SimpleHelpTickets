@@ -118,7 +118,7 @@ public class TicketManager {
         PreparedStatement insertSQL;
         try {
             updateSQL = con.prepareStatement("UPDATE " + table.tableName + " SET description = ?,adminreply = ?,admin=?,userreply=?,status=?,owner=?  WHERE id = ?");
-            String sql = "INSERT INTO " + table.tableName + "(description,date,uuid,owner,world,x,y,z,p,f,adminreply,userreply,status,admin,expiration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            String sql = "INSERT INTO " + table.tableName + " (description,date,uuid,owner,world,x,y,z,p,f,adminreply,userreply,status,admin,expiration,server) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             insertSQL = con.prepareStatement(sql);
             int done = 0;
         
@@ -163,6 +163,7 @@ public class TicketManager {
                     } else {
                         insertSQL.setTimestamp(15, expirationDate);
                     }
+                    insertSQL.setString(16, loc.getServer());
                     int r = insertSQL.executeUpdate();
                     if (r == 1) {
                         done++;
@@ -248,7 +249,8 @@ public class TicketManager {
             param++;
         }
         
-        String sql = "SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem " +
+        String sql =
+                "SELECT COUNT(uuid) AS itemTotal, MAX(UNIX_TIMESTAMP(date)) AS newestItem " +
                 "FROM " + table.tableName;
         if (param > 1) sql += " WHERE " + where;
         String uuidString = null;
@@ -350,6 +352,9 @@ public class TicketManager {
         } catch (NullPointerException ignored) {
         }
         String server = result.getString("server");
+        if (server == null) {
+            server = "Unknown";
+        }
         Location location;
         TicketLocation tL;
         if (world == null) {

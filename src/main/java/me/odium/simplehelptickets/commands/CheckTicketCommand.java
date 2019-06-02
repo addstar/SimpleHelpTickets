@@ -22,8 +22,8 @@ public class CheckTicketCommand implements CommandExecutor {
     private final SimpleHelpTickets plugin;
 
     public CheckTicketCommand(SimpleHelpTickets plugin) {
-		this.plugin = plugin;
-	}
+        this.plugin = plugin;
+    }
 
     private ResultSet rs = null;
     private java.sql.Statement stmt = null;
@@ -44,26 +44,26 @@ public class CheckTicketCommand implements CommandExecutor {
         return false;
     }
 
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		Player player = null;
-		if (sender instanceof Player) {
-			player = (Player) sender;
-		}
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        Player player = null;
+        if (sender instanceof Player) {
+            player = (Player) sender;
+        }
 
-		// Use the command name to determine if we are working with a ticket or an idea
+        // Use the command name to determine if we are working with a ticket or an idea
         Table table = TicketManager.getTableFromCommandString(label);
         String itemName = table.type;
-		String messageName;
+        String messageName;
 
-		if (args.length != 1) {
-			// Show syntax: /checkticket or /checkidea
-			sender.sendMessage(ChatColor.WHITE + "/check" + itemName + " <#>");
-			return true;
-		} else {
+        if (args.length != 1) {
+            // Show syntax: /checkticket or /checkidea
+            sender.sendMessage(ChatColor.WHITE + "/check" + itemName + " <#>");
+            return true;
+        } else {
 
             if (checkInvalidNumber(sender, args, table, plugin)) return true;
 
-			int ticketNumber = Integer.parseInt(args[0]);
+            int ticketNumber = Integer.parseInt(args[0]);
             List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + ticketNumber, 1);
             if (tickets.size() == 0) {
                 if (Objects.equals(table, Table.IDEA))
@@ -76,7 +76,7 @@ public class CheckTicketCommand implements CommandExecutor {
             if (player == null || player.hasPermission("sht.admin") || tickets.get(0).getOwner().equals(player.getUniqueId())) {
                 Utilities.displayTicket(sender, itemName, tickets.get(0), SimpleHelpTickets.instance.getConfig().getBoolean("MultiWorld", false));
             }
-			return true;
-		}
-	}
+            return true;
+        }
+    }
 }
