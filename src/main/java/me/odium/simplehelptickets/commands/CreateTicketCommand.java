@@ -1,7 +1,6 @@
 package me.odium.simplehelptickets.commands;
 
 import java.sql.*;
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -122,7 +121,7 @@ public class CreateTicketCommand implements CommandExecutor {
     }
 
 	private boolean insertRecord(CommandSender sender, Table table, String details, String userreply, String expire, String adminreply, String admin, Ticket.Status status, Location loc, String owner, UUID uuid, LocalDateTime date) {
-		TicketLocation location = new TicketLocation(loc, Bukkit.getServer().getServerId());
+		TicketLocation location = new TicketLocation(loc, plugin.getServerName());
 		Ticket ticket = new Ticket(uuid, details, date, location);
         ticket.setStatus(status);
         ticket.setAdmin(admin);

@@ -26,12 +26,12 @@ public class Ticket {
     private String admin = "";
     private Timestamp expirationDate;
 
-    public Ticket(int id, UUID owner, String description, LocalDateTime createdDate, Location location) {
+    public Ticket(int id, UUID owner, String description, LocalDateTime createdDate, Location location, String server) {
         this.id = id;
         this.owner = owner;
         this.description = description;
         this.createdDate = createdDate;
-        this.location = new TicketLocation(location, Bukkit.getServer().getServerId());
+        this.location = new TicketLocation(location, server);
     }
 
     public Ticket(int id, UUID owner, String description, LocalDateTime createdDate, TicketLocation location) {
@@ -42,11 +42,11 @@ public class Ticket {
         this.location = location;
     }
 
-    public Ticket(UUID owner, String description, LocalDateTime createdDate, Location location) {
+    public Ticket(UUID owner, String description, LocalDateTime createdDate, Location location, String server) {
         this.owner = owner;
         this.description = description;
         this.createdDate = createdDate;
-        this.location = new TicketLocation(location, Bukkit.getServer().getServerId());
+        this.location = new TicketLocation(location, server);
     }
 
     public Ticket(UUID owner, String description, LocalDateTime createdDate, TicketLocation location) {

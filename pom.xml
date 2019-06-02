@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>me.odium</groupId>
   <artifactId>simplehelptickets</artifactId>
-  <version>1.3.12-SNAPSHOT</version>
+  <version>1.4.0-SNAPSHOT</version>
     <name>SimpleHelpTickets</name>
     <description>'Simple Ticket Handling plugin integrates optionally with SimpleMail ${simplemail.version}.
         Built against Spigot ${spigot.version}.'
@@ -11,8 +11,8 @@
     <build.number />
     <plugin.version>${project.version}-${build.number}</plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <spigot.api.version>1.13</spigot.api.version>
-      <spigot.version>1.13-R0.1-SNAPSHOT</spigot.version>
+    <spigot.api.version>1.14</spigot.api.version>
+    <spigot.version>1.14.2-R0.1-SNAPSHOT</spigot.version>
       <bungeechat-bukkit.version>1.3.0-SNAPSHOT</bungeechat-bukkit.version>
     <simplemail.version>1.3.9-SNAPSHOT</simplemail.version>
   </properties>

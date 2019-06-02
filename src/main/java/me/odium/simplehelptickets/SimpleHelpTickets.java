@@ -16,7 +16,6 @@ import me.odium.simplehelptickets.listeners.PListener;
 
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.threads.TicketReminder;
-import me.odium.simplehelptickets.utilities.Utilities;
 import me.odium.test.SimpleMailPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -53,6 +52,12 @@ public class SimpleHelpTickets extends JavaPlugin {
 	private BukkitTask reminderTask;
     private boolean useMail = false;
     private SimpleMailPlugin mailPlugin;
+
+	private String serverName;
+
+	public String getServerName() {
+		return serverName;
+	}
 
 
     public TicketManager getManager() {
@@ -171,6 +176,7 @@ public class SimpleHelpTickets extends JavaPlugin {
                 e.printStackTrace();
 			}
 		}
+		this.serverName = getConfig().getString("server-id");
 		manager = new TicketManager(this);
 		if(this.getConfig().getBoolean("useSimpleMail", false)){
             Plugin plugin = Bukkit.getPluginManager().getPlugin("SimpleMail");
