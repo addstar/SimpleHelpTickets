@@ -7,11 +7,13 @@ import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.PistonMoveReaction;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.entity.*;
+import org.bukkit.entity.memory.MemoryKey;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.*;
@@ -20,11 +22,16 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 import java.util.*;
@@ -79,6 +86,11 @@ public class TestCommandSender implements Player {
     }
 
     @Override
+    public @NotNull BoundingBox getBoundingBox() {
+        return null;
+    }
+
+    @Override
     public boolean isOnGround() {
         return false;
     }
@@ -86,6 +98,16 @@ public class TestCommandSender implements Player {
     @Override
     public World getWorld() {
         return null;
+    }
+
+    /**
+     * @param v
+     * @param v1
+     * @deprecated
+     */
+    @Override
+    public void setRotation(float v, float v1) {
+
     }
 
     @Override
@@ -340,6 +362,16 @@ public class TestCommandSender implements Player {
     }
 
     @Override
+    public @NotNull BlockFace getFacing() {
+        return null;
+    }
+
+    @Override
+    public @NotNull Pose getPose() {
+        return null;
+    }
+
+    @Override
     public boolean isOnline() {
         return false;
     }
@@ -476,6 +508,26 @@ public class TestCommandSender implements Player {
 
     @Override
     public int getExpToLevel() {
+        return 0;
+    }
+
+    @Override
+    public boolean discoverRecipe(@NotNull NamespacedKey namespacedKey) {
+        return false;
+    }
+
+    @Override
+    public int discoverRecipes(@NotNull Collection<NamespacedKey> collection) {
+        return 0;
+    }
+
+    @Override
+    public boolean undiscoverRecipe(@NotNull NamespacedKey namespacedKey) {
+        return false;
+    }
+
+    @Override
+    public int undiscoverRecipes(@NotNull Collection<NamespacedKey> collection) {
         return 0;
     }
 
@@ -1000,6 +1052,21 @@ public class TestCommandSender implements Player {
     }
 
     @Override
+    public boolean sleep(@NotNull Location location, boolean b) {
+        return false;
+    }
+
+    @Override
+    public void wakeup(boolean b) {
+
+    }
+
+    @Override
+    public @NotNull Location getBedLocation() {
+        return null;
+    }
+
+    @Override
     public boolean getAllowFlight() {
         return false;
     }
@@ -1200,12 +1267,22 @@ public class TestCommandSender implements Player {
     }
 
     @Override
+    public int getClientViewDistance() {
+        return 0;
+    }
+
+    @Override
     public String getLocale() {
         return null;
     }
 
     @Override
     public void updateCommands() {
+
+    }
+
+    @Override
+    public void openBook(@NotNull ItemStack itemStack) {
 
     }
 
@@ -1311,6 +1388,26 @@ public class TestCommandSender implements Player {
 
     @Override
     public List<Block> getLastTwoTargetBlocks(Set<Material> set, int i) {
+        return null;
+    }
+
+    @Override
+    public @Nullable Block getTargetBlockExact(int i) {
+        return null;
+    }
+
+    @Override
+    public @Nullable Block getTargetBlockExact(int i, @NotNull FluidCollisionMode fluidCollisionMode) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceBlocks(double v) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceBlocks(double v, @NotNull FluidCollisionMode fluidCollisionMode) {
         return null;
     }
 
@@ -1490,6 +1587,16 @@ public class TestCommandSender implements Player {
     }
 
     @Override
+    public <T> @Nullable T getMemory(@NotNull MemoryKey<T> memoryKey) {
+        return null;
+    }
+
+    @Override
+    public <T> void setMemory(@NotNull MemoryKey<T> memoryKey, @Nullable T t) {
+
+    }
+
+    @Override
     public void setCollidable(boolean b) {
 
     }
@@ -1581,6 +1688,11 @@ public class TestCommandSender implements Player {
 
     @Override
     public <T extends Projectile> T launchProjectile(Class<? extends T> aClass, Vector vector) {
+        return null;
+    }
+
+    @Override
+    public @NotNull PersistentDataContainer getPersistentDataContainer() {
         return null;
     }
 }

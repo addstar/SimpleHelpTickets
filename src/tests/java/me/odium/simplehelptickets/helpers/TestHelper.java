@@ -18,6 +18,7 @@ import org.bukkit.plugin.*;
 import java.io.File;
 import java.io.InputStream;
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -215,13 +216,12 @@ public class TestHelper {
     public static Ticket createTestTicket(boolean withid, Player sender) {
         TicketLocation tLoc = new TicketLocation(sender.getLocation(), "TEST_SERVER");
         if (withid) {
-            Ticket ticket = new Ticket(1, sender.getUniqueId(), "This is a Test ticket",
-                    new Date(System.currentTimeMillis()), tLoc);
+            Ticket ticket = new Ticket(1, sender.getUniqueId(), "This is a Test ticket", LocalDateTime.now(), tLoc);
             ticket.setOwnerName(sender.getDisplayName());
             return ticket;
         }
         Ticket ticket = new Ticket(sender.getUniqueId(), "This is a Test ticket",
-                new Date(System.currentTimeMillis()), tLoc);
+                LocalDateTime.now(), tLoc);
         ticket.setOwnerName(sender.getDisplayName());
         return ticket;
     }

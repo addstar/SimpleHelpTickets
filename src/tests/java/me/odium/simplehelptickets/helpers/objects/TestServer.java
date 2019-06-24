@@ -3,10 +3,7 @@ package me.odium.simplehelptickets.helpers.objects;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarFlag;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
+import org.bukkit.boss.*;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -26,6 +23,8 @@ import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.util.CachedServerIcon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -76,16 +75,6 @@ public class TestServer implements Server {
     @Override
     public String getIp() {
         return "127.0.0.1";
-    }
-
-    @Override
-    public String getServerName() {
-        return "TEST";
-    }
-
-    @Override
-    public String getServerId() {
-        return "TEST";
     }
 
     @Override
@@ -223,13 +212,27 @@ public class TestServer implements Server {
         return null;
     }
 
+    /**
+     * @param i
+     * @deprecated
+     */
     @Override
-    public MapView getMap(short i) {
+    public @Nullable MapView getMap(int i) {
         return null;
     }
 
     @Override
     public MapView createMap(World world) {
+        return null;
+    }
+
+    @Override
+    public @NotNull ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType) {
+        return null;
+    }
+
+    @Override
+    public @NotNull ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType, int i, boolean b) {
         return null;
     }
 
@@ -514,6 +517,26 @@ public class TestServer implements Server {
     }
 
     @Override
+    public @NotNull KeyedBossBar createBossBar(@NotNull NamespacedKey namespacedKey, @Nullable String s, @NotNull BarColor barColor, @NotNull BarStyle barStyle, @NotNull BarFlag... barFlags) {
+        return null;
+    }
+
+    @Override
+    public @NotNull Iterator<KeyedBossBar> getBossBars() {
+        return null;
+    }
+
+    @Override
+    public @Nullable KeyedBossBar getBossBar(@NotNull NamespacedKey namespacedKey) {
+        return null;
+    }
+
+    @Override
+    public boolean removeBossBar(@NotNull NamespacedKey namespacedKey) {
+        return false;
+    }
+
+    @Override
     public Entity getEntity(UUID uuid) {
         return null;
     }
@@ -554,7 +577,17 @@ public class TestServer implements Server {
     }
 
     @Override
+    public @NotNull <T extends Keyed> Iterable<Tag<T>> getTags(@NotNull String s, @NotNull Class<T> aClass) {
+        return null;
+    }
+
+    @Override
     public LootTable getLootTable(NamespacedKey namespacedKey) {
+        return null;
+    }
+
+    @Override
+    public @NotNull List<Entity> selectEntities(@NotNull CommandSender commandSender, @NotNull String s) throws IllegalArgumentException {
         return null;
     }
 

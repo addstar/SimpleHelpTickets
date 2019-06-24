@@ -33,14 +33,17 @@ public class TicketManager {
     
     private final Database database;
     private final Logger log;
-    
+    private final boolean reminderIdeas;
+
     public TicketManager(SimpleHelpTickets plugin) {
-        this(plugin.databaseService, plugin.getLogger());
+        this(plugin.databaseService, plugin.getLogger(), plugin.getConfig().getBoolean("TicketReminder.includeIdeas", true));
     }
-    
-    public TicketManager(Database database, Logger log) {
+
+    public TicketManager(Database database, Logger log, boolean reminderIdeas) {
         this.database = database;
         this.log = log;
+        this.reminderIdeas = reminderIdeas;
+
     }
     
     public static Table getTableName(String identifier) {
@@ -73,9 +76,11 @@ public class TicketManager {
         if (total > 0) {
             player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoin").replace("&arg", total + ""));
         }
-        int ideas = getTickets(Table.IDEA, null, Ticket.Status.OPEN).size();
-        if (ideas > 0) {
-            player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoinIdeas").replace("&arg", ideas + ""));
+        if (reminderIdeas) {
+            int ideas = getTickets(Table.IDEA, null, Ticket.Status.OPEN).size();
+            if (ideas > 0) {
+                player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoinIdeas").replace("&arg", ideas + ""));
+            }
         }
     }
     
@@ -259,7 +264,10 @@ public class TicketManager {
             uuidString = player.getUniqueId().toString();
         if (status != null)
             statusString = status.name();
-        try (PreparedStatement statement = database.getConnection().prepareStatement(sql)) {
+        try (
+                Connection conn = database.getConnection();
+                PreparedStatement statement = conn.prepareStatement(sql)
+        ) {
             if (playerIndex > 0) statement.setString(playerIndex, uuidString);
             if (statusIndex > 0) statement.setString(statusIndex, statusString);
             if (idIndex > 0) statement.setInt(idIndex, ticketId);

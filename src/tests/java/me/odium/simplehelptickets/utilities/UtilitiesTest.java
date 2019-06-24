@@ -1,5 +1,6 @@
 package me.odium.simplehelptickets.utilities;
 
+import me.odium.simplehelptickets.database.DBConnection;
 import me.odium.simplehelptickets.database.Database;
 import me.odium.simplehelptickets.database.MySQLConnection;
 import me.odium.simplehelptickets.database.Table;
@@ -11,9 +12,15 @@ import me.odium.simplehelptickets.objects.Ticket;
 import org.bukkit.entity.Player;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.sql.Date;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -24,14 +31,9 @@ import static org.junit.Assert.*;
  */
 public class UtilitiesTest {
     
-    private TicketManager manager;
     private Player testSender;
-    
     @Before
     public void setup() {
-        Logger log = Logger.getLogger("Test");
-        Database database = new MySQLConnection(null, log);
-        manager = new TicketManager(database, log);
         testSender = new TestCommandSender();
         TestWorld world = new TestWorld();
         testSender.teleport(world.getSpawnLocation());
@@ -40,8 +42,8 @@ public class UtilitiesTest {
     @Test
     public void dateToString() {
         Date date = new Date(1541332471807L);
-        String sDate = Utilities.dateToString(date);
-        assertEquals("2018-11-04", sDate);
+        String sDate = Utilities.dateToString(date, SimpleDateFormat.getDateInstance());
+        assertEquals("04/11/2018", sDate);
     }
 
     @Test

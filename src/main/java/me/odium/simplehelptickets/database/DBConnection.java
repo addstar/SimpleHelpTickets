@@ -3,20 +3,27 @@ package me.odium.simplehelptickets.database;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.utilities.Utilities;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.logging.Logger;
 
 public class DBConnection extends Database {
     private final Statement stmt = null;
 
-    SimpleHelpTickets plugin;
+    private SimpleHelpTickets plugin;
 
+    private File file;
+
+    public DBConnection(File path, Logger logger) {
+        super(logger);
+        String pathname;
+        file = new File(path, "tickets.db");
+    }
     public DBConnection(SimpleHelpTickets plugin) {
-        super(plugin);
+        this(plugin.getDataFolder(), plugin.getLogger());
+        this.plugin = plugin;
     }
 
     /**
@@ -31,11 +38,17 @@ public class DBConnection extends Database {
     public void open() throws SQLException, ClassNotFoundException {
         Class.forName("org.sqlite.JDBC");
         // con = DriverManager.getConnection("jdbc:sqlite:Tickets.db");
-        connection = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + File.separator + "Tickets.db");
-
+        connection = DriverManager.getConnection("jdbc:sqlite:" + this.file.getAbsolutePath());
     }
 
+    @Nullable
     public Connection getConnection() {
+        try {
+            close();
+            open();
+        } catch (ClassNotFoundException | SQLException e) {
+            log.warning(e.getMessage());
+        }
         return connection;
     }
 
@@ -56,11 +69,11 @@ public class DBConnection extends Database {
                     + "admin varchar(30), expiration timestamp, server varchar(30))";
             
             String queryTickets =
-                    "CREATE TABLE IF NOT EXISTS " + TicketManager.getTableName("ticket") + " " + columnList;
+                    "CREATE TABLE IF NOT EXISTS " + TicketManager.getTableName("ticket").tableName + " " + columnList;
             stmt.executeUpdate(queryTickets);
             
             String queryIdeas =
-                    "CREATE TABLE IF NOT EXISTS " + TicketManager.getTableName("idea") + " " + columnList;
+                    "CREATE TABLE IF NOT EXISTS " + TicketManager.getTableName("idea").tableName + " " + columnList;
             stmt.executeUpdate(queryIdeas);
 
             stmt.close();

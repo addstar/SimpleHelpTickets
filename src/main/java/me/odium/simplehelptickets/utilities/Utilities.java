@@ -1,12 +1,12 @@
 package me.odium.simplehelptickets.utilities;
 
 
-import me.odium.simplehelptickets.SimpleHelpTickets;
 import me.odium.simplehelptickets.objects.Ticket;
 import me.odium.simplehelptickets.objects.TicketLocation;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,7 +15,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
 
 public class Utilities {
 
@@ -47,7 +46,7 @@ public class Utilities {
         return dateToString(cal.getTime(), dateFormatter);
     }
 
-    public static String dateToString(Date date, SimpleDateFormat dateFormatter) {
+    public static String dateToString(Date date, DateFormat dateFormatter) {
         return dateFormatter.format(date.getTime());
     }
 

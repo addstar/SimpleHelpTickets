@@ -1,7 +1,7 @@
 package me.odium.simplehelptickets.database;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,25 +18,30 @@ public class MySQLConnection extends Database {
     private final Properties properties;
     private String database = "simpletickets";
 
-    public MySQLConnection(ConfigurationSection section, Logger log) {
+    public MySQLConnection(String host, String port, Properties properties, String database, Logger log) {
         super(log);
-        properties = new Properties();
-        if (section == null) {
-            properties.put("user", "simpletickets");
-            properties.put("password", "simpletickets");
-            properties.put("useSSL", "false");
-        } else {
-            hostname = section.getString("hostname");
-            port = section.getString("hostport", "3306");
-            database = section.getString("database", "simpletickets");
-            properties.put("user", section.getString("user", "simpletickets"));
-            properties.put("password", section.getString("password", "simpletickets"));
-            ConfigurationSection dbprops = section.getConfigurationSection("properties");
-            properties.put("useSSL", dbprops.getString("useSSL", "false"));
-        }
+        this.hostname = host;
+        this.port = port;
+        this.properties = properties;
+        this.database = database;
         open();
     }
 
+    public MySQLConnection(ConfigurationSection section, Logger log) {
+        this(section.getString("hostname", "localhost"), section.getString("hostport", "3306"), getProperties(section), section.getString("database", "simpletickets"), log);
+        open();
+    }
+
+    private static Properties getProperties(ConfigurationSection config) {
+        if (config == null)
+            config = new MemoryConfiguration();
+        Properties props = new Properties();
+        props.put("user", config.getString("user", "simpletickets"));
+        props.put("password", config.getString("password", "simpletickets"));
+        ConfigurationSection dbprops = config.getConfigurationSection("properties");
+        props.put("useSSL", dbprops.getString("useSSL", "false"));
+        return props;
+    }
 
     /**
      * open database connection

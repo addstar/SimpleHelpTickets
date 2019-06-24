@@ -11,11 +11,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Consumer;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Created for the AddstarMC Project. Created by Narimm on 6/11/2018.
@@ -93,7 +98,12 @@ public class TestWorld implements World {
     public boolean isChunkLoaded(int i, int i1) {
         return false;
     }
-    
+
+    @Override
+    public boolean isChunkGenerated(int i, int i1) {
+        return false;
+    }
+
     @Override
     public boolean isChunkInUse(int i, int i1) {
         return false;
@@ -124,20 +134,12 @@ public class TestWorld implements World {
         return false;
     }
     
-    @Override
-    public boolean unloadChunk(int i, int i1, boolean b, boolean b1) {
-        return false;
-    }
-    
+
     @Override
     public boolean unloadChunkRequest(int i, int i1) {
         return false;
     }
-    
-    @Override
-    public boolean unloadChunkRequest(int i, int i1, boolean b) {
-        return false;
-    }
+
     
     @Override
     public boolean regenerateChunk(int i, int i1) {
@@ -148,7 +150,22 @@ public class TestWorld implements World {
     public boolean refreshChunk(int i, int i1) {
         return false;
     }
-    
+
+    @Override
+    public boolean isChunkForceLoaded(int i, int i1) {
+        return false;
+    }
+
+    @Override
+    public void setChunkForceLoaded(int i, int i1, boolean b) {
+
+    }
+
+    @Override
+    public @NotNull Collection<Chunk> getForceLoadedChunks() {
+        return null;
+    }
+
     @Override
     public Item dropItem(Location location, ItemStack itemStack) {
         return null;
@@ -163,12 +180,13 @@ public class TestWorld implements World {
     public Arrow spawnArrow(Location location, Vector vector, float v, float v1) {
         return null;
     }
-    
+
     @Override
-    public <T extends Arrow> T spawnArrow(Location location, Vector vector, float v, float v1, Class<T> aClass) {
+    public <T extends AbstractArrow> @NotNull T spawnArrow(@NotNull Location location, @NotNull Vector vector, float v, float v1, @NotNull Class<T> aClass) {
         return null;
     }
-    
+
+
     @Override
     public boolean generateTree(Location location, TreeType treeType) {
         return false;
@@ -228,7 +246,62 @@ public class TestWorld implements World {
     public Collection<Entity> getNearbyEntities(Location location, double v, double v1, double v2) {
         return null;
     }
-    
+
+    @Override
+    public @NotNull Collection<Entity> getNearbyEntities(@NotNull Location location, double v, double v1, double v2, @Nullable Predicate<Entity> predicate) {
+        return null;
+    }
+
+    @Override
+    public @NotNull Collection<Entity> getNearbyEntities(@NotNull BoundingBox boundingBox) {
+        return null;
+    }
+
+    @Override
+    public @NotNull Collection<Entity> getNearbyEntities(@NotNull BoundingBox boundingBox, @Nullable Predicate<Entity> predicate) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceEntities(@NotNull Location location, @NotNull Vector vector, double v) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceEntities(@NotNull Location location, @NotNull Vector vector, double v, double v1) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceEntities(@NotNull Location location, @NotNull Vector vector, double v, @Nullable Predicate<Entity> predicate) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceEntities(@NotNull Location location, @NotNull Vector vector, double v, double v1, @Nullable Predicate<Entity> predicate) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceBlocks(@NotNull Location location, @NotNull Vector vector, double v) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceBlocks(@NotNull Location location, @NotNull Vector vector, double v, @NotNull FluidCollisionMode fluidCollisionMode) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceBlocks(@NotNull Location location, @NotNull Vector vector, double v, @NotNull FluidCollisionMode fluidCollisionMode, boolean b) {
+        return null;
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTrace(@NotNull Location location, @NotNull Vector vector, double v, @NotNull FluidCollisionMode fluidCollisionMode, boolean b, double v1, @Nullable Predicate<Entity> predicate) {
+        return null;
+    }
+
     @Override
     public String getName() {
         return name;
@@ -723,7 +796,22 @@ public class TestWorld implements World {
     public <T> void spawnParticle(Particle particle, double v, double v1, double v2, int i, double v3, double v4, double v5, double v6, T t) {
     
     }
-    
+
+    @Override
+    public <T> void spawnParticle(@NotNull Particle particle, @NotNull Location location, int i, double v, double v1, double v2, double v3, @Nullable T t, boolean b) {
+
+    }
+
+    @Override
+    public <T> void spawnParticle(@NotNull Particle particle, double v, double v1, double v2, int i, double v3, double v4, double v5, double v6, @Nullable T t, boolean b) {
+
+    }
+
+    @Override
+    public @Nullable Location locateNearestStructure(@NotNull Location location, @NotNull StructureType structureType, int i, boolean b) {
+        return null;
+    }
+
     @Override
     public Spigot spigot() {
         return null;

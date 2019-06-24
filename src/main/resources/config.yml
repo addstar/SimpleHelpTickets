@@ -22,6 +22,7 @@ OnJoin:
 TicketReminder:
   SetReminder: true
   PeriodInMinutes: 60
+  includeIdeas: true
 MySQL:
   USE_MYSQL: true
   hostname: localhost
