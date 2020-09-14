@@ -278,7 +278,7 @@ public class FindTicketsCommand implements CommandExecutor {
                 }
             }
         } catch (Exception e) {
-            sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+            sender.sendMessage(plugin.getMessage("Error").replace("%arg%", e.toString()));
             return true;
         }
 
@@ -342,7 +342,7 @@ public class FindTicketsCommand implements CommandExecutor {
             return true;
 
         } catch (Exception e) {
-            sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+            sender.sendMessage(plugin.getMessage("Error").replace("%arg%", e.toString()));
             return true;
         }
 

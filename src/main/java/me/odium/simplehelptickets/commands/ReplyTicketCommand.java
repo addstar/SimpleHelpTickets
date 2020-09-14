@@ -50,7 +50,7 @@ public class ReplyTicketCommand implements CommandExecutor {
             String details = sb.toString().replace("'", "''");
         List<Ticket> found = plugin.getManager().getTickets(table, "id=" + id, 1);
         if (found.size() == 0) {
-            sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
+            sender.sendMessage(plugin.getMessage(notExistMessageName).replace("%arg%", args[0]));
             return true;
         }
         Ticket ticket = found.get(0);
@@ -83,7 +83,7 @@ public class ReplyTicketCommand implements CommandExecutor {
                         else
                             messageName = "UserRepliedToTicket";
 
-                        String msg = plugin.getMessage(messageName).replace("%player", player.getName()).replace("&arg", idText);
+                        String msg = plugin.getMessage(messageName).replace("%player%", player.getName()).replace("%arg%", idText);
                         plugin.notifyAdmins(msg, sender);
                         return true;
                     }
@@ -101,7 +101,7 @@ public class ReplyTicketCommand implements CommandExecutor {
                         else
                             messageName = "AdminRepliedToTicket";
 
-                        String msg = plugin.getMessage(messageName).replace("&arg", idText);
+                        String msg = plugin.getMessage(messageName).replace("%arg%", idText);
                         plugin.notifyAdmins(msg, null);
                         return true;
                     }
@@ -118,7 +118,7 @@ public class ReplyTicketCommand implements CommandExecutor {
         else
             messageName = "AdminRepliedToTicketOWNER";
 
-        plugin.notifyUser(plugin.getMessage(messageName).replace("&arg", String.valueOf(id)).replace("&admin", admin), owner);
+        plugin.notifyUser(plugin.getMessage(messageName).replace("%arg%", String.valueOf(id)).replace("%admin%", admin), owner);
 
     }
 
@@ -130,7 +130,7 @@ public class ReplyTicketCommand implements CommandExecutor {
         else
             messageName = "AdminRepliedToTicket";
 
-        sender.sendMessage(plugin.getMessage(messageName).replace("&arg", String.valueOf(id)));
+        sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", String.valueOf(id)));
 
     }
 
@@ -155,7 +155,7 @@ public class ReplyTicketCommand implements CommandExecutor {
 
             for (char c : args[0].toCharArray()) {
                 if (!Character.isDigit(c)) {
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+                    sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", args[0]));
                     return true;
                 }
             }

@@ -74,12 +74,12 @@ public class TicketManager {
     public void ShowAdminTickets(Player player) {
         int total = getTickets(Table.TICKET, null, Ticket.Status.OPEN).size();
         if (total > 0) {
-            player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoin").replace("&arg", total + ""));
+            player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoin").replace("%arg%", total + ""));
         }
         if (reminderIdeas) {
             int ideas = getTickets(Table.IDEA, null, Ticket.Status.OPEN).size();
             if (ideas > 0) {
-                player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoinIdeas").replace("&arg", ideas + ""));
+                player.sendMessage(SimpleHelpTickets.instance.getMessage("AdminJoinIdeas").replace("%arg%", ideas + ""));
             }
         }
     }
@@ -303,7 +303,7 @@ public class TicketManager {
     private void showPlayerOpenTickets(Player player) {
         int ticket = getTickets(Table.TICKET, player, Ticket.Status.OPEN).size();
         if (ticket > 0) {
-            player.sendMessage(SimpleHelpTickets.instance.getMessage("UserJoin").replace("&arg", ticket + ""));
+            player.sendMessage(SimpleHelpTickets.instance.getMessage("UserJoin").replace("%arg%", ticket + ""));
         }
     }
     
@@ -409,7 +409,7 @@ public class TicketManager {
             s.close();
             con.close();
         } catch (SQLException e) {
-            log.warning(SimpleHelpTickets.instance.getMessage("Error").replace("&arg", e.getMessage()));
+            log.warning(SimpleHelpTickets.instance.getMessage("Error").replace("%arg%", e.getMessage()));
             e.printStackTrace();
             return results;
         }

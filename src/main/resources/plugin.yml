@@ -3,6 +3,8 @@ main: me.odium.simplehelptickets.SimpleHelpTickets
 version: ${plugin.version}
 api: ${spigot.api.version}
 description: ${project.description}
+depends: [BungeeChat-Bukkit]
+soft-depends: [SimpleMail]
 commands:
    sht:
       aliases: [helptickets, simplehelptickets]

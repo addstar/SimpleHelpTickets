@@ -37,7 +37,7 @@ public class CheckTicketCommand implements CommandExecutor {
                 else
                     messageName = "InvalidTicketNumber";
 
-                sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+                sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", args[0]));
                 return true;
             }
         }
@@ -70,7 +70,7 @@ public class CheckTicketCommand implements CommandExecutor {
                     messageName = "IdeaNotExist";
                 else
                     messageName = "TicketNotExist";
-                sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+                sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", args[0]));
                 return true;
             }
             if (player == null || player.hasPermission("sht.admin") || tickets.get(0).getOwner().equals(player.getUniqueId())) {

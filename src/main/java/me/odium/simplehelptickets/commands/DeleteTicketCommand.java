@@ -52,7 +52,7 @@ public class DeleteTicketCommand implements CommandExecutor {
 
             for (char c : args[0].toCharArray()) {
                 if (!Character.isDigit(c)) {
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+                    sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", args[0]));
                     return true;
                 }
             }
@@ -63,12 +63,12 @@ public class DeleteTicketCommand implements CommandExecutor {
                 try {
                     id = Integer.parseInt(args[0]);
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+                    sender.sendMessage(plugin.getMessage("Error").replace("%arg%", e.toString()));
                     return true;
                 }
                 Pair<Integer, Long> result = plugin.getManager().getTicketCount(null, table, null, id);
                 if (result.object1 == 0) {
-                    sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
+                    sender.sendMessage(plugin.getMessage(notExistMessageName).replace("%arg%", args[0]));
                     return true;
                 }
                 Integer deleted = plugin.getManager().deleteTicketbyId(table, id);
@@ -85,12 +85,12 @@ public class DeleteTicketCommand implements CommandExecutor {
                 try {
                     id = Integer.parseInt(args[0]);
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(plugin.getMessage("Error").replace("&arg", e.toString()));
+                    sender.sendMessage(plugin.getMessage("Error").replace("%arg%", e.toString()));
                     return true;
                     }
                 Pair<Integer, Long> result = plugin.getManager().getTicketCount(null, table, null, id);
                 if (result.object1 == 0) {
-                        sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
+                        sender.sendMessage(plugin.getMessage(notExistMessageName).replace("%arg%", args[0]));
                         return true;
                     }
                 List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + id, 1);

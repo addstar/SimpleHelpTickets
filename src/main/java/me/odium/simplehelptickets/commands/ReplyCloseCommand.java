@@ -55,7 +55,7 @@ public class ReplyCloseCommand implements CommandExecutor {
 
             for (char c : args[0].toCharArray()) {
                 if (!Character.isDigit(c)) {
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+                    sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", args[0]));
                     return true;
                 }
             }
@@ -64,7 +64,7 @@ public class ReplyCloseCommand implements CommandExecutor {
             int id = Integer.parseInt(args[0]);
             List<Ticket> found = plugin.getManager().getTickets(table, "id = " + id, 1);
             if (found.size() == 0) {
-                sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
+                sender.sendMessage(plugin.getMessage(notExistMessageName).replace("%arg%", args[0]));
                 return true;
             }
             Ticket ticket = found.get(0);
@@ -74,7 +74,7 @@ public class ReplyCloseCommand implements CommandExecutor {
                 else
                     messageName = "TicketAlreadyClosed";
 
-                sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[0]));
+                sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", args[0]));
                 return true;
             }
             boolean success = ReplyTicketCommand.ReplyItem(plugin, sender, table, id, args);

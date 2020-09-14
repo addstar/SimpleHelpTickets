@@ -144,12 +144,12 @@ public class CreateTicketCommand implements CommandExecutor {
 
         if (Objects.equals(table, Table.IDEA)) {
             if (itemTotal >= maxIdeas) {
-                sender.sendMessage(plugin.getMessage("IdeaMax").replace("&arg", Integer.toString(maxIdeas)));
+                sender.sendMessage(plugin.getMessage("IdeaMax").replace("%arg%", Integer.toString(maxIdeas)));
                 return true;
             }
         }
         else if (itemTotal >= maxTickets) {
-            sender.sendMessage(plugin.getMessage("TicketMax").replace("&arg", Integer.toString(maxTickets)));
+            sender.sendMessage(plugin.getMessage("TicketMax").replace("%arg%", Integer.toString(maxTickets)));
             return true;
         }
 
@@ -174,7 +174,7 @@ public class CreateTicketCommand implements CommandExecutor {
         else
             messageName = "TicketOpenADMIN";
 
-        String msg = plugin.getMessage(messageName).replace("%player", sender.getName());
+        String msg = plugin.getMessage(messageName).replace("%player%", sender.getName());
         plugin.notifyAdmins(msg, sender);
 
     }
@@ -212,7 +212,7 @@ public class CreateTicketCommand implements CommandExecutor {
                 remainingTime = Long.toString(minutesRemaining) + " minutes, " + Integer.toString(secondsRemaining) + " seconds";
             }
 
-            sender.sendMessage(plugin.getMessage(messageName).replace("&arg", remainingTime));
+            sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", remainingTime));
 
             return true;
         }

@@ -48,7 +48,7 @@ public class CloseTicketCommand implements CommandExecutor {
         }
         Pair<Integer, Long> result = plugin.getManager().getTicketCount(null, table, Ticket.Status.OPEN, id);
         if (result.object1 == 0) {
-            sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", idText));
+            sender.sendMessage(plugin.getMessage(notExistMessageName).replace("%arg%", idText));
             return true;
         }
         List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + id, 1);
@@ -59,7 +59,7 @@ public class CloseTicketCommand implements CommandExecutor {
             else
                 messageName = "TicketAlreadyClosed";
 
-            sender.sendMessage(plugin.getMessage(messageName).replace("&arg", idText));
+            sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", idText));
             return true;
         }
 
@@ -82,8 +82,8 @@ public class CloseTicketCommand implements CommandExecutor {
                     messageName = "TicketClosed";
                     mailmessageName = "TicketClosedMail";
                 }
-                sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id));
-                plugin.sendMailOnClose(sender, ticket.getOwnerName(), plugin.getMessage(mailmessageName).replace("&arg", "" + id));
+                sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", "" + id));
+                plugin.sendMailOnClose(sender, ticket.getOwnerName(), plugin.getMessage(mailmessageName).replace("%arg%", "" + id));
 
                 if (Objects.equals(table, Table.IDEA)) {
                     messageName = "IdeaClosedADMIN";
@@ -91,7 +91,7 @@ public class CloseTicketCommand implements CommandExecutor {
                     messageName = "TicketClosedADMIN";
                 }
 
-                String msg = plugin.getMessage(messageName).replace("&arg", "" + idText).replace("&admin", admin);
+                String msg = plugin.getMessage(messageName).replace("%arg%", "" + idText).replace("%admin%", admin);
                 plugin.notifyAdmins(msg, null);
             } else {
                 sender.sendMessage("Unknown  error closing Ticket");
@@ -140,7 +140,7 @@ public class CloseTicketCommand implements CommandExecutor {
                     else
                         messageName = "InvalidTicketNumber";
 
-                    sender.sendMessage(plugin.getMessage(messageName).replace("&arg", args[1]));
+                    sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", args[1]));
                     return true;
                 }
             }
@@ -148,7 +148,7 @@ public class CloseTicketCommand implements CommandExecutor {
             int id = Integer.parseInt(args[1]);
             List<Ticket> tickets = plugin.getManager().getTickets(table, "id = " + id, 1);
             if (!(tickets.size() == 1)) {
-                sender.sendMessage(plugin.getMessage("TicketNotExist").replace("&arg", args[1]));
+                sender.sendMessage(plugin.getMessage("TicketNotExist").replace("%arg%", args[1]));
                 return false;
             }
             Ticket ticket = tickets.get(0);
@@ -177,14 +177,14 @@ public class CloseTicketCommand implements CommandExecutor {
                     messageName = "IdeaReopened";
                 else
                     messageName = "TicketReopened";
-                sender.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
+                sender.sendMessage(plugin.getMessage(messageName).replace("%arg%", "" + id).replace("%admin%", admin));
                 if (target != null && target != player) {
 
                     if (Objects.equals(table, Table.IDEA))
                         messageName = "IdeaReopenedOWNER";
                     else
                         messageName = "TicketReopenedOWNER";
-                    target.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
+                    target.sendMessage(plugin.getMessage(messageName).replace("%arg%", "" + id).replace("%admin%", admin));
                 }
                 if (Objects.equals(table, Table.IDEA))
                     messageName = "IdeaReopenedADMIN";
@@ -195,7 +195,7 @@ public class CloseTicketCommand implements CommandExecutor {
                 Collection<? extends Player> players = Bukkit.getOnlinePlayers();
                 for (Player op : players) {
                     if (op.hasPermission("sht.admin") && plugin.getConfig().getBoolean("NotifyAdminOnTicketClose") && op != sender) {
-                        op.sendMessage(plugin.getMessage(messageName).replace("&arg", "" + id).replace("&admin", admin));
+                        op.sendMessage(plugin.getMessage(messageName).replace("%arg%", "" + id).replace("%admin%", admin));
                     }
                 }
 

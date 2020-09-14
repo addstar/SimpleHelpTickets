@@ -55,7 +55,7 @@ public class TakeTicketCommand implements CommandExecutor {
 
         for (char c : args[0].toCharArray()) {
             if (!Character.isDigit(c)) {
-                sender.sendMessage(plugin.getMessage("InvalidTicketNumber").replace("&arg", args[0]));
+                sender.sendMessage(plugin.getMessage("InvalidTicketNumber").replace("%arg%", args[0]));
                 return true;
             }
         }
@@ -63,7 +63,7 @@ public class TakeTicketCommand implements CommandExecutor {
         int ticketNumber = Integer.parseInt(args[0]);
         List<Ticket> found = plugin.getManager().getTickets(table, "id = " + ticketNumber, 1);
         if (found.size() == 0) {
-            sender.sendMessage(plugin.getMessage(notExistMessageName).replace("&arg", args[0]));
+            sender.sendMessage(plugin.getMessage(notExistMessageName).replace("%arg%", args[0]));
             return true;
         }
         Ticket ticket = found.get(0);
@@ -92,7 +92,7 @@ public class TakeTicketCommand implements CommandExecutor {
         String owner = ticket.getOwnerName();
         Ticket.Status status = ticket.getStatus();
         if (status == Ticket.Status.CLOSE) {
-            sender.sendMessage(plugin.getMessage("CannotTakeClosedTicket").replace("&arg", String.valueOf(id)));
+            sender.sendMessage(plugin.getMessage("CannotTakeClosedTicket").replace("%arg%", String.valueOf(id)));
             return true;
         }
 
@@ -112,7 +112,7 @@ public class TakeTicketCommand implements CommandExecutor {
             else
                 messageName = "TakeTicketADMIN";
 
-            String msg = plugin.getMessage(messageName).replace("&arg", String.valueOf(id)).replace("&admin", admin);
+            String msg = plugin.getMessage(messageName).replace("%arg%", String.valueOf(id)).replace("%admin%", admin);
             plugin.notifyAdmins(msg, player);
 
             // NOTIFY USER
@@ -121,7 +121,7 @@ public class TakeTicketCommand implements CommandExecutor {
             else
                 messageName = "TakeTicketOWNER";
 
-            msg = plugin.getMessage(messageName).replace("&arg", String.valueOf(id)).replace("&admin", admin);
+            msg = plugin.getMessage(messageName).replace("%arg%", String.valueOf(id)).replace("%admin%", admin);
             plugin.notifyUser(msg, owner);
 
             return true;
