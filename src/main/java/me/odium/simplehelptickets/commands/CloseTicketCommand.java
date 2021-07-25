@@ -5,14 +5,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import javafx.scene.control.Tab;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
 import me.odium.simplehelptickets.database.Table;
 import me.odium.simplehelptickets.manager.TicketManager;
 import me.odium.simplehelptickets.objects.Pair;
 import me.odium.simplehelptickets.objects.Ticket;
-import me.odium.simplehelptickets.utilities.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

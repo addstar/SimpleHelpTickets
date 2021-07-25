@@ -82,9 +82,8 @@
 
     <dependency>
       <groupId>au.com.addstar</groupId>
-      <artifactId>BungeeChat-Bukkit</artifactId>
-      <version>${bungeechat-bukkit.version}</version>
-      <scope>provided</scope>
+      <artifactId>Pandora</artifactId>
+      <version>1.16.5-SNAPSHOT</version>
     </dependency>
 
     <dependency>

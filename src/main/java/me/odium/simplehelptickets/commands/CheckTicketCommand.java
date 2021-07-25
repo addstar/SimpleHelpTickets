@@ -4,7 +4,6 @@ import java.sql.ResultSet;
 import java.util.List;
 import java.util.Objects;
 
-import javafx.scene.control.Tab;
 import me.odium.simplehelptickets.SimpleHelpTickets;
 
 import me.odium.simplehelptickets.database.Table;

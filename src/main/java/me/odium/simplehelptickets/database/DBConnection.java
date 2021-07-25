@@ -2,8 +2,6 @@ package me.odium.simplehelptickets.database;
 
 import me.odium.simplehelptickets.SimpleHelpTickets;
 import me.odium.simplehelptickets.manager.TicketManager;
-import me.odium.simplehelptickets.utilities.Utilities;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.sql.*;
@@ -41,7 +39,6 @@ public class DBConnection extends Database {
         connection = DriverManager.getConnection("jdbc:sqlite:" + this.file.getAbsolutePath());
     }
 
-    @Nullable
     public Connection getConnection() {
         try {
             close();

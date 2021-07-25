@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import au.com.addstar.pandora.MasterPlugin;
 import me.odium.simplehelptickets.commands.*;
 import me.odium.simplehelptickets.database.DBConnection;
 import me.odium.simplehelptickets.database.Database;
@@ -27,8 +28,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import au.com.addstar.bc.BungeeChat;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -190,9 +189,6 @@ public class SimpleHelpTickets extends JavaPlugin {
         // Check for and delete any expired tickets, display progress.
         log.info("[SimpleHelpTickets] " + expireTickets() + " Expired Tickets Deleted");
 
-        if (getConfig().getBoolean("BungeeChatIntegration", false)) {
-            getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        }
         if(this.getConfig().getBoolean("TicketReminder.SetReminder",true)) {
             enableReminder();
         }
@@ -629,13 +625,14 @@ public class SimpleHelpTickets extends JavaPlugin {
             uuid = ply.getUniqueId();
         }
 
-        if (getConfig().getBoolean("BungeeChatIntegration", false)) {
+        if (getConfig().getBoolean("ChatControlIntegration", false)) {
             // Ensure staff see the message regardless of which server they are on
-            String staffChannel = getConfig().getString("BungeeChatStaffChannel");
-            if (staffChannel == null){
-                sender.sendMessage("Config file is missing setting BungeeChatStaffChannel");
-            }else {
-                BungeeChat.mirrorChat(msg, staffChannel);
+            String staffChannel = getConfig().getString("ChatControlStaffChannel");
+            if (staffChannel == null) {
+                sender.sendMessage("Config file is missing setting ChatControlStaffChannel");
+            } else {
+                MasterPlugin.getInstance().sendChatControlMessage(
+                        Bukkit.getConsoleSender(), staffChannel, msg);
             }
         }
 
@@ -659,7 +656,7 @@ public class SimpleHelpTickets extends JavaPlugin {
         if (ply != null) {
             ply.sendMessage(msg);
         } else {
-            if (getConfig().getBoolean("BungeeChatIntegration", false)) {
+            if (getConfig().getBoolean("ChatControltIntegration", false)) {
                 SendPluginMessage("Message", player, msg);
             }
         }
